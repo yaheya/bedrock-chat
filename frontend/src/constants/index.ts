@@ -1,23 +1,4 @@
-import { EmdeddingParams, GenerationParams, SearchParams } from '../@types/bot';
-
-export const DEFAULT_EMBEDDING_CONFIG: EmdeddingParams = {
-  chunkSize: 1000,
-  chunkOverlap: 200,
-  enablePartitionPdf: false,
-};
-
-export const EDGE_EMBEDDING_PARAMS = {
-  chunkSize: {
-    MAX: 2048,
-    MIN: 512,
-    STEP: 2,
-  },
-  chunkOverlap: {
-    MAX: 1024,
-    MIN: 128,
-    STEP: 2,
-  },
-};
+import { GenerationParams } from '../@types/bot';
 
 export const EDGE_GENERATION_PARAMS = {
   maxTokens: {
@@ -65,14 +46,6 @@ export const EDGE_MISTRAL_GENERATION_PARAMS = {
   },
 };
 
-export const EDGE_SEARCH_PARAMS = {
-  maxResults: {
-    MAX: 100,
-    MIN: 1,
-    STEP: 1,
-  },
-};
-
 export const DEFAULT_GENERATION_CONFIG: GenerationParams = {
   maxTokens: 2000,
   topK: 250,
@@ -87,10 +60,6 @@ export const DEFAULT_MISTRAL_GENERATION_CONFIG: GenerationParams = {
   topP: 0.9,
   temperature: 0.5,
   stopSequences: ['[INST]', '[/INST]'],
-};
-
-export const DEFAULT_SEARCH_CONFIG: SearchParams = {
-  maxResults: 20,
 };
 
 export const SyncStatus = {
@@ -120,14 +89,14 @@ export const PostStreamingStatus = {
   END: 'END',
 } as const;
 
-export const GUARDRAILS_FILTERS_THRESHOLD = { 
+export const GUARDRAILS_FILTERS_THRESHOLD = {
   MAX: 3,
   MIN: 0,
   STEP: 1,
-}
+};
 
-export const GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD = { 
+export const GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD = {
   MAX: 0.99,
   MIN: 0,
   STEP: 0.01,
-}
+};

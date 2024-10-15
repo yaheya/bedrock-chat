@@ -1,10 +1,7 @@
 # Bedrock Claude Chat
 
 > [!Warning]
-> 近々、v2 へのメジャーアップデートを予定しています。v1 とは後方互換性がなく、**既存の RAG ボットは使用できなくなる予定です。** 詳しくは[ガイド](./migration/V1_TO_V2.md)をご参照ください。
-
-> [!Warning]
-> 古いバージョン(v0.4.x 以前) を使用していて最新バージョンを使いたい場合は、[移行ガイド](./migration/V0_TO_V1.md)を参照してください。気をつけないと、Aurora クラスターのすべてのデータが破壊され、ユーザーはもはや既存の RAG ボットを利用できず、また新規にボットを作成できなくなります。
+> **V2 がリリースされました。** 更新する際は、[移行ガイド](./migration/V1_TO_V2.md)を必ずご確認ください。 **注意を払わずに進めると、V1 の BOT は使用できなくなります。**
 
 このリポジトリは、生成系 AI を提供する[Amazon Bedrock](https://aws.amazon.com/jp/bedrock/)の基盤モデルの一つである、Anthropic 社製 LLM [Claude](https://www.anthropic.com/)を利用したチャットボットのサンプルです。
 
@@ -15,7 +12,7 @@
 
 ### ボットのカスタマイズ
 
-外部のナレッジおよび具体的なインストラクションを組み合わせ、ボットをカスタマイズすることが可能です（外部のナレッジを利用した方法は[RAG](./RAG_ja.md)として知られています）。なお、作成したボットはアプリケーションのユーザー間で共有することができます。カスタマイズされたボットはスタンドアロンの API として公開できます (詳細は[こちら](./PUBLISH_API.md)をご覧ください)。
+外部のナレッジおよび具体的なインストラクションを組み合わせ、ボットをカスタマイズすることが可能です（外部のナレッジを利用した方法は[RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/)として知られています）。なお、作成したボットはアプリケーションのユーザー間で共有することができます。カスタマイズされたボットはスタンドアロンの API として公開できます (詳細は[こちら](./PUBLISH_API.md)をご覧ください)。
 
 ![](./imgs/bot_creation_ja.png)
 ![](./imgs/bot_chat_ja.png)
@@ -57,7 +54,7 @@ chmod +x bin.sh
 ./bin.sh
 ```
 
-- 新規ユーザーまたは v1 ユーザーかどうかを聞かれます。v0 からの継続利用でない場合は `y` を入力してください。
+- 新規ユーザーまたは v2 ユーザーかどうかを聞かれます。v0 からの継続利用でない場合は `y` を入力してください。
 
 ### オプションのパラメータ
 
@@ -101,10 +98,11 @@ AWS のマネージドサービスで構成した、インフラストラクチ�
 - [Amazon CloudFront](https://aws.amazon.com/jp/cloudfront/) + [S3](https://aws.amazon.com/jp/s3/): フロントエンドアプリケーションの配信 ([React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/))
 - [AWS WAF](https://aws.amazon.com/jp/waf/): IP アドレス制限
 - [Amazon Cognito](https://aws.amazon.com/jp/cognito/): ユーザ認証
-- [Amazon Bedrock](https://aws.amazon.com/jp/bedrock/): 基盤モデルを API 経由で利用できるマネージドサービス。Claude はチャットの応答に利用され、Cohere は RAG 用のベクトル埋め込みに利用されます
-- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/): DynamoDB からのイベントを受け取り、後続の ECS タスクを起動することで、外部のナレッジをカスタマイズ bot に反映します
-- [Amazon Elastic Container Service](https://aws.amazon.com/ecs/): ナレッジをクロール・パースし、埋め込みベクトルと共に Aurora PostgreSQL へ保存します。[Cohere Multilingual](https://txt.cohere.com/multilingual/)がベクトル計算に利用されます
-- [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/): [pgvector](https://github.com/pgvector/pgvector) プラグインを利用したスケーラブルなベクトル DB
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/): 基盤となるモデルを API 経由で利用できるマネージドサービス
+- [Amazon Bedrock Knowledge Bases](https://aws.amazon.com/bedrock/knowledge-bases/): Retrieval-Augmented Generation (RAG)のためのマネージドなインターフェースを提供し、埋め込みやドキュメントのパース機能を提供
+- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/): DynamoDB ストリームからのイベントを受け取り、Step Functions を起動して外部知識の埋め込みを行う
+- [AWS Step Functions](https://aws.amazon.com/step-functions/): 外部知識を Bedrock Knowledge Bases に埋め込むためのパイプラインをオーケストレーション
+- [Amazon OpenSearch Serverless](https://aws.amazon.com/opensearch-service/features/serverless/): Bedrock Knowledge Bases のバックエンドデータベースとして機能し、全文検索やベクトル検索機能を提供して、関連情報の正確な取得を可能にする
 - [Amazon Athena](https://aws.amazon.com/athena/): S3 バケット内のデータを分析するクエリサービス
 
 ![](imgs/arch.png)
@@ -205,41 +203,9 @@ GENERATION_CONFIG = {
 "allowedSignUpEmailDomains": ["example.com"],
 ```
 
-### NAT Gateway 数のカスタマイズ
-
-このサンプルはデフォルトでは 2 つの NAT Gateway がデプロイされますが、2 つの NAT Gateway が不要な場合は、NAT Gateway の数を変更してコストを削減できます。`cdk.json`を開き、 `natgatewayCount` のパラメータを変更してください。
-
-```ts
-"natgatewayCount": 2
-```
-
 ### リソースの削除
 
 cli および CDK を利用されている場合、`cdk destroy`を実行してください。そうでない場合は[CloudFormation](https://console.aws.amazon.com/cloudformation/home)へアクセスし、手動で`BedrockChatStack`および`FrontendWafStack`を削除してください。なお`FrontendWafStack`は `us-east-1` リージョンにあります。
-
-### RAG 用ベクトル DB の停止
-
-[cdk.json](../cdk/cdk.json) を以下のように CRON 形式で設定することで、[VectorStore コンストラクト](../cdk/lib/constructs/vectorstore.ts)で作成される Aurora Serverless リソースを停止・再起動できます。この設定を適用することで運用コストの削減が見込めます。なお、デフォルト設定で Aurora Serverless は常時起動状態になっています。なお UTC で実行される点に留意ください。
-
-```json
-...
-"rdbSchedules": {
-  "stop": {
-    "minute": "50",
-    "hour": "10",
-    "day": "*",
-    "month": "*",
-    "year": "*"
-  },
-  "start": {
-    "minute": "40",
-    "hour": "2",
-    "day": "*",
-    "month": "*",
-    "year": "*"
-  }
-}
-```
 
 ### 言語設定について
 
@@ -271,6 +237,19 @@ cli および CDK を利用されている場合、`cdk destroy`を実行して�
 
 デフォルトでは、新規作成ユーザーは `CreatingBotAllowed` グループに参加します。
 
+### RAG レプリカの設定
+
+`enableRagReplicas` は、[cdk.json](../cdk/cdk.json) にあるオプションで、RAG のデータベース、つまり Knowledge Bases が利用する Amazon OpenSearch Serverless のレプリカ設定を制御します。
+
+- **デフォルト**: true
+- **true**: レプリカを有効にして可用性を向上させます。本番環境向けですが、コストが増加します。
+- **false**: レプリカ数を減らしてコストを削減します。開発やテスト環境向けです。
+
+この設定はアカウント/リージョンレベルで適用され、個々のボットではなくアプリ全体に影響します。
+
+> [!Note]
+> 2024 年 6 月時点で、Amazon OpenSearch Serverless は 0.5 OCU をサポートし、小規模なワークロードのエントリーコストを削減しました。本番環境では 2 OCU から、開発/テスト環境では 1 OCU から利用可能です。負荷に応じて自動的にスケールします。詳細は[アナウンス](https://aws.amazon.com/jp/about-aws/whats-new/2024/06/amazon-opensearch-serverless-entry-cost-half-collection-types/)をご覧ください。
+
 ### ローカルでの開発について
 
 - [こちら](./LOCAL_DEVELOPMENT_ja.md)を参照ください。
@@ -287,7 +266,3 @@ cli および CDK を利用されている場合、`cdk destroy`を実行して�
 
 - [ローカル環境での開発](./LOCAL_DEVELOPMENT_ja.md)
 - [CONTRIBUTING](../CONTRIBUTING.md)
-
-### RAG (Retrieval Augmented Generation, 検索拡張生成)
-
-[こちら](./RAG_ja.md)を参照

@@ -9,6 +9,7 @@ from app.repositories.custom_bot import (
 from app.routes.schemas.bot import (
     Agent,
     AgentTool,
+    BedrockGuardrailsOutput,
     BedrockKnowledgeBaseOutput,
     BotInput,
     BotMetaOutput,
@@ -19,14 +20,12 @@ from app.routes.schemas.bot import (
     BotSummaryOutput,
     BotSwitchVisibilityInput,
     ConversationQuickStarter,
-    EmbeddingParams,
     GenerationParams,
     Knowledge,
-    SearchParams,
-    BedrockGuardrailsOutput,
 )
 from app.usecases.bot import (
     create_new_bot,
+    fetch_all_bots,
     fetch_all_bots_by_user_id,
     fetch_available_agent_tools,
     fetch_bot_summary,
@@ -93,33 +92,8 @@ def get_all_bots(
     """
     current_user: User = request.state.current_user
 
-    bots = []
-    if kind == "private":
-        bots = find_private_bots_by_user_id(current_user.id, limit=limit)
-    elif kind == "mixed":
-        bots = fetch_all_bots_by_user_id(
-            current_user.id, limit=limit, only_pinned=pinned
-        )
-    else:
-        raise ValueError(f"Invalid kind: {kind}")
-
-    output = [
-        BotMetaOutput(
-            id=bot.id,
-            title=bot.title,
-            create_time=bot.create_time,
-            last_used_time=bot.last_used_time,
-            is_pinned=bot.is_pinned,
-            owned=bot.owned,
-            available=bot.available,
-            description=bot.description,
-            is_public=bot.is_public,
-            sync_status=bot.sync_status,
-            has_bedrock_knowledge_base=bot.has_bedrock_knowledge_base,
-        )
-        for bot in bots
-    ]
-    return output
+    bots = fetch_all_bots(current_user.id, limit, pinned, kind)
+    return bots
 
 
 @router.get("/bot/private/{bot_id}", response_model=BotOutput)
@@ -138,11 +112,6 @@ def get_private_bot(request: Request, bot_id: str):
         is_public=True if bot.public_bot_id else False,
         is_pinned=bot.is_pinned,
         owned=True,
-        embedding_params=EmbeddingParams(
-            chunk_size=bot.embedding_params.chunk_size,
-            chunk_overlap=bot.embedding_params.chunk_overlap,
-            enable_partition_pdf=bot.embedding_params.enable_partition_pdf,
-        ),
         agent=Agent(
             tools=[
                 AgentTool(name=tool.name, description=tool.description)
@@ -161,9 +130,6 @@ def get_private_bot(request: Request, bot_id: str):
             top_p=bot.generation_params.top_p,
             temperature=bot.generation_params.temperature,
             stop_sequences=bot.generation_params.stop_sequences,
-        ),
-        search_params=SearchParams(
-            max_results=bot.search_params.max_results,
         ),
         sync_status=bot.sync_status,
         sync_status_reason=bot.sync_status_reason,

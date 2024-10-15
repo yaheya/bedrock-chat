@@ -3,10 +3,7 @@
 ![](https://github.com/aws-samples/bedrock-claude-chat/actions/workflows/cdk.yml/badge.svg)
 
 > [!Warning]
-> A major update to v2 is planned soon. v2 will not be backward compatible with v1, and **existing RAG bots will no longer be usable.** For more details, please refer to the [migration guide](./docs/migration/V1_TO_V2.md).
-
-> [!Warning]
-> If you are using old version (e.g. `v0.4.x`) and wish to use the latest version, refer [migration guide](./docs/migration/V0_TO_V1.md). Without any care, **ALL DATA IN Aurora cluster WILL BE DESTROYED, and NO LONGER USERS CANNOT USE EXISTING BOTS WITH KNOWLEDGE AND CREATE NEW BOTS**.
+> **V2 released. To update, please carefully review the [migration guide](./docs/migration/V1_TO_V2.md).** Without any care, **BOTS FROM V1 WILL BECOME UNUSABLE.**
 
 This repository is a sample chatbot using the Anthropic company's LLM [Claude](https://www.anthropic.com/), one of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
@@ -22,7 +19,7 @@ Not only text but also images are available with [Anthropic's Claude 3](https://
 
 ### Bot Personalization
 
-Add your own instruction and give external knowledge as URL or files (a.k.a [RAG](./docs/RAG.md)). The bot can be shared among application users. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
+Add your own instruction and give external knowledge as URL or files (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
 
 ![](./docs/imgs/bot_creation.png)
 ![](./docs/imgs/bot_chat.png)
@@ -86,7 +83,7 @@ chmod +x bin.sh
 ./bin.sh
 ```
 
-- You will be asked if a new user or using v1. If you are not a continuing user from v0, please enter `y`.
+- You will be asked if a new user or using v2. If you are not a continuing user from v0, please enter `y`.
 
 ### Optional Parameters
 
@@ -131,10 +128,11 @@ It's an architecture built on AWS managed services, eliminating the need for inf
 - [Amazon CloudFront](https://aws.amazon.com/cloudfront/) + [S3](https://aws.amazon.com/s3/): Frontend application delivery ([React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/))
 - [AWS WAF](https://aws.amazon.com/waf/): IP address restriction
 - [Amazon Cognito](https://aws.amazon.com/cognito/): User authentication
-- [Amazon Bedrock](https://aws.amazon.com/bedrock/): Managed service to utilize foundational models via APIs. Claude is used for chat response and Cohere for vector embedding
-- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/): Receiving event from DynamoDB stream and launching ECS task to embed external knowledge
-- [Amazon Elastic Container Service](https://aws.amazon.com/ecs/): Run crawling, parsing and embedding tasks. [Cohere Multilingual](https://txt.cohere.com/multilingual/) is the model used for embedding.
-- [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/): Scalable vector store with [pgvector](https://github.com/pgvector/pgvector) plugin
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/): Managed service to utilize foundational models via APIs
+- [Amazon Bedrock Knowledge Bases](https://aws.amazon.com/bedrock/knowledge-bases/): Provides a managed interface for Retrieval-Augmented Generation ([RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/)), offering services for embedding and parsing documents
+- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/): Receiving event from DynamoDB stream and launching Step Functions to embed external knowledge
+- [AWS Step Functions](https://aws.amazon.com/step-functions/): Orchestrating ingestion pipeline to embed external knowledge into Bedrock Knowledge Bases
+- [Amazon OpenSearch Serverless](https://aws.amazon.com/opensearch-service/features/serverless/): Serves as the backend database for Bedrock Knowledge Bases, providing full-text search and vector search capabilities, enabling accurate retrieval of relevant information
 - [Amazon Athena](https://aws.amazon.com/athena/): Query service to analyze S3 bucket
 
 ![](docs/imgs/arch.png)
@@ -231,30 +229,6 @@ DEFAULT_GENERATION_CONFIG = {
 
 If using cli and CDK, please `cdk destroy`. If not, access [CloudFormation](https://console.aws.amazon.com/cloudformation/home) and then delete `BedrockChatStack` and `FrontendWafStack` manually. Please note that `FrontendWafStack` is in `us-east-1` region.
 
-### Stopping Vector DB for RAG
-
-By setting [cdk.json](./cdk/cdk.json) in the following CRON format, you can stop and restart Aurora Serverless resources created by the [VectorStore construct](./cdk/lib/constructs/vectorstore.ts). Applying this setting can reduce operating costs. By default, Aurora Serverless is always running. Note that it will be executed in UTC time.
-
-```json
-...
-"rdbSchedules": {
-  "stop": {
-    "minute": "50",
-    "hour": "10",
-    "day": "*",
-    "month": "*",
-    "year": "*"
-  },
-  "start": {
-    "minute": "40",
-    "hour": "2",
-    "day": "*",
-    "month": "*",
-    "year": "*"
-  }
-}
-```
-
 ### Language Settings
 
 This asset automatically detects the language using [i18next-browser-languageDetector](https://github.com/i18next/i18next-browser-languageDetector). You can switch languages from the application menu. Alternatively, you can use Query String to set the language as shown below.
@@ -271,14 +245,6 @@ By default, this sample does not restrict the domains for sign-up email addresse
 
 ```ts
 "allowedSignUpEmailDomains": ["example.com"],
-```
-
-### Customize Number of NAT Gateway
-
-By default, this sample deploys 2 NAT gateways, but you can change the number of NAT gateways if you don't need 2 NAT gateways to reduce costs. Open `cdk.json` and change this parameter 'number of NAT gateways'.
-
-```ts
-"natgatewayCount": 2
 ```
 
 ### External Identity Provider
@@ -301,6 +267,19 @@ If you want newly created users to automatically join groups, you can specify th
 
 By default, newly created users will be joined to the `CreatingBotAllowed` group.
 
+### Configure RAG Replicas
+
+`enableRagReplicas` is an option in [cdk.json](./cdk/cdk.json) that controls the replica settings for the RAG database, specifically the Knowledge Bases using Amazon OpenSearch Serverless.
+
+- **Default**: true
+- **true**: Enhances availability by enabling additional replicas, making it suitable for production environments but increasing costs.
+- **false**: Reduces costs by using fewer replicas, making it suitable for development and testing.
+
+This is an account/region-level setting, affecting the entire application rather than individual bots.
+
+> [!Note]
+> As of June 2024, Amazon OpenSearch Serverless supports 0.5 OCU, lowering entry costs for small-scale workloads. Production deployments can start with 2 OCUs, while dev/test workloads can use 1 OCU. OpenSearch Serverless automatically scales based on workload demands. For more detail, visit [announcement](https://aws.amazon.com/jp/about-aws/whats-new/2024/06/amazon-opensearch-serverless-entry-cost-half-collection-types/).
+
 ### Local Development
 
 See [LOCAL DEVELOPMENT](./docs/LOCAL_DEVELOPMENT.md).
@@ -315,10 +294,6 @@ Please also take a look at the following guidelines before contributing:
 
 - [Local Development](./docs/LOCAL_DEVELOPMENT.md)
 - [CONTRIBUTING](./CONTRIBUTING.md)
-
-### RAG (Retrieval Augmented Generation)
-
-See [here](./docs/RAG.md).
 
 ## Contacts
 

@@ -21,7 +21,6 @@ import {
   EDGE_MISTRAL_GENERATION_PARAMS,
   DEFAULT_GENERATION_CONFIG,
   DEFAULT_MISTRAL_GENERATION_CONFIG,
-  EDGE_SEARCH_PARAMS,
   TooltipDirection,
 } from '../../../constants';
 import { Slider } from '../../../components/Slider';
@@ -37,6 +36,7 @@ import {
   DEFAULT_CHUNKING_OVERLAP_PERCENTAGE,
   EDGE_CHUNKING_MAX_TOKENS,
   EDGE_CHUNKING_OVERLAP_PERCENTAGE,
+  EDGE_SEARCH_PARAMS,
   OPENSEARCH_ANALYZER,
   DEFAULT_SEARCH_CONFIG,
   DEFAULT_OPENSEARCH_ANALYZER,
@@ -243,12 +243,6 @@ const BotKbEditPage: React.FC = () => {
       setIsLoading(true);
       getMyBot(botId)
         .then((bot) => {
-          // Disallow editing of bots created under opposite VITE_APP_ENABLE_KB environment state
-          if (!bot.bedrockKnowledgeBase) {
-            navigate('/');
-            return;
-          }
-
           setTools(bot.agent.tools);
           setTitle(bot.title);
           setDescription(bot.description);
@@ -695,17 +689,12 @@ const BotKbEditPage: React.FC = () => {
       title,
       description,
       instruction,
-      embeddingParams: null,
       generationParams: {
         maxTokens,
         temperature,
         topK,
         topP,
         stopSequences: stopSequences.split(','),
-      },
-      searchParams: {
-        // set same value as bedrockKnowledgeBase.searchParams
-        maxResults: searchParams.maxResults,
       },
       knowledge: {
         sourceUrls: urls.filter((s) => s !== ''),
@@ -802,17 +791,12 @@ const BotKbEditPage: React.FC = () => {
         title,
         description,
         instruction,
-        embeddingParams: null,
         generationParams: {
           maxTokens,
           temperature,
           topK,
           topP,
           stopSequences: stopSequences.split(','),
-        },
-        searchParams: {
-          // set same value as bedrockKnowledgeBase.searchParams
-          maxResults: searchParams.maxResults,
         },
         knowledge: {
           sourceUrls: urls.filter((s) => s !== ''),

@@ -7,27 +7,13 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as path from "path";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import { excludeDockerImage } from "./constants/docker"
+import { excludeDockerImage } from "./constants/docker";
 
-export interface VpcConfig {
-  vpcId: string;
-  availabilityZones: string[];
-  publicSubnetIds: string[];
-  privateSubnetIds: string[];
-  isolatedSubnetIds: string[];
-}
 interface ApiPublishmentStackProps extends StackProps {
   readonly bedrockRegion: string;
-  readonly vpcConfig: VpcConfig;
-  readonly dbConfigHostname: string;
-  readonly dbConfigPort: number;
-  readonly dbConfigSecretArn: string;
-  readonly dbSecurityGroupId: string;
   readonly conversationTableName: string;
   readonly tableAccessRoleArn: string;
   readonly webAclArn: string;
@@ -44,14 +30,7 @@ export class ApiPublishmentStack extends Stack {
 
     console.log(`usagePlan: ${JSON.stringify(props.usagePlan)}`); // DEBUG
 
-    const dbSecret = secretsmanager.Secret.fromSecretCompleteArn(
-      this,
-      "DbSecret",
-      props.dbConfigSecretArn
-    );
-
     const deploymentStage = props.deploymentStage ?? "dev";
-    const vpc = ec2.Vpc.fromVpcAttributes(this, "Vpc", props.vpcConfig);
 
     const chatQueue = new sqs.Queue(this, "ChatQueue", {
       visibilityTimeout: cdk.Duration.minutes(30),
@@ -73,11 +52,6 @@ export class ApiPublishmentStack extends Stack {
         resources: ["*"],
       })
     );
-    handlerRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(
-        "service-role/AWSLambdaVPCAccessExecutionRole"
-      )
-    );
     const largeMessageBucket = s3.Bucket.fromBucketName(
       this,
       "LargeMessageBucket",
@@ -92,13 +66,9 @@ export class ApiPublishmentStack extends Stack {
         {
           platform: Platform.LINUX_AMD64,
           file: "Dockerfile",
-          exclude: [
-            ...excludeDockerImage
-          ]
+          exclude: [...excludeDockerImage],
         }
       ),
-      vpc,
-      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       memorySize: 1024,
       timeout: cdk.Duration.minutes(15),
       environment: {
@@ -113,7 +83,6 @@ export class ApiPublishmentStack extends Stack {
         BEDROCK_REGION: props.bedrockRegion,
         LARGE_MESSAGE_BUCKET: props.largeMessageBucketName,
         TABLE_ACCESS_ROLE_ARN: props.tableAccessRoleArn,
-        DB_SECRETS_ARN: props.dbConfigSecretArn,
       },
       role: handlerRole,
     });
@@ -129,13 +98,9 @@ export class ApiPublishmentStack extends Stack {
             platform: Platform.LINUX_AMD64,
             file: "lambda.Dockerfile",
             cmd: ["app.sqs_consumer.handler"],
-            exclude: [
-              ...excludeDockerImage
-            ]
+            exclude: [...excludeDockerImage],
           }
         ),
-        vpc,
-        vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
         memorySize: 1024,
         timeout: cdk.Duration.minutes(15),
         environment: {
@@ -149,28 +114,15 @@ export class ApiPublishmentStack extends Stack {
           REGION: Stack.of(this).region,
           BEDROCK_REGION: props.bedrockRegion,
           TABLE_ACCESS_ROLE_ARN: props.tableAccessRoleArn,
-          DB_SECRETS_ARN: props.dbConfigSecretArn,
         },
         role: handlerRole,
       }
     );
-    dbSecret.grantRead(sqsConsumeHandler);
     sqsConsumeHandler.addEventSource(
       new lambdaEventSources.SqsEventSource(chatQueue)
     );
     chatQueue.grantSendMessages(apiHandler);
     chatQueue.grantConsumeMessages(sqsConsumeHandler);
-
-    // Allow the handler to access the pgvector.
-    const dbSg = ec2.SecurityGroup.fromSecurityGroupId(
-      this,
-      "DbSecurityGroup",
-      props.dbSecurityGroupId
-    );
-    dbSg.connections.allowFrom(
-      sqsConsumeHandler,
-      ec2.Port.tcp(props.dbConfigPort)
-    );
 
     const api = new apigateway.LambdaRestApi(this, "Api", {
       restApiName: id,

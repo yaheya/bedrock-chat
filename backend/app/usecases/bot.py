@@ -1,10 +1,10 @@
 import logging
 import os
+from typing import Literal
 
 from app.agents.utils import get_available_tools, get_tool_by_name
-from app.config import DEFAULT_EMBEDDING_CONFIG
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
-from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG, DEFAULT_SEARCH_CONFIG
+from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
 from app.repositories.common import (
     RecordNotFoundError,
     _get_table_client,
@@ -16,6 +16,7 @@ from app.repositories.custom_bot import (
     delete_bot_by_id,
     find_alias_by_id,
     find_private_bot_by_id,
+    find_private_bots_by_user_id,
     find_public_bot_by_id,
     store_alias,
     store_bot,
@@ -32,30 +33,27 @@ from app.repositories.models.custom_bot import (
     BotMeta,
     BotModel,
     ConversationQuickStarterModel,
-    EmbeddingParamsModel,
     GenerationParamsModel,
     KnowledgeModel,
-    SearchParamsModel,
 )
-from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
+from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import (
     Agent,
     AgentTool,
     BotInput,
+    BotMetaOutput,
     BotModifyInput,
     BotModifyOutput,
     BotOutput,
     BotSummaryOutput,
     ConversationQuickStarter,
-    EmbeddingParams,
     GenerationParams,
     Knowledge,
-    SearchParams,
     type_sync_status,
 )
-from app.routes.schemas.bot_kb import BedrockKnowledgeBaseOutput
 from app.routes.schemas.bot_guardrails import BedrockGuardrailsOutput
+from app.routes.schemas.bot_kb import BedrockKnowledgeBaseOutput
 from app.utils import (
     compose_upload_document_s3_path,
     compose_upload_temp_s3_path,
@@ -136,34 +134,10 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
         )
         filenames = bot_input.knowledge.filenames
 
-    chunk_size = (
-        bot_input.embedding_params.chunk_size
-        if bot_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["chunk_size"]
-    )
-
-    chunk_overlap = (
-        bot_input.embedding_params.chunk_overlap
-        if bot_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["chunk_overlap"]
-    )
-
-    enable_partition_pdf = (
-        bot_input.embedding_params.enable_partition_pdf
-        if bot_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["enable_partition_pdf"]
-    )
-
     generation_params = (
         bot_input.generation_params.model_dump()
         if bot_input.generation_params
         else DEFAULT_GENERATION_CONFIG
-    )
-
-    search_params = (
-        bot_input.search_params.model_dump()
-        if bot_input.search_params
-        else DEFAULT_SEARCH_CONFIG
     )
 
     agent = (
@@ -191,13 +165,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
             public_bot_id=None,
             is_pinned=False,
             owner_user_id=user_id,  # Owner is the creator
-            embedding_params=EmbeddingParamsModel(
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-                enable_partition_pdf=enable_partition_pdf,
-            ),
             generation_params=GenerationParamsModel(**generation_params),  # type: ignore
-            search_params=SearchParamsModel(**search_params),
             agent=agent,
             knowledge=KnowledgeModel(
                 source_urls=source_urls,
@@ -247,13 +215,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
         is_public=False,
         is_pinned=False,
         owned=True,
-        embedding_params=EmbeddingParams(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            enable_partition_pdf=enable_partition_pdf,
-        ),
         generation_params=GenerationParams(**generation_params),
-        search_params=SearchParams(**search_params),
         agent=Agent(
             tools=[
                 AgentTool(name=tool.name, description=tool.description)
@@ -328,34 +290,10 @@ def modify_owned_bot(
             + modify_input.knowledge.unchanged_filenames
         )
 
-    chunk_size = (
-        modify_input.embedding_params.chunk_size
-        if modify_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["chunk_size"]
-    )
-
-    chunk_overlap = (
-        modify_input.embedding_params.chunk_overlap
-        if modify_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["chunk_overlap"]
-    )
-
-    enable_partition_pdf = (
-        modify_input.embedding_params.enable_partition_pdf
-        if modify_input.embedding_params
-        else DEFAULT_EMBEDDING_CONFIG["enable_partition_pdf"]
-    )
-
     generation_params = (
         modify_input.generation_params.model_dump()
         if modify_input.generation_params
         else DEFAULT_GENERATION_CONFIG
-    )
-
-    search_params = (
-        modify_input.search_params.model_dump()
-        if modify_input.search_params
-        else DEFAULT_SEARCH_CONFIG
     )
 
     agent = (
@@ -372,7 +310,7 @@ def modify_owned_bot(
         else AgentModel(tools=[])
     )
 
-    # if knowledge and embedding_params are not updated, skip embeding process.
+    # if knowledge is not updated, skip embeding process.
     # 'sync_status = "QUEUED"' will execute embeding process and update dynamodb record.
     # 'sync_status= "SUCCEEDED"' will update only dynamodb record.
     bot = find_private_bot_by_id(user_id, bot_id)
@@ -389,13 +327,7 @@ def modify_owned_bot(
         title=modify_input.title,
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
-        embedding_params=EmbeddingParamsModel(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            enable_partition_pdf=enable_partition_pdf,
-        ),
         generation_params=GenerationParamsModel(**generation_params),
-        search_params=SearchParamsModel(**search_params),
         agent=agent,
         knowledge=KnowledgeModel(
             source_urls=source_urls,
@@ -436,13 +368,7 @@ def modify_owned_bot(
         title=modify_input.title,
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
-        embedding_params=EmbeddingParams(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            enable_partition_pdf=enable_partition_pdf,
-        ),
         generation_params=GenerationParams(**generation_params),
-        search_params=SearchParams(**search_params),
         agent=Agent(
             tools=[
                 AgentTool(name=tool.name, description=tool.description)
@@ -623,6 +549,53 @@ def fetch_all_bots_by_user_id(
     return bots
 
 
+def fetch_all_bots(
+    user_id: str,
+    limit: int | None = None,
+    pinned: bool = False,
+    kind: Literal["private", "mixed"] = "private",
+) -> list[BotMetaOutput]:
+    """Fetch all bots.
+    The order is descending by `last_used_time`.
+    - If `kind` is `private`, only private bots will be returned.
+        - If `mixed` must give either `pinned` or `limit`.
+    - If `pinned` is True, only pinned bots will be returned.
+        - When kind is `private`, this will be ignored.
+    - If `limit` is specified, only the first n bots will be returned.
+        - Cannot specify both `pinned` and `limit`.
+    """
+    bots = []
+    if kind == "private":
+        bots = find_private_bots_by_user_id(user_id, limit=limit)
+    elif kind == "mixed":
+        bots = fetch_all_bots_by_user_id(user_id, limit=limit, only_pinned=pinned)
+    else:
+        raise ValueError(f"Invalid kind: {kind}")
+
+    bot_metas = []
+    for bot in bots:
+        if not bot.has_bedrock_knowledge_base:
+            # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
+            # If the bot does not have bedrock knowledge base,
+            # it is not shown in the list.
+            continue
+        bot_metas.append(
+            BotMetaOutput(
+                id=bot.id,
+                title=bot.title,
+                create_time=bot.create_time,
+                last_used_time=bot.last_used_time,
+                is_pinned=bot.is_pinned,
+                owned=bot.owned,
+                available=bot.available,
+                description=bot.description,
+                is_public=bot.is_public,
+                sync_status=bot.sync_status,
+            )
+        )
+    return bot_metas
+
+
 def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
     try:
         bot = find_private_bot_by_id(user_id, bot_id)
@@ -645,7 +618,6 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 )
                 for starter in bot.conversation_quick_starters
             ],
-            owned_and_has_bedrock_knowledge_base=bot.has_bedrock_knowledge_base(),
         )
 
     except RecordNotFoundError:
@@ -676,7 +648,6 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                     for starter in alias.conversation_quick_starters
                 ]
             ),
-            owned_and_has_bedrock_knowledge_base=False,
         )
     except RecordNotFoundError:
         pass
@@ -727,7 +698,6 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 )
                 for starter in bot.conversation_quick_starters
             ],
-            owned_and_has_bedrock_knowledge_base=False,
         )
     except RecordNotFoundError:
         raise RecordNotFoundError(
