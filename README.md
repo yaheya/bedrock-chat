@@ -61,6 +61,7 @@ By using the [Agent functionality](./docs/AGENT.md), your chatbot can automatica
 - Deutsch 💬
 - Español 💬
 - Italian 💬
+- Norsk 💬
 
 ## 🚀 Super-easy Deployment
 

@@ -10,6 +10,7 @@ import zhhant from './zh-hant';
 import fr from './fr';
 import de from './de';
 import it from './it';
+import nb from './nb';
 
 export const LANGUAGES: {
   value: string;
@@ -51,6 +52,10 @@ export const LANGUAGES: {
     value: 'it',
     label: 'Italian',
   },
+  {
+    value: 'nb',
+    label: 'Norsk (Bokmål)'
+  }
 ];
 
 const resources = {
@@ -63,6 +68,7 @@ const resources = {
   it,
   zhhans,
   zhhant,
+  nb,
 };
 
 // Settings i18n
