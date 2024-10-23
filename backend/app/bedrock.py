@@ -170,11 +170,13 @@ def compose_args_for_converse_api(
             else:
                 return [{"text": c.body}]
         elif c.content_type == "image":
+            # e.g. "image/png" -> "png"
             format = c.media_type.split("/")[1] if c.media_type else "unknown"
             return [
                 {
                     "image": {
                         "format": format,
+                        # decode base64 encoded image
                         "source": {"bytes": base64.b64decode(c.body)},
                     }
                 }
@@ -183,17 +185,16 @@ def compose_args_for_converse_api(
             return [
                 {
                     "document": {
+                        # e.g. "document.txt" -> "txt"
                         "format": _get_converse_supported_format(
                             Path(c.file_name).suffix[1:]  # type: ignore
                         ),
-                        "name": Path(c.file_name).stem,  # type: ignore
-                        "source": {
-                            "bytes": (
-                                c.body.encode("utf-8")
-                                if isinstance(c.body, str)
-                                else c.body
-                            )
-                        },  # And this line
+                        # e.g. "document.txt" -> "document"
+                        "name": _convert_to_valid_file_name(
+                            Path(c.file_name).stem  # type: ignore
+                        ),
+                        # decode base64 encoded document
+                        "source": {"bytes": base64.b64decode(c.body)},
                     }
                 }
             ]
