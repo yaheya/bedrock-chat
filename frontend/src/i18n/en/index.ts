@@ -647,6 +647,26 @@ How would you categorize this email?`,
         token_filter: 'Token Filter:',
         not_specified: 'Not specified',
       },
+      advancedParsing: {
+        label: 'Advanced Parsing',
+        description: 'Select a model to use for advanced document parsing capabilities.',
+        hint: 'Suitable for parsing more than standard text in supported document formats, including tables within PDFs with their structure intact. Additional costs are incurred for parsing using generative AI.'
+      },
+      parsingModel: {
+        label: 'Advanced Parsing Model',
+        none: {
+          label: 'Disabled',
+          hint: 'No advanced parsing will be applied.',
+        },
+        claude_3_sonnet_v1: {
+          label: 'Claude 3 Sonnet v1',
+          hint: 'Use Claude 3 Sonnet v1 for advanced document parsing.',
+        },
+        claude_3_haiku_v1: {
+          label: 'Claude 3 Haiku v1',
+          hint: 'Use Claude 3 Haiku v1 for advanced document parsing.',
+        }
+      }
     },
     error: {
       answerResponse: 'An error occurred while responding.',
