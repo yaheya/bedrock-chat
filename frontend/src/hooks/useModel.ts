@@ -35,6 +35,7 @@ const useModel = () => {
       label: string;
       supportMediaType: string[];
       description?: string;
+      modelActivateKey: string;
     }[]
   >(() => {
     return !MISTRAL_ENABLED
@@ -44,36 +45,42 @@ const useModel = () => {
             label: t('model.haiku3.label'),
             description: t('model.haiku3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude3HaikuV1',
           },
           {
             modelId: 'claude-v3.5-haiku',
             label: t('model.haiku3-5.label'),
             description: t('model.haiku3-5.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude35HaikuV1'
           },
           {
             modelId: 'claude-v3-sonnet',
             label: t('model.sonnet3.label'),
             description: t('model.sonnet3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude3SonnetV1'
           },
           {
             modelId: 'claude-v3.5-sonnet',
             label: t('model.sonnet3-5.label'),
             description: t('model.sonnet3-5.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude35SonnetV1'
           },
           {
             modelId: 'claude-v3.5-sonnet-v2',
             label: t('model.sonnet3-5-v2.label'),
             description: t('model.sonnet3-5-v2.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude35SonnetV2'
           },
           {
             modelId: 'claude-v3-opus',
             label: t('model.opus3.label'),
             description: t('model.opus3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
+            modelActivateKey: 'claude3OpusV1'
           },
         ]
       : [
@@ -81,16 +88,19 @@ const useModel = () => {
             modelId: 'mistral-7b-instruct',
             label: t('model.mistral7b.label'),
             supportMediaType: [],
+            modelActivateKey: 'mistral7b'
           },
           {
             modelId: 'mixtral-8x7b-instruct',
             label: t('model.mistral8x7b.label'),
             supportMediaType: [],
+            modelActivateKey: 'mistral8x7b'
           },
           {
             modelId: 'mistral-large',
             label: t('model.mistralLarge.label'),
             supportMediaType: [],
+            modelActivateKey: 'mistralLarge'
           },
         ];
   }, [t]);

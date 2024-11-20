@@ -22,6 +22,7 @@ from app.routes.schemas.bot import (
     ConversationQuickStarter,
     GenerationParams,
     Knowledge,
+    ModelActivateOutput,
 )
 from app.usecases.bot import (
     create_new_bot,
@@ -152,6 +153,11 @@ def get_private_bot(request: Request, bot_id: str):
             if bot.bedrock_guardrails
             else None
         ),
+        model_activate=(
+            ModelActivateOutput(**bot.model_activate.model_dump())
+            if bot.model_activate
+            else None
+        )
     )
     return output
 

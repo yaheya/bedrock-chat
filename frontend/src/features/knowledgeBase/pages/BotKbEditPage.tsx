@@ -13,7 +13,7 @@ import Alert from '../../../components/Alert';
 import KnowledgeFileUploader from '../../../components/KnowledgeFileUploader';
 import GenerationConfig from '../../../components/GenerationConfig';
 import Select from '../../../components/Select';
-import { BotFile, ConversationQuickStarter } from '../../../@types/bot';
+import { BotFile, ConversationQuickStarter, ModelActivate } from '../../../@types/bot';
 import { ParsingModel } from '../types';
 
 import { ulid } from 'ulid';
@@ -123,6 +123,45 @@ const BotKbEditPage: React.FC = () => {
   const [guardrailArn, setGuardrailArn] = useState<string>('');
   const [guardrailVersion, setGuardrailVersion] = useState<string>('');
   const [parsingModel, setParsingModel] = useState<ParsingModel | undefined>(undefined);
+
+  const [modelActivate, setModelActivate] = useState<ModelActivate>({
+    claude3SonnetV1: true,
+    claude3HaikuV1: true,
+    claude3OpusV1: true,
+    claude35SonnetV1: true,
+    claude35SonnetV2: true,
+    claude35HaikuV1: true,
+  });
+
+  const modelActivateOptions: {
+    key: string,
+    label: string
+  }[] = [
+    {
+      key: 'claude3SonnetV1',
+      label: t('model.sonnet3.label')
+    },
+    {
+      key: 'claude3HaikuV1',
+      label: t("model.haiku3.label")
+    },
+    {
+      key: 'claude3OpusV1',
+      label: t("model.opus3.label")
+    },
+    {
+      key: 'claude35SonnetV1',
+      label: t('model.sonnet3-5.label')
+    },
+    {
+      key: 'claude35SonnetV2',
+      label: t('model.sonnet3-5-v2.label')
+    },
+    {
+      key: 'claude35HaikuV1',
+      label: t('model.haiku3-5.label')
+    }
+  ]
 
   const embeddingsModelOptions: {
     label: string;
@@ -391,6 +430,7 @@ const BotKbEditPage: React.FC = () => {
               : 0
           );
           setParsingModel(bot.bedrockKnowledgeBase.parsingModel);
+          setModelActivate(bot.modelActivate)
         })
         .finally(() => {
           setIsLoading(false);
@@ -404,6 +444,19 @@ const BotKbEditPage: React.FC = () => {
       /Got a larger chunk overlap \(\d+\) than chunk size \(\d+\), should be smaller\./;
     return pattern.test(syncErrorMessage);
   }, []);
+
+  const onChangeModelActivate = useCallback(
+    (key: string, value: boolean) => {
+      setModelActivate(prevState => {
+        const newState = {
+          ...prevState,
+          [key]: value
+        };
+        return newState;
+      });
+    },
+    []
+  );
 
   const onChangeS3Url = useCallback(
     (s3Url: string, idx: number) => {
@@ -927,6 +980,7 @@ const BotKbEditPage: React.FC = () => {
         guardrailArn: '',
         guardrailVersion: '',
       },
+      modelActivate,
     })
       .then(() => {
         navigate('/bot/explore');
@@ -969,6 +1023,7 @@ const BotKbEditPage: React.FC = () => {
     groundingThreshold,
     relevanceThreshold,
     parsingModel,
+    modelActivate,
   ]);
 
   const onClickEdit = useCallback(() => {
@@ -1044,6 +1099,7 @@ const BotKbEditPage: React.FC = () => {
           guardrailArn: guardrailArn,
           guardrailVersion: guardrailVersion,
         },
+        modelActivate,
       })
         .then(() => {
           navigate('/bot/explore');
@@ -1092,6 +1148,7 @@ const BotKbEditPage: React.FC = () => {
     guardrailArn,
     guardrailVersion,
     parsingModel,
+    modelActivate,
   ]);
 
   const [isOpenSamples, setIsOpenSamples] = useState(false);
@@ -1926,6 +1983,29 @@ const BotKbEditPage: React.FC = () => {
                     enableDecimal={true}
                     errorMessage={errorMessages['relevanceThreshold']}
                   />
+                </div>
+              </ExpandableDrawerGroup>
+
+              <ExpandableDrawerGroup
+                isDefaultShow={false}
+                label={t('bot.modelActivate.title')}
+                className="py-2">
+                <div className="text-sm text-aws-font-color/50">
+                  {t('bot.modelActivate.description')}
+                </div>
+
+                <div className="mt-4">
+                  <div className="mt-2 space-y-2">
+                    {modelActivateOptions.map(({ key, label }) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <Toggle
+                          value={modelActivate[key as keyof ModelActivate]}
+                          onChange={(value) => onChangeModelActivate(key, value)}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </ExpandableDrawerGroup>
 

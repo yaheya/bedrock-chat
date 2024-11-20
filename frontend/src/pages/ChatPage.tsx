@@ -29,6 +29,7 @@ import useBot from '../hooks/useBot';
 import useConversation from '../hooks/useConversation';
 import ButtonPopover from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
+import { ModelActivate } from '../@types/bot';
 
 import { copyBotUrl } from '../utils/BotUtils';
 import { produce } from 'immer';
@@ -50,6 +51,16 @@ import { convertThinkingLogToAgentToolProps } from '../features/agent/utils/Agen
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
+
+// Default model activation settings when no bot is selected
+const defaultModelActivate: ModelActivate = {
+  claude3SonnetV1: true,
+  claude3HaikuV1: true,
+  claude35SonnetV1: true,
+  claude35SonnetV2: true,
+  claude35HaikuV1: true,
+  claude3OpusV1: true,
+};
 
 const ChatPage: React.FC = () => {
   const { t } = useTranslation();
@@ -361,6 +372,11 @@ const ChatPage: React.FC = () => {
     );
   });
 
+  const modelActivate = useMemo(() => {
+    console.log(`bot: ${JSON.stringify(bot)}`)
+    return bot?.modelActivate ?? defaultModelActivate;
+  }, [bot, bot?.modelActivate]);
+
   return (
     <div
       className="relative flex h-full flex-1 flex-col"
@@ -435,7 +451,7 @@ const ChatPage: React.FC = () => {
               {messages?.length === 0 ? (
                 <div className="relative flex w-full justify-center">
                   {!loadingConversation && (
-                    <SwitchBedrockModel className="mt-3 w-min" />
+                    <SwitchBedrockModel className="mt-3 w-min" modelActivate={modelActivate} />
                   )}
                   <div className="absolute mx-3 my-20 flex items-center justify-center text-4xl font-bold text-gray">
                     {!MISTRAL_ENABLED

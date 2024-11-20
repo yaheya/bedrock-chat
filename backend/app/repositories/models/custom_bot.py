@@ -54,6 +54,15 @@ class ConversationQuickStarterModel(BaseModel):
     example: str
 
 
+class ModelActivateModel(BaseModel):
+    claude3_sonnet_v1: bool
+    claude3_haiku_v1: bool
+    claude3_opus_v1: bool
+    claude3_5_sonnet_v1: bool
+    claude3_5_sonnet_v2: bool
+    claude3_5_haiku_v1: bool
+
+
 class BotModel(BaseModel):
     id: str
     title: str
@@ -78,6 +87,7 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
+    model_activate: ModelActivateModel | None
 
     def has_knowledge(self) -> bool:
         return (

@@ -39,7 +39,7 @@ const translation = {
           'Claude 3.5の最新バージョン。v1をさらに強化し、より高い精度とパフォーマンスを提供',
       },
       'haiku3-5': {
-        label: 'Claude 3.5 (Haiku)',
+        label: 'Claude 3.5 (Haiku) v1',
         description: 'Haiku最新バージョン。精度を保ち、高速な応答を実現',
       },
       opus3: {
@@ -348,6 +348,10 @@ const translation = {
         duplicatedFile:
           '同一ファイル名のファイルが既にアップロードされています。',
         failDeleteApi: 'APIの削除に失敗しました。',
+      },
+      modelActivate: {
+        title: 'モデル設定',
+        description: 'このボットで使用可能なモデルを設定します。',
       },
     },
     admin: {

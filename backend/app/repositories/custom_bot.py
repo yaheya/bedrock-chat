@@ -29,6 +29,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    ModelActivateModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
@@ -88,6 +89,7 @@ def store_bot(user_id: str, custom_bot: BotModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
+        "ModelActivate": custom_bot.model_activate.model_dump(),
     }
     if custom_bot.bedrock_knowledge_base:
         item["BedrockKnowledgeBase"] = custom_bot.bedrock_knowledge_base.model_dump()
@@ -113,6 +115,7 @@ def update_bot(
     conversation_quick_starters: list[ConversationQuickStarterModel],
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None = None,
     bedrock_guardrails: BedrockGuardrailsModel | None = None,
+    model_activate: ModelActivateModel | None = None,
 ):
     """Update bot title, description, and instruction.
     NOTE: Use `update_bot_visibility` to update visibility.
@@ -158,6 +161,10 @@ def update_bot(
         expression_attribute_values[":bedrock_guardrails"] = (
             bedrock_guardrails.model_dump()
         )
+
+    if model_activate:
+        update_expression += ", ModelActivate = :model_activate"
+        expression_attribute_values[":model_activate"] = model_activate.model_dump()
 
     try:
         response = table.update_item(
@@ -486,6 +493,11 @@ def find_private_bot_by_id(user_id: str, bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
+        model_activate=(
+            ModelActivateModel(**item["ModelActivate"])
+            if "ModelActivate" in item
+            else None
+        ),
     )
 
     logger.info(f"Found bot: {bot}")
@@ -504,6 +516,7 @@ def find_public_bot_by_id(bot_id: str) -> BotModel:
         raise RecordNotFoundError(f"Public bot with id {bot_id} not found")
 
     item = response["Items"][0]
+
     bot = BotModel(
         id=decompose_bot_id(item["SK"]),
         title=item["Title"],
@@ -562,6 +575,11 @@ def find_public_bot_by_id(bot_id: str) -> BotModel:
         bedrock_guardrails=(
             BedrockGuardrailsModel(**item["GuardrailsParams"])
             if "GuardrailsParams" in item
+            else None
+        ),
+        model_activate=(
+            ModelActivateModel(**item["ModelActivate"])
+            if "ModelActivate" in item
             else None
         ),
     )

@@ -27,6 +27,23 @@ type_sync_status = Literal[
     "ORIGINAL_NOT_FOUND",
 ]
 
+class ModelActivateInput(BaseSchema):
+    claude3_sonnet_v1: bool = True
+    claude3_haiku_v1: bool = True
+    claude3_opus_v1: bool = True
+    claude3_5_sonnet_v1: bool = True
+    claude3_5_sonnet_v2: bool = True
+    claude3_5_haiku_v1: bool = True
+
+
+class ModelActivateOutput(BaseSchema):
+    claude3_sonnet_v1: bool = True
+    claude3_haiku_v1: bool = True
+    claude3_opus_v1: bool = True
+    claude3_5_sonnet_v1: bool = True
+    claude3_5_sonnet_v2: bool = True
+    claude3_5_haiku_v1: bool = True
+
 
 class GenerationParams(BaseSchema):
     max_tokens: int
@@ -102,6 +119,7 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
+    model_activate: ModelActivateInput | None = None
 
 
 class BotModifyInput(BaseSchema):
@@ -115,6 +133,7 @@ class BotModifyInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
+    model_activate: ModelActivateInput | None = None
 
     def has_update_files(self) -> bool:
         return self.knowledge is not None and (
@@ -181,6 +200,7 @@ class BotModifyOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
+    model_activate: ModelActivateOutput | None
 
 
 class BotOutput(BaseSchema):
@@ -204,6 +224,7 @@ class BotOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
+    model_activate: ModelActivateOutput | None
 
 
 class BotMetaOutput(BaseSchema):
@@ -234,6 +255,7 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
+    model_activate: ModelActivateOutput | None
 
 
 class BotSwitchVisibilityInput(BaseSchema):

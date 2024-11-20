@@ -2,6 +2,15 @@ import { BedrockKnowledgeBase } from '../features/knowledgeBase/types';
 
 export type BotKind = 'private' | 'mixed';
 
+export type ModelActivate = {
+  claude3SonnetV1: boolean;
+  claude3HaikuV1: boolean;
+  claude3OpusV1: boolean;
+  claude35SonnetV1: boolean;
+  claude35SonnetV2: boolean;
+  claude35HaikuV1: boolean;
+};
+
 export type BotMeta = {
   id: string;
   title: string;
@@ -74,12 +83,14 @@ export type BotDetails = BotMeta & {
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails: GuardrailsParams;
   bedrockKnowledgeBase: BedrockKnowledgeBase;
+  modelActivate: ModelActivate;
 };
 
 export type BotSummary = BotMeta & {
   hasKnowledge: boolean;
   hasAgent: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
+  modelActivate: ModelActivate;
 };
 
 export type BotFile = {
@@ -101,6 +112,7 @@ export type RegisterBotRequest = {
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails?: GuardrailsParams;
   bedrockKnowledgeBase?: BedrockKnowledgeBase;
+  modelActivate?: ModelActivate;
 };
 
 export type RegisterBotResponse = BotDetails;
@@ -116,6 +128,7 @@ export type UpdateBotRequest = {
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails?: GuardrailsParams;
   bedrockKnowledgeBase?: BedrockKnowledgeBase;
+  modelActivate?: ModelActivate;
 };
 
 export type UpdateBotResponse = {
@@ -128,6 +141,7 @@ export type UpdateBotResponse = {
   displayRetrievedChunks: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockKnowledgeBase: BedrockKnowledgeBase;
+  modelActivate: ModelActivate;
 };
 
 export type UpdateBotPinnedRequest = {

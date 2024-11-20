@@ -36,7 +36,7 @@ const translation = {
           'The latest version of Claude 3.5. An enhanced model that builds on v1 with higher accuracy and performance.',
       },
       'haiku3-5': {
-        label: 'Claude 3.5 (Haiku)',
+        label: 'Claude 3.5 (Haiku) v1',
         description:
           'The latest version, offering even faster responsiveness and improved capabilities over Haiku 3.',
       },
@@ -345,6 +345,10 @@ How would you categorize this email?`,
         notSupportedFile: 'This file is not supported.',
         duplicatedFile: 'A file with the same name has been uploaded.',
         failDeleteApi: 'Failed to delete the API.',
+      },
+      modelActivate: {
+        title: 'Model Activation',
+        description: 'Configure which AI models can be used with this bot.'
       },
     },
     admin: {
