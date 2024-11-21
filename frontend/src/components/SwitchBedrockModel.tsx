@@ -28,8 +28,6 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
     if (availableModels.length > 0 && !availableModels.some(m => m.modelId === modelId)) {
       setModelId(availableModels[0].modelId);
     }
-    console.log(availableModels)
-    console.log(props.modelActivate)
   }, [availableModels, modelId, setModelId]);
 
   return (

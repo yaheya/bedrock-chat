@@ -373,7 +373,6 @@ const ChatPage: React.FC = () => {
   });
 
   const modelActivate = useMemo(() => {
-    console.log(`bot: ${JSON.stringify(bot)}`)
     return bot?.modelActivate ?? defaultModelActivate;
   }, [bot, bot?.modelActivate]);
 
