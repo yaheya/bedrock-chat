@@ -288,7 +288,7 @@ def chat(user_id: str, chat_input: ChatInput) -> ChatOutput:
     else:
         message_map = conversation.message_map
         search_results = []
-        if bot and is_running_on_lambda():
+        if bot and bot.has_knowledge() and is_running_on_lambda():
             # NOTE: `is_running_on_lambda`is a workaround for local testing due to no postgres mock.
             # Fetch most related documents from vector store
             # NOTE: Currently embedding not support multi-modal. For now, use the last content.
