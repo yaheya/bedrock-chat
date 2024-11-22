@@ -161,6 +161,7 @@ def prepare_conversation(
                                     for starter in bot.conversation_quick_starters
                                 ]
                             ),
+                            model_activate=bot.model_activate,
                         ),
                     )
 

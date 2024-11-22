@@ -116,6 +116,7 @@ class BotAliasModel(BaseModel):
     has_knowledge: bool
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
+    model_activate: ModelActivateModel | None
 
 
 class BotMeta(BaseModel):

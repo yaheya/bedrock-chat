@@ -450,7 +450,11 @@ const ChatPage: React.FC = () => {
               {messages?.length === 0 ? (
                 <div className="relative flex w-full justify-center">
                   {!loadingConversation && (
-                    <SwitchBedrockModel className="mt-3 w-min" modelActivate={modelActivate} />
+                    <SwitchBedrockModel 
+                      className="mt-3 w-min" 
+                      modelActivate={modelActivate}
+                      botId={botId}
+                    />
                   )}
                   <div className="absolute mx-3 my-20 flex items-center justify-center text-4xl font-bold text-gray">
                     {!MISTRAL_ENABLED

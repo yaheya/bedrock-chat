@@ -89,8 +89,9 @@ def store_bot(user_id: str, custom_bot: BotModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
-        "ModelActivate": custom_bot.model_activate.model_dump(),
     }
+    if custom_bot.model_activate is not None:
+        item["ModelActivate"] = custom_bot.model_activate.model_dump()
     if custom_bot.bedrock_knowledge_base:
         item["BedrockKnowledgeBase"] = custom_bot.bedrock_knowledge_base.model_dump()
     if custom_bot.bedrock_guardrails:
@@ -202,11 +203,35 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
+        "ModelActivate": alias.model_activate.model_dump() if alias.model_activate else None,
     }
 
     response = table.put_item(Item=item)
     return response
 
+def update_bot_model_activate(
+    user_id: str,
+    bot: BotModel
+):
+    """Update bot model activate."""
+    table = _get_table_client(user_id)
+    logger.info(f"Updating bot model activate: {bot.id}")
+
+    try:
+        response = table.update_item(
+            Key={"PK": user_id, "SK": compose_bot_alias_id(user_id, bot.id)},
+            UpdateExpression="SET ModelActivate = :val",
+            ExpressionAttributeValues={":val": bot.model_activate.model_dump()},
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+        )
+        print(f"update_bot_model_activate response: {response}")
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise RecordNotFoundError(f"Alias with id {bot.id} not found")
+        else:
+            raise e    
+
+    return response
 
 def update_bot_last_used_time(user_id: str, bot_id: str):
     """Update last used time for bot."""
@@ -611,6 +636,7 @@ def find_alias_by_id(user_id: str, alias_id: str) -> BotAliasModel:
         has_knowledge=item["HasKnowledge"],
         has_agent=item.get("HasAgent", False),
         conversation_quick_starters=item.get("ConversationQuickStarters", []),
+        model_activate=item.get("ModelActivate", None),
     )
 
     logger.info(f"Found alias: {bot}")

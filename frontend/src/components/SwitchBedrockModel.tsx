@@ -8,10 +8,11 @@ import { ModelActivate } from '../@types/bot';
 
 interface Props extends BaseProps {
   modelActivate: ModelActivate;
+  botId?: string | null;
 }
 
 const SwitchBedrockModel: React.FC<Props> = (props) => {
-  const { availableModels: allModels, modelId, setModelId } = useModel();
+  const { availableModels: allModels, modelId, setModelId } = useModel(props.botId, props.modelActivate);
 
   const availableModels = useMemo(() => {
     return allModels.filter(model => {
