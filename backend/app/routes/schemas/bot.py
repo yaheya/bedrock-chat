@@ -27,6 +27,7 @@ type_sync_status = Literal[
     "ORIGINAL_NOT_FOUND",
 ]
 
+
 class ModelActivateInput(BaseSchema):
     claude3_sonnet_v1: bool = True
     claude3_haiku_v1: bool = True

@@ -157,7 +157,7 @@ def get_private_bot(request: Request, bot_id: str):
             ModelActivateOutput(**bot.model_activate.model_dump())
             if bot.model_activate
             else None
-        )
+        ),
     )
     return output
 

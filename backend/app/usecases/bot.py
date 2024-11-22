@@ -744,7 +744,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 for starter in bot.conversation_quick_starters
             ],
             model_activate=(
-                ModelActivateModel(**bot.model_activate.model_dump())
+                ModelActivateOutput(**bot.model_activate.model_dump())
                 if bot.model_activate
                 else None
             ),

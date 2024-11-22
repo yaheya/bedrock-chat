@@ -203,16 +203,16 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
-        "ModelActivate": alias.model_activate.model_dump() if alias.model_activate else None,
+        "ModelActivate": (
+            alias.model_activate.model_dump() if alias.model_activate else None
+        ),
     }
 
     response = table.put_item(Item=item)
     return response
 
-def update_bot_model_activate(
-    user_id: str,
-    bot: BotModel
-):
+
+def update_bot_model_activate(user_id: str, bot: BotModel):
     """Update bot model activate."""
     table = _get_table_client(user_id)
     logger.info(f"Updating bot model activate: {bot.id}")
@@ -221,7 +221,9 @@ def update_bot_model_activate(
         response = table.update_item(
             Key={"PK": user_id, "SK": compose_bot_alias_id(user_id, bot.id)},
             UpdateExpression="SET ModelActivate = :val",
-            ExpressionAttributeValues={":val": bot.model_activate.model_dump()},
+            ExpressionAttributeValues={
+                ":val": bot.model_activate.model_dump() if bot.model_activate else None
+            },
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
         )
         print(f"update_bot_model_activate response: {response}")
@@ -229,9 +231,10 @@ def update_bot_model_activate(
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             raise RecordNotFoundError(f"Alias with id {bot.id} not found")
         else:
-            raise e    
+            raise e
 
     return response
+
 
 def update_bot_last_used_time(user_id: str, bot_id: str):
     """Update last used time for bot."""
