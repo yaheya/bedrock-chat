@@ -135,7 +135,9 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
 
   // Update filtered models when modelActivate changes
   useEffect(() => {
-    if (modelActivate !== undefined) {
+    if (MISTRAL_ENABLED) {
+      setFilteredModels(availableModels)
+    } else if (modelActivate !== undefined) {
       const filtered = availableModels.filter(model => {
         const key = model.modelActivateKey as keyof ModelActivate;
         if (modelActivate) {

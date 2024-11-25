@@ -1,3 +1,4 @@
+from typing import Optional
 from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
@@ -55,12 +56,18 @@ class ConversationQuickStarterModel(BaseModel):
 
 
 class ModelActivateModel(BaseModel):
-    claude3_sonnet_v1: bool
-    claude3_haiku_v1: bool
-    claude3_opus_v1: bool
-    claude3_5_sonnet_v1: bool
-    claude3_5_sonnet_v2: bool
-    claude3_5_haiku_v1: bool
+    # Claude models
+    claude3_sonnet_v1: Optional[bool] = None
+    claude3_haiku_v1: Optional[bool] = None
+    claude3_opus_v1: Optional[bool] = None
+    claude3_5_sonnet_v1: Optional[bool] = None
+    claude3_5_sonnet_v2: Optional[bool] = None
+    claude3_5_haiku_v1: Optional[bool] = None
+
+    # Mistral models
+    mistral7b: Optional[bool] = None
+    mistral8x7b: Optional[bool] = None
+    mistralLarge: Optional[bool] = None
 
 
 class BotModel(BaseModel):

@@ -29,21 +29,33 @@ type_sync_status = Literal[
 
 
 class ModelActivateInput(BaseSchema):
-    claude3_sonnet_v1: bool = True
-    claude3_haiku_v1: bool = True
-    claude3_opus_v1: bool = True
-    claude3_5_sonnet_v1: bool = True
-    claude3_5_sonnet_v2: bool = True
-    claude3_5_haiku_v1: bool = True
+    # Claude models
+    claude3_sonnet_v1: bool | None
+    claude3_haiku_v1: bool | None
+    claude3_opus_v1: bool | None
+    claude3_5_sonnet_v1: bool | None
+    claude3_5_sonnet_v2: bool | None
+    claude3_5_haiku_v1: bool | None
+
+    # Mistral models
+    mistral7b: bool | None
+    mistral8x7b: bool | None
+    mistralLarge: bool | None
 
 
 class ModelActivateOutput(BaseSchema):
-    claude3_sonnet_v1: bool = True
-    claude3_haiku_v1: bool = True
-    claude3_opus_v1: bool = True
-    claude3_5_sonnet_v1: bool = True
-    claude3_5_sonnet_v2: bool = True
-    claude3_5_haiku_v1: bool = True
+    # Claude models
+    claude3_sonnet_v1: bool | None
+    claude3_haiku_v1: bool | None
+    claude3_opus_v1: bool | None
+    claude3_5_sonnet_v1: bool | None
+    claude3_5_sonnet_v2: bool | None
+    claude3_5_haiku_v1: bool | None
+
+    # Mistral models
+    mistral7b: bool | None
+    mistral8x7b: bool | None
+    mistralLarge: bool | None
 
 
 class GenerationParams(BaseSchema):
