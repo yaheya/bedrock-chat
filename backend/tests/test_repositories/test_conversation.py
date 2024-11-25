@@ -45,14 +45,14 @@ from app.repositories.models.custom_bot import (
 
 class TestConversationRepository(unittest.TestCase):
     def setUp(self):
-        self.patcher1 = patch('boto3.resource')
-        self.patcher2 = patch('app.repositories.conversation.s3_client')
+        self.patcher1 = patch("boto3.resource")
+        self.patcher2 = patch("app.repositories.conversation.s3_client")
         self.mock_boto3_resource = self.patcher1.start()
         self.mock_s3_client = self.patcher2.start()
-        
+
         self.mock_table = MagicMock()
         self.mock_boto3_resource.return_value.Table.return_value = self.mock_table
-        
+
         # Set up environment variables
         os.environ["CONVERSATION_TABLE_NAME"] = "test-table"
         os.environ["CONVERSATION_BUCKET_NAME"] = "test-bucket"
@@ -134,45 +134,61 @@ class TestConversationRepository(unittest.TestCase):
         )
 
         # Mock the responses
-        self.mock_table.put_item.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
-        
+        self.mock_table.put_item.return_value = {
+            "ResponseMetadata": {"HTTPStatusCode": 200}
+        }
+
         def mock_query_side_effect(**kwargs):
             if self.conversation_deleted:
                 return {"Items": []}
-            
+
             if "IndexName" in kwargs and kwargs["IndexName"] == "SKIndex":
                 message_map = conversation.model_dump()["message_map"]
                 if self.feedback_updated:
                     message_map["a"]["feedback"] = {
                         "thumbs_up": True,
                         "category": "Good",
-                        "comment": "The response is pretty good."
+                        "comment": "The response is pretty good.",
                     }
                 return {
-                    "Items": [{
-                        "PK": "user",
-                        "SK": "user#CONV#1",
-                        "Title": "Updated title" if self.title_updated else "Test Conversation",
-                        "CreateTime": 1627984879.9,
-                        "TotalPrice": 100,
-                        "LastMessageId": "x",
-                        "MessageMap": json.dumps(message_map),
-                        "IsLargeMessage": False,
-                        "ShouldContinue": False
-                    }]
+                    "Items": [
+                        {
+                            "PK": "user",
+                            "SK": "user#CONV#1",
+                            "Title": (
+                                "Updated title"
+                                if self.title_updated
+                                else "Test Conversation"
+                            ),
+                            "CreateTime": 1627984879.9,
+                            "TotalPrice": 100,
+                            "LastMessageId": "x",
+                            "MessageMap": json.dumps(message_map),
+                            "IsLargeMessage": False,
+                            "ShouldContinue": False,
+                        }
+                    ]
                 }
             return {
-                "Items": [] if self.conversation_deleted else [{
-                    "PK": "user",
-                    "SK": "user#CONV#1",
-                    "Title": "Test Conversation",
-                    "CreateTime": 1627984879.9,
-                    "TotalPrice": 100,
-                    "LastMessageId": "x",
-                    "MessageMap": json.dumps(conversation.model_dump()["message_map"]),
-                    "IsLargeMessage": False,
-                    "ShouldContinue": False
-                }]
+                "Items": (
+                    []
+                    if self.conversation_deleted
+                    else [
+                        {
+                            "PK": "user",
+                            "SK": "user#CONV#1",
+                            "Title": "Test Conversation",
+                            "CreateTime": 1627984879.9,
+                            "TotalPrice": 100,
+                            "LastMessageId": "x",
+                            "MessageMap": json.dumps(
+                                conversation.model_dump()["message_map"]
+                            ),
+                            "IsLargeMessage": False,
+                            "ShouldContinue": False,
+                        }
+                    ]
+                )
             }
 
         self.mock_table.query.side_effect = mock_query_side_effect
@@ -313,60 +329,76 @@ class TestConversationRepository(unittest.TestCase):
         )
 
         # Mock responses
-        self.mock_table.put_item.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
-        self.mock_s3_client.put_object.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
-        
+        self.mock_table.put_item.return_value = {
+            "ResponseMetadata": {"HTTPStatusCode": 200}
+        }
+        self.mock_s3_client.put_object.return_value = {
+            "ResponseMetadata": {"HTTPStatusCode": 200}
+        }
+
         def mock_query_side_effect(**kwargs):
             if self.conversation_deleted:
                 return {"Items": []}
-            
+
             if "IndexName" in kwargs and kwargs["IndexName"] == "SKIndex":
                 return {
-                    "Items": [{
-                        "PK": "user",
-                        "SK": "user#CONV#2",
-                        "Title": "Large Conversation",
-                        "CreateTime": 1627984879.9,
-                        "TotalPrice": 200,
-                        "LastMessageId": "msg_9",
-                        "IsLargeMessage": True,
-                        "LargeMessagePath": "user/2/message_map.json",
-                        "MessageMap": json.dumps({"system": {
-                            "role": "system",
-                            "content": [{"content_type": "text", "body": "Hello", "media_type": None}],
-                            "model": "claude-instant-v1",
-                            "children": [],
-                            "parent": None,
-                            "create_time": 1627984879.9,
-                            "feedback": None,
-                            "used_chunks": None,
-                            "thinking_log": None
-                        }}),
-                        "ShouldContinue": False
-                    }]
+                    "Items": [
+                        {
+                            "PK": "user",
+                            "SK": "user#CONV#2",
+                            "Title": "Large Conversation",
+                            "CreateTime": 1627984879.9,
+                            "TotalPrice": 200,
+                            "LastMessageId": "msg_9",
+                            "IsLargeMessage": True,
+                            "LargeMessagePath": "user/2/message_map.json",
+                            "MessageMap": json.dumps(
+                                {
+                                    "system": {
+                                        "role": "system",
+                                        "content": [
+                                            {
+                                                "content_type": "text",
+                                                "body": "Hello",
+                                                "media_type": None,
+                                            }
+                                        ],
+                                        "model": "claude-instant-v1",
+                                        "children": [],
+                                        "parent": None,
+                                        "create_time": 1627984879.9,
+                                        "feedback": None,
+                                        "used_chunks": None,
+                                        "thinking_log": None,
+                                    }
+                                }
+                            ),
+                            "ShouldContinue": False,
+                        }
+                    ]
                 }
             return {"Items": []}
 
         self.mock_table.query.side_effect = mock_query_side_effect
 
-        message_map_json = json.dumps({
-            k: {
-                "role": v.role,
-                "content": [c.model_dump() for c in v.content],
-                "model": v.model,
-                "children": v.children,
-                "parent": v.parent,
-                "create_time": v.create_time,
-                "feedback": v.feedback,
-                "used_chunks": v.used_chunks,
-                "thinking_log": v.thinking_log
+        message_map_json = json.dumps(
+            {
+                k: {
+                    "role": v.role,
+                    "content": [c.model_dump() for c in v.content],
+                    "model": v.model,
+                    "children": v.children,
+                    "parent": v.parent,
+                    "create_time": v.create_time,
+                    "feedback": v.feedback,
+                    "used_chunks": v.used_chunks,
+                    "thinking_log": v.thinking_log,
+                }
+                for k, v in large_message_map.items()
             }
-            for k, v in large_message_map.items()
-        })
+        )
         self.mock_s3_client.get_object.return_value = {
-            "Body": MagicMock(
-                read=lambda: message_map_json.encode()
-            )
+            "Body": MagicMock(read=lambda: message_map_json.encode())
         }
 
         # Test storing large conversation
@@ -410,11 +442,12 @@ class TestConversationRepository(unittest.TestCase):
         conversations = find_conversation_by_user_id(user_id="user")
         self.assertEqual(len(conversations), 0)
 
+
 class TestConversationBotRepository(unittest.TestCase):
     def setUp(self):
-        self.patcher = patch('boto3.resource')
+        self.patcher = patch("boto3.resource")
         self.mock_boto3_resource = self.patcher.start()
-        
+
         self.mock_table = MagicMock()
         self.mock_boto3_resource.return_value.Table.return_value = self.mock_table
 
@@ -439,7 +472,14 @@ class TestConversationBotRepository(unittest.TestCase):
             message_map={
                 "a": MessageModel(
                     role="user",
-                    content=[ContentModel(content_type="text", body="Hello", media_type=None, file_name=None)],
+                    content=[
+                        ContentModel(
+                            content_type="text",
+                            body="Hello",
+                            media_type=None,
+                            file_name=None,
+                        )
+                    ],
                     model="claude-instant-v1",
                     children=["x", "y"],
                     parent="z",
@@ -590,50 +630,65 @@ class TestConversationBotRepository(unittest.TestCase):
 
     def test_only_conversation_is_fetched(self):
         self.mock_table.query.return_value = {
-            "Items": [{
-                "PK": "user",
-                "SK": "user#CONV#1",
-                "Title": "Test Conversation",
-                "CreateTime": 1627984879.9,
-                "MessageMap": json.dumps({
-                    "system": {
-                        "role": "system",
-                        "content": [{"content_type": "text", "body": "Hello", "media_type": None}],
-                        "model": "claude-instant-v1",
-                        "children": [],
-                        "parent": None,
-                        "create_time": 1627984879.9,
-                        "feedback": None,
-                        "used_chunks": None,
-                        "thinking_log": None
-                    }
-                }),
-                "BotId": None
-            }]
+            "Items": [
+                {
+                    "PK": "user",
+                    "SK": "user#CONV#1",
+                    "Title": "Test Conversation",
+                    "CreateTime": 1627984879.9,
+                    "MessageMap": json.dumps(
+                        {
+                            "system": {
+                                "role": "system",
+                                "content": [
+                                    {
+                                        "content_type": "text",
+                                        "body": "Hello",
+                                        "media_type": None,
+                                    }
+                                ],
+                                "model": "claude-instant-v1",
+                                "children": [],
+                                "parent": None,
+                                "create_time": 1627984879.9,
+                                "feedback": None,
+                                "used_chunks": None,
+                                "thinking_log": None,
+                            }
+                        }
+                    ),
+                    "BotId": None,
+                }
+            ]
         }
         conversations = find_conversation_by_user_id("user")
         self.assertEqual(len(conversations), 1)
 
     def test_only_bot_is_fetched(self):
         self.mock_table.query.return_value = {
-            "Items": [{
-                "PK": "user",
-                "SK": "user#BOT#1",
-                "Title": "Test Bot",
-                "Description": "Test Bot Description",
-                "CreateTime": 1627984879.9,
-                "LastBotUsed": 1627984879.9,
-                "IsPinned": False,
-                "SyncStatus": "RUNNING",
-                "BedrockKnowledgeBase": None
-            }]
+            "Items": [
+                {
+                    "PK": "user",
+                    "SK": "user#BOT#1",
+                    "Title": "Test Bot",
+                    "Description": "Test Bot Description",
+                    "CreateTime": 1627984879.9,
+                    "LastBotUsed": 1627984879.9,
+                    "IsPinned": False,
+                    "SyncStatus": "RUNNING",
+                    "BedrockKnowledgeBase": None,
+                }
+            ]
         }
         bots = find_private_bots_by_user_id("user")
         self.assertEqual(len(bots), 1)
+
+
 def tearDown(self) -> None:
-        delete_conversation_by_user_id("user")
-        delete_bot_by_id("user", "1")
-        delete_bot_by_id("user", "2")
+    delete_conversation_by_user_id("user")
+    delete_bot_by_id("user", "1")
+    delete_bot_by_id("user", "2")
+
 
 if __name__ == "__main__":
     unittest.main()

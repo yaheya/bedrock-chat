@@ -150,7 +150,6 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
     }
   }, [modelActivate, availableModels]);
 
-
   const getDefaultModel = useCallback(() => {
     // check default model is available
     const defaultModelAvailable = filteredModels.some(m => m.modelId === DEFAULT_MODEL);
@@ -208,7 +207,7 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
         }
       }
     }
-  }, [botId, previousBotId, botModelId, recentUseModelId, modelId, filteredModels, setModelId, selectModel, getDefaultModel]);
+  }, [botId, previousBotId, botModelId, recentUseModelId, modelId, filteredModels, setModelId, selectModel, getDefaultModel, modelActivate]);
 
   const model = useMemo(() => {
     return filteredModels.find((model) => model.modelId === modelId);
