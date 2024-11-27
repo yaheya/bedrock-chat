@@ -576,6 +576,11 @@ def fetch_related_documents(
     if not bot.display_retrieved_chunks:
         return None
 
+    # Check if bot has a properly configured knowledge base
+    if not bot.bedrock_knowledge_base or not bot.bedrock_knowledge_base.knowledge_base_id:
+        logger.warning("Bot does not have a properly configured Bedrock Knowledge Base")
+        return []
+
     query: str = chat_input.message.content[-1].body  # type: ignore[assignment]
     chunks = search_related_docs(bot=bot, query=query)
 
