@@ -5,6 +5,7 @@ import { BedrockChatStack } from "../lib/bedrock-chat-stack";
 import { BedrockRegionResourcesStack } from "../lib/bedrock-region-resources";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
 import { TIdentityProvider } from "../lib/utils/identity-provider";
+import { LogRetentionChecker } from "../rules/log-retention-checker";
 
 const app = new cdk.App();
 
@@ -96,3 +97,5 @@ const chat = new BedrockChatStack(app, `BedrockChatStack`, {
 });
 chat.addDependency(waf);
 chat.addDependency(bedrockRegionResources);
+
+cdk.Aspects.of(chat).add(new LogRetentionChecker());
