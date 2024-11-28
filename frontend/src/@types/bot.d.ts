@@ -1,5 +1,4 @@
 import { BedrockKnowledgeBase } from '../features/knowledgeBase/types';
-import { Model } from './conversation'
 export type BotKind = 'private' | 'mixed';
 
 type ModelActivate = {

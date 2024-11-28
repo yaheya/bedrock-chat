@@ -530,7 +530,9 @@ def fetch_all_bots_by_user_id(
                         has_knowledge=bot.has_knowledge(),
                         has_agent=bot.is_agent_enabled(),
                         conversation_quick_starters=bot.conversation_quick_starters,
-                        model_activate=ModelActivateModel(**bot.model_activate.model_dump()),
+                        model_activate=ModelActivateModel(
+                            **bot.model_activate.model_dump()
+                        ),
                     ),
                 )
 
