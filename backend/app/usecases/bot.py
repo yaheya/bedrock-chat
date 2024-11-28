@@ -25,7 +25,6 @@ from app.repositories.custom_bot import (
     update_bot,
     update_bot_last_used_time,
     update_bot_pin_status,
-    update_bot_model_activate,
 )
 from app.repositories.models.custom_bot import (
     AgentModel,
@@ -53,6 +52,7 @@ from app.routes.schemas.bot import (
     GenerationParams,
     Knowledge,
     type_sync_status,
+    ModelActivateInput,
     ModelActivateOutput,
 )
 from app.routes.schemas.bot_guardrails import BedrockGuardrailsOutput
@@ -206,11 +206,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
                 if bot_input.bedrock_guardrails
                 else None
             ),
-            model_activate=(
-                ModelActivateModel(**bot_input.model_activate.model_dump())
-                if bot_input.model_activate
-                else None
-            ),
+            model_activate=ModelActivateModel(**bot_input.model_activate.model_dump()),
         ),
     )
     return BotOutput(
@@ -263,11 +259,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
             if bot_input.bedrock_guardrails
             else None
         ),
-        model_activate=(
-            ModelActivateOutput(**bot_input.model_activate.model_dump())
-            if bot_input.model_activate
-            else None
-        ),
+        model_activate=ModelActivateOutput(**bot_input.model_activate.model_dump()),
     )
 
 
@@ -374,11 +366,7 @@ def modify_owned_bot(
             if modify_input.bedrock_guardrails
             else None
         ),
-        model_activate=(
-            ModelActivateModel(**modify_input.model_activate.model_dump())
-            if modify_input.model_activate
-            else None
-        ),
+        model_activate=ModelActivateModel(**modify_input.model_activate.model_dump()),
     )
 
     return BotModifyOutput(
@@ -422,11 +410,7 @@ def modify_owned_bot(
             if modify_input.bedrock_guardrails
             else None
         ),
-        model_activate=(
-            ModelActivateOutput(**modify_input.model_activate.model_dump())
-            if modify_input.model_activate
-            else None
-        ),
+        model_activate=ModelActivateOutput(**modify_input.model_activate.model_dump()),
     )
 
 
@@ -528,6 +512,7 @@ def fetch_all_bots_by_user_id(
                     ConversationQuickStarter(**starter)
                     for starter in item.get("ConversationQuickStarters", [])
                 ]
+                or bot.model_activate != item["ModelActivate"]
             ):
                 # Update alias to the latest original bot
                 store_alias(
@@ -545,7 +530,7 @@ def fetch_all_bots_by_user_id(
                         has_knowledge=bot.has_knowledge(),
                         has_agent=bot.is_agent_enabled(),
                         conversation_quick_starters=bot.conversation_quick_starters,
-                        model_activate=bot.model_activate,
+                        model_activate=ModelActivateModel(**bot.model_activate.model_dump()),
                     ),
                 )
 
@@ -642,11 +627,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 )
                 for starter in bot.conversation_quick_starters
             ],
-            model_activate=(
-                ModelActivateOutput(**bot.model_activate.model_dump())
-                if bot.model_activate
-                else None
-            ),
+            model_activate=ModelActivateOutput(**bot.model_activate.model_dump()),
         )
 
     except RecordNotFoundError:
@@ -657,7 +638,6 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
 
         # update bot model activate if alias is found.
         bot = find_public_bot_by_id(bot_id)
-        update_bot_model_activate(user_id, bot)
 
         return BotSummaryOutput(
             id=alias.id,
@@ -682,12 +662,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                     for starter in alias.conversation_quick_starters
                 ]
             ),
-            # Update with bot.model_activate parameters
-            model_activate=(
-                ModelActivateOutput(**bot.model_activate.model_dump())
-                if bot.model_activate
-                else None
-            ),
+            model_activate=ModelActivateOutput(**alias.model_activate.model_dump()),
         )
     except RecordNotFoundError:
         pass
@@ -717,11 +692,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                     )
                     for starter in bot.conversation_quick_starters
                 ],
-                model_activate=(
-                    ModelActivateModel(**bot.model_activate.model_dump())
-                    if bot.model_activate
-                    else None
-                ),
+                model_activate=ModelActivateModel(**bot.model_activate.model_dump()),
             ),
         )
         return BotSummaryOutput(
@@ -743,11 +714,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 )
                 for starter in bot.conversation_quick_starters
             ],
-            model_activate=(
-                ModelActivateOutput(**bot.model_activate.model_dump())
-                if bot.model_activate
-                else None
-            ),
+            model_activate=ModelActivateOutput(**bot.model_activate.model_dump()),
         )
     except RecordNotFoundError:
         raise RecordNotFoundError(

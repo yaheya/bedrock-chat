@@ -2,7 +2,7 @@ import { BaseProps } from '../@types/common';
 import useModel from '../hooks/useModel';
 import { Popover, Transition } from '@headlessui/react';
 import { Fragment } from 'react/jsx-runtime';
-import { useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import { PiCaretDown, PiCheck } from 'react-icons/pi';
 import { ModelActivate } from '../@types/bot';
 
@@ -16,8 +16,10 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
 
   const availableModels = useMemo(() => {
     return allModels.filter(model => {
-      const key = model.modelActivateKey as keyof ModelActivate;
-      return props.modelActivate[key] === true;
+      if (props.modelActivate) {
+        return props.modelActivate[model.modelId] === true;
+      }
+      return true;
     });
   }, [allModels, props.modelActivate]);
 
@@ -25,11 +27,6 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
     return availableModels.find((model) => model.modelId === modelId)?.label ?? '';
   }, [availableModels, modelId]);
 
-  useEffect(() => {
-    if (availableModels.length > 0 && !availableModels.some(m => m.modelId === modelId)) {
-      setModelId(availableModels[0].modelId);
-    }
-  }, [availableModels, modelId, setModelId]);
 
   return (
     <div className="">

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Dict, Any
 
 from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import (
@@ -24,6 +24,7 @@ from app.routes.schemas.bot import (
     Knowledge,
     ModelActivateOutput,
 )
+from app.routes.schemas.conversation import type_model_name
 from app.usecases.bot import (
     create_new_bot,
     fetch_all_bots,
@@ -153,11 +154,7 @@ def get_private_bot(request: Request, bot_id: str):
             if bot.bedrock_guardrails
             else None
         ),
-        model_activate=(
-            ModelActivateOutput(**bot.model_activate.model_dump())
-            if bot.model_activate
-            else None
-        ),
+        model_activate=(ModelActivateOutput(**bot.model_activate.model_dump())),
     )
     return output
 

@@ -48,26 +48,18 @@ import {
   PutFeedbackRequest,
 } from '../@types/conversation';
 import { convertThinkingLogToAgentToolProps } from '../features/agent/utils/AgentUtils';
+import {
+  MODEL_KEYS
+} from '../constants';
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
 
 // Default model activation settings when no bot is selected
 const defaultModelActivate: ModelActivate = (() => {
-  return MISTRAL_ENABLED 
-    ? {
-        mistral7b: true,
-        mistral8x7b: true,
-        mistralLarge: true,
-      }
-    : {
-        claude3SonnetV1: true,
-        claude3HaikuV1: true,
-        claude35SonnetV1: true,
-        claude35SonnetV2: true,
-        claude35HaikuV1: true,
-        claude3OpusV1: true,
-      };
+  return Object.fromEntries(
+    MODEL_KEYS.map(key => [key, true])
+  ) as ModelActivate;
 })();
 
 const ChatPage: React.FC = () => {
@@ -381,7 +373,11 @@ const ChatPage: React.FC = () => {
   });
 
   const modelActivate = useMemo(() => {
-    return bot?.modelActivate ?? defaultModelActivate;
+    if (!bot) {
+      return defaultModelActivate;
+    }
+    const isModelActivateEmpty = Object.keys(bot?.modelActivate ?? {}).length === 0;
+    return isModelActivateEmpty ? defaultModelActivate : bot.modelActivate;
   }, [bot]);
 
   return (

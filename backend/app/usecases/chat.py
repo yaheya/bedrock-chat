@@ -577,7 +577,10 @@ def fetch_related_documents(
         return None
 
     # Check if bot has a properly configured knowledge base
-    if not bot.bedrock_knowledge_base or not bot.bedrock_knowledge_base.knowledge_base_id:
+    if (
+        not bot.bedrock_knowledge_base
+        or not bot.bedrock_knowledge_base.knowledge_base_id
+    ):
         logger.warning("Bot does not have a properly configured Bedrock Knowledge Base")
         return []
 

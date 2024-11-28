@@ -77,7 +77,10 @@ def get_source_link(source: str) -> tuple[Literal["s3", "url"], str]:
 
 
 def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResult]:
-    if not bot.bedrock_knowledge_base or not bot.bedrock_knowledge_base.knowledge_base_id:
+    if (
+        not bot.bedrock_knowledge_base
+        or not bot.bedrock_knowledge_base.knowledge_base_id
+    ):
         logger.warning("Bedrock Knowledge Base or Knowledge Base ID is not configured")
         return []
 

@@ -1,20 +1,9 @@
 import { BedrockKnowledgeBase } from '../features/knowledgeBase/types';
-
+import { Model } from './conversation'
 export type BotKind = 'private' | 'mixed';
 
-export type ModelActivate = {
-  // # Claude models
-  claude3SonnetV1?: boolean;
-  claude3HaikuV1?: boolean;
-  claude3OpusV1?: boolean;
-  claude35SonnetV1?: boolean;
-  claude35SonnetV2?: boolean;
-  claude35HaikuV1?: boolean;
-
-  // Mistral models
-  mistral7b?: boolean
-  mistral8x7b?: boolean
-  mistralLarge?: boolean
+type ModelActivate = {
+  [key: string]: boolean;
 };
 
 export type BotMeta = {
@@ -118,7 +107,7 @@ export type RegisterBotRequest = {
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails?: GuardrailsParams;
   bedrockKnowledgeBase?: BedrockKnowledgeBase;
-  modelActivate?: ModelActivate;
+  modelActivate: ModelActivate;
 };
 
 export type RegisterBotResponse = BotDetails;
@@ -134,7 +123,7 @@ export type UpdateBotRequest = {
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails?: GuardrailsParams;
   bedrockKnowledgeBase?: BedrockKnowledgeBase;
-  modelActivate?: ModelActivate;
+  modelActivate: ModelActivate;
 };
 
 export type UpdateBotResponse = {

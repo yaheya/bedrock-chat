@@ -113,10 +113,10 @@ def update_bot(
     sync_status: type_sync_status,
     sync_status_reason: str,
     display_retrieved_chunks: bool,
+    model_activate: ModelActivateModel,
     conversation_quick_starters: list[ConversationQuickStarterModel],
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None = None,
     bedrock_guardrails: BedrockGuardrailsModel | None = None,
-    model_activate: ModelActivateModel | None = None,
 ):
     """Update bot title, description, and instruction.
     NOTE: Use `update_bot_visibility` to update visibility.
@@ -203,36 +203,11 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
-        "ModelActivate": (
-            alias.model_activate.model_dump() if alias.model_activate else None
-        ),
     }
+    if alias.model_activate is not None:
+        item["ModelActivate"] = alias.model_activate.model_dump()
 
     response = table.put_item(Item=item)
-    return response
-
-
-def update_bot_model_activate(user_id: str, bot: BotModel):
-    """Update bot model activate."""
-    table = _get_table_client(user_id)
-    logger.info(f"Updating bot model activate: {bot.id}")
-
-    try:
-        response = table.update_item(
-            Key={"PK": user_id, "SK": compose_bot_alias_id(user_id, bot.id)},
-            UpdateExpression="SET ModelActivate = :val",
-            ExpressionAttributeValues={
-                ":val": bot.model_activate.model_dump() if bot.model_activate else None
-            },
-            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
-        )
-        print(f"update_bot_model_activate response: {response}")
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(f"Alias with id {bot.id} not found")
-        else:
-            raise e
-
     return response
 
 
@@ -521,11 +496,7 @@ def find_private_bot_by_id(user_id: str, bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
-        model_activate=(
-            ModelActivateModel(**item["ModelActivate"])
-            if "ModelActivate" in item
-            else None
-        ),
+        model_activate=ModelActivateModel.create(item.get("ModelActivate")),
     )
 
     logger.info(f"Found bot: {bot}")
@@ -605,11 +576,7 @@ def find_public_bot_by_id(bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
-        model_activate=(
-            ModelActivateModel(**item["ModelActivate"])
-            if "ModelActivate" in item
-            else None
-        ),
+        model_activate=ModelActivateModel.create(item.get("ModelActivate")),
     )
     logger.info(f"Found public bot: {bot}")
     return bot
@@ -639,7 +606,7 @@ def find_alias_by_id(user_id: str, alias_id: str) -> BotAliasModel:
         has_knowledge=item["HasKnowledge"],
         has_agent=item.get("HasAgent", False),
         conversation_quick_starters=item.get("ConversationQuickStarters", []),
-        model_activate=item.get("ModelActivate", None),
+        model_activate=ModelActivateModel.create(item.get("ModelActivate")),
     )
 
     logger.info(f"Found alias: {bot}")

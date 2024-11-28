@@ -46,6 +46,7 @@ import {
 import {
   GUARDRAILS_FILTERS_THRESHOLD,
   GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD,
+  MODEL_KEYS
 } from '../../../constants';
 import {
   ChunkingStrategy,
@@ -58,7 +59,9 @@ import {
   SearchType,
   WebCrawlingScope,
 } from '../types';
-
+import { 
+  toCamelCase
+} from '../../../utils/StringUtils';
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
@@ -136,19 +139,13 @@ const BotKbEditPage: React.FC = () => {
     excludePatterns: [''],
   });
 
-  const [modelActivate, setModelActivate] = useState<ModelActivate>({
-    // Claude models
-    claude3SonnetV1: true,
-    claude3HaikuV1: true,
-    claude3OpusV1: true,
-    claude35SonnetV1: true,
-    claude35SonnetV2: true,
-    claude35HaikuV1: true,
-
-    // Mistral models
-    mistral7b: true,
-    mistral8x7b: true,
-    mistralLarge: true,
+  const [modelActivate, setModelActivate] = useState<ModelActivate>(() => {
+    const initialState = MODEL_KEYS.reduce((acc, key) => {
+      acc[toCamelCase(key)] = true;
+      return acc;
+    }, {} as ModelActivate);
+    console.log("Initial modelActivate:", initialState);
+    return initialState;
   });
 
   const modelActivateOptions: {
@@ -159,42 +156,42 @@ const BotKbEditPage: React.FC = () => {
       ?
         [
           {
-            key: 'mistral7b',
+            key: 'mistral-7b-instruct',
             label: t('model.mistral7b.label')
           },
           {
-            key: 'mistral8x7b',
+            key: 'mixtral-8x7b-instruct',
             label: t('model.mistral8x7b.label')
           },
           {
-            key: 'mistralLarge',
+            key: 'mistral-large',
             label: t('model.mistralLarge.label')
           }
         ]
       :
         [
           {
-            key: 'claude3SonnetV1',
+            key: 'claude-v3-sonnet',
             label: t('model.sonnet3.label')
           },
           {
-            key: 'claude3HaikuV1',
+            key: 'claude-v3-haiku',
             label: t("model.haiku3.label")
           },
           {
-            key: 'claude3OpusV1',
+            key: 'claude-v3-opus',
             label: t("model.opus3.label")
           },
           {
-            key: 'claude35SonnetV1',
+            key: 'claude-v3.5-sonnet',
             label: t('model.sonnet3-5.label')
           },
           {
-            key: 'claude35SonnetV2',
+            key: 'claude-v3.5-sonnet-v2',
             label: t('model.sonnet3-5-v2.label')
           },
           {
-            key: 'claude35HaikuV1',
+            key: 'claude-v3.5-haiku',
             label: t('model.haiku3-5.label')
           }
         ]
@@ -560,7 +557,7 @@ const BotKbEditPage: React.FC = () => {
             includePatterns: bot.bedrockKnowledgeBase.webCrawlingFilters?.includePatterns || [''],
             excludePatterns: bot.bedrockKnowledgeBase.webCrawlingFilters?.excludePatterns || [''],
           });
-          setModelActivate(bot.modelActivate)
+          setModelActivate(bot.modelActivate);
         })
         .finally(() => {
           setIsLoading(false);
@@ -577,11 +574,10 @@ const BotKbEditPage: React.FC = () => {
 
   const onChangeModelActivate = useCallback(
     (key: string, value: boolean) => {
-      setModelActivate(prevState => {
-        const newState = {
-          ...prevState,
-          [key]: value
-        };
+      setModelActivate((prevState) => {
+        const camelKey = toCamelCase(key);
+        const newState = { ...prevState };
+        newState[camelKey] = value;
         return newState;
       });
     },
@@ -2309,7 +2305,7 @@ const BotKbEditPage: React.FC = () => {
                     {modelActivateOptions.map(({ key, label }) => (
                       <div key={key} className="flex items-center gap-2">
                         <Toggle
-                          value={modelActivate[key as keyof ModelActivate] ?? false}
+                          value={modelActivate[toCamelCase(key) as keyof ModelActivate] ?? true}
                           onChange={(value) => onChangeModelActivate(key, value)}
                         />
                         <span>{label}</span>

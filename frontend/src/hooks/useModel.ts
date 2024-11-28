@@ -4,6 +4,10 @@ import { useEffect, useMemo, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useLocalStorage from './useLocalStorage';
 import { ModelActivate } from '../@types/bot';
+import { MODEL_KEYS } from '../constants';
+import { 
+  toCamelCase
+} from '../utils/StringUtils';
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
@@ -41,6 +45,22 @@ const usePreviousBotId = (botId: string | null | undefined) => {
 };
 
 const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
+  const processedModelActivate = useMemo(() => {
+    // Early return if modelActivate is provided and not empty
+    if (modelActivate && Object.keys(modelActivate).length > 0) {
+      return modelActivate;
+    }
+
+    // Create a new object with all models set to true
+    return MODEL_KEYS.reduce((acc, model) => {
+      // Optimize string replacement by doing it in one operation
+      acc[toCamelCase(model)] = true;
+      return acc;
+    }, {} as ModelActivate);
+    
+  }, [modelActivate]);
+
+
   const { t } = useTranslation();
   const previousBotId = usePreviousBotId(botId);
 
@@ -50,7 +70,6 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
       label: string;
       supportMediaType: string[];
       description?: string;
-      modelActivateKey: string;
     }[]
   >(() => {
     return !MISTRAL_ENABLED
@@ -60,42 +79,36 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
             label: t('model.haiku3.label'),
             description: t('model.haiku3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude3HaikuV1',
           },
           {
             modelId: 'claude-v3.5-haiku',
             label: t('model.haiku3-5.label'),
             description: t('model.haiku3-5.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude35HaikuV1'
           },
           {
             modelId: 'claude-v3-sonnet',
             label: t('model.sonnet3.label'),
             description: t('model.sonnet3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude3SonnetV1'
           },
           {
             modelId: 'claude-v3.5-sonnet',
             label: t('model.sonnet3-5.label'),
             description: t('model.sonnet3-5.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude35SonnetV1'
           },
           {
             modelId: 'claude-v3.5-sonnet-v2',
             label: t('model.sonnet3-5-v2.label'),
             description: t('model.sonnet3-5-v2.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude35SonnetV2'
           },
           {
             modelId: 'claude-v3-opus',
             label: t('model.opus3.label'),
             description: t('model.opus3.description'),
             supportMediaType: CLAUDE_SUPPORTED_MEDIA_TYPES,
-            modelActivateKey: 'claude3OpusV1'
           },
         ]
       : [
@@ -103,19 +116,16 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
             modelId: 'mistral-7b-instruct',
             label: t('model.mistral7b.label'),
             supportMediaType: [],
-            modelActivateKey: 'mistral7b'
           },
           {
             modelId: 'mixtral-8x7b-instruct',
             label: t('model.mistral8x7b.label'),
             supportMediaType: [],
-            modelActivateKey: 'mistral8x7b'
           },
           {
             modelId: 'mistral-large',
             label: t('model.mistralLarge.label'),
             supportMediaType: [],
-            modelActivateKey: 'mistralLarge'
           },
         ];
   }, [t]);
@@ -137,18 +147,14 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
   useEffect(() => {
     if (MISTRAL_ENABLED) {
       setFilteredModels(availableModels)
-    } else if (modelActivate !== undefined) {
+    } else if (processedModelActivate) {
       const filtered = availableModels.filter(model => {
-        const key = model.modelActivateKey as keyof ModelActivate;
-        if (modelActivate) {
-          return modelActivate[key] === true;
-        } else {
-          return true;
-        }
+        const key = model.modelId as keyof ModelActivate;
+        return processedModelActivate[key] !== false;
       });
       setFilteredModels(filtered);
     }
-  }, [modelActivate, availableModels]);
+  }, [processedModelActivate, availableModels]);
 
   const getDefaultModel = useCallback(() => {
     // check default model is available
@@ -162,12 +168,12 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
 
   // select the model via list of modelActivate 
   const selectModel = useCallback((targetModelId: Model) => {
-    const model = filteredModels.find(m => m.modelId === targetModelId);
-    return model ? targetModelId : getDefaultModel();
+    const modelExists = filteredModels.some(m => m.modelId === targetModelId);
+    return modelExists ? targetModelId : getDefaultModel();
   }, [filteredModels, getDefaultModel]);
 
   useEffect(() => {
-    if (modelActivate === undefined) {return}
+    if (processedModelActivate === undefined) {return}
 
     // botId is changed
     if (previousBotId !== botId) {
@@ -201,13 +207,13 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
     }else{
       // Processing when botId and previousBotID are the same, but there is an update in FilteredModels
       if (botId) {
-        const lastModelAvailable = filteredModels.some(m => m.modelId === recentUseModelId);
+        const lastModelAvailable = filteredModels.some(m => m.modelId === recentUseModelId || m.modelId === botModelId );
         if (!lastModelAvailable) {
           setModelId(selectModel(getDefaultModel()));
         }
       }
     }
-  }, [botId, previousBotId, botModelId, recentUseModelId, modelId, filteredModels, setModelId, selectModel, getDefaultModel, modelActivate]);
+  }, [botId, previousBotId, botModelId, recentUseModelId, modelId, filteredModels, setModelId, selectModel, getDefaultModel, processedModelActivate]);
 
   const model = useMemo(() => {
     return filteredModels.find((model) => model.modelId === modelId);

@@ -1,9 +1,31 @@
-from typing import Optional
+from typing import Optional, get_args, Dict, Any
 from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import type_sync_status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
+from app.routes.schemas.conversation import type_model_name
+
+
+class ModelActivateModel(BaseModel):
+    claude_instant_v1: bool = True
+    claude_v2: bool = True
+    claude_v3_sonnet: bool = True
+    claude_v3_5_sonnet: bool = True
+    claude_v3_5_sonnet_v2: bool = True
+    claude_v3_5_haiku: bool = True
+    claude_v3_haiku: bool = True
+    claude_v3_opus: bool = True
+    mistral_7b_instruct: bool = True
+    mistral_large: bool = True
+    mixtral_8x7b_instruct: bool = True
+
+    @classmethod
+    def create(cls, data: Dict[str, Any] | None = None) -> "ModelActivateModel":
+        """Factory method to create an instance with optional data."""
+        if data is None:
+            return cls()
+        return cls(**data)
 
 
 class KnowledgeModel(BaseModel):
@@ -55,21 +77,6 @@ class ConversationQuickStarterModel(BaseModel):
     example: str
 
 
-class ModelActivateModel(BaseModel):
-    # Claude models
-    claude3_sonnet_v1: Optional[bool] = None
-    claude3_haiku_v1: Optional[bool] = None
-    claude3_opus_v1: Optional[bool] = None
-    claude3_5_sonnet_v1: Optional[bool] = None
-    claude3_5_sonnet_v2: Optional[bool] = None
-    claude3_5_haiku_v1: Optional[bool] = None
-
-    # Mistral models
-    mistral7b: Optional[bool] = None
-    mistral8x7b: Optional[bool] = None
-    mistralLarge: Optional[bool] = None
-
-
 class BotModel(BaseModel):
     id: str
     title: str
@@ -94,7 +101,7 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
-    model_activate: ModelActivateModel | None
+    model_activate: ModelActivateModel
 
     def has_knowledge(self) -> bool:
         return (
@@ -108,7 +115,10 @@ class BotModel(BaseModel):
         return len(self.agent.tools) > 0
 
     def has_bedrock_knowledge_base(self) -> bool:
-        return self.bedrock_knowledge_base is not None
+        return (
+            self.bedrock_knowledge_base is not None
+            and self.bedrock_knowledge_base.knowledge_base_id is not None
+        )
 
 
 class BotAliasModel(BaseModel):
@@ -123,7 +133,7 @@ class BotAliasModel(BaseModel):
     has_knowledge: bool
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
-    model_activate: ModelActivateModel | None
+    model_activate: ModelActivateModel
 
 
 class BotMeta(BaseModel):

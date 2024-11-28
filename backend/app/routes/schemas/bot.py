@@ -1,17 +1,24 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional
-
+from typing import (
+    TYPE_CHECKING,
+    Literal,
+    Optional,
+)
+from pydantic import (
+    Field,
+    validator,
+)
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
     BedrockGuardrailsInput,
     BedrockGuardrailsOutput,
 )
+from app.routes.schemas.conversation import type_model_name
 from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseInput,
     BedrockKnowledgeBaseOutput,
 )
-from pydantic import Field, root_validator, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -28,34 +35,37 @@ type_sync_status = Literal[
 ]
 
 
+# Create concrete classes
 class ModelActivateInput(BaseSchema):
-    # Claude models
-    claude3_sonnet_v1: bool | None
-    claude3_haiku_v1: bool | None
-    claude3_opus_v1: bool | None
-    claude3_5_sonnet_v1: bool | None
-    claude3_5_sonnet_v2: bool | None
-    claude3_5_haiku_v1: bool | None
+    """Model activation input schema with fields matching type_model_name"""
 
-    # Mistral models
-    mistral7b: bool | None
-    mistral8x7b: bool | None
-    mistralLarge: bool | None
+    claude_instant_v1: bool = True
+    claude_v2: bool = True
+    claude_v3_sonnet: bool = True
+    claude_v3_5_sonnet: bool = True
+    claude_v3_5_sonnet_v2: bool = True
+    claude_v3_5_haiku: bool = True
+    claude_v3_haiku: bool = True
+    claude_v3_opus: bool = True
+    mistral_7b_instruct: bool = True
+    mistral_large: bool = True
+    mixtral_8x7b_instruct: bool = True
 
 
 class ModelActivateOutput(BaseSchema):
-    # Claude models
-    claude3_sonnet_v1: bool | None
-    claude3_haiku_v1: bool | None
-    claude3_opus_v1: bool | None
-    claude3_5_sonnet_v1: bool | None
-    claude3_5_sonnet_v2: bool | None
-    claude3_5_haiku_v1: bool | None
+    """Model activation output schema with fields matching type_model_name"""
 
-    # Mistral models
-    mistral7b: bool | None
-    mistral8x7b: bool | None
-    mistralLarge: bool | None
+    claude_instant_v1: bool = True
+    claude_v2: bool = True
+    claude_v3_sonnet: bool = True
+    claude_v3_5_sonnet: bool = True
+    claude_v3_5_sonnet_v2: bool = True
+    claude_v3_5_haiku: bool = True
+    claude_v3_haiku: bool = True
+    claude_v3_opus: bool = True
+    mistral_7b_instruct: bool = True
+    mistral_large: bool = True
+    mixtral_8x7b_instruct: bool = True
 
 
 class GenerationParams(BaseSchema):
@@ -132,7 +142,7 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput | None = None
+    model_activate: ModelActivateInput
 
 
 class BotModifyInput(BaseSchema):
@@ -146,7 +156,7 @@ class BotModifyInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput | None = None
+    model_activate: ModelActivateInput
 
     def _has_update_files(self) -> bool:
         return self.knowledge is not None and (
@@ -260,7 +270,7 @@ class BotModifyOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput | None
+    model_activate: ModelActivateOutput
 
 
 class BotOutput(BaseSchema):
@@ -284,7 +294,7 @@ class BotOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput | None
+    model_activate: ModelActivateOutput
 
 
 class BotMetaOutput(BaseSchema):
@@ -315,7 +325,7 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
-    model_activate: ModelActivateOutput | None
+    model_activate: ModelActivateOutput
 
 
 class BotSwitchVisibilityInput(BaseSchema):
