@@ -1,19 +1,29 @@
-import base64
-import json
 import logging
 import os
-import re
-from pathlib import Path
+from typing import TypeGuard
 
+from app.agents.tools.agent_tool import AgentTool
 from app.config import BEDROCK_PRICING
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
-from app.repositories.models.conversation import ContentModel, MessageModel
+from app.repositories.models.conversation import (
+    SimpleMessageModel,
+    ContentModel,
+)
 from app.repositories.models.custom_bot import GenerationParamsModel
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.routes.schemas.conversation import type_model_name
-from app.utils import convert_dict_keys_to_camel_case, get_bedrock_runtime_client
-from typing_extensions import NotRequired, TypedDict, no_type_check
+from app.utils import get_bedrock_runtime_client
+
+from mypy_boto3_bedrock_runtime.type_defs import (
+    ConverseStreamRequestRequestTypeDef,
+    MessageTypeDef,
+    ConverseResponseTypeDef,
+    ContentBlockTypeDef,
+    GuardrailConverseContentBlockTypeDef,
+    InferenceConfigurationTypeDef,
+)
+from mypy_boto3_bedrock_runtime.literals import ConversationRoleType
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -32,135 +42,28 @@ ENABLE_BEDROCK_CROSS_REGION_INFERENCE = (
 client = get_bedrock_runtime_client()
 
 
-class GuardrailConfig(TypedDict):
-    guardrailIdentifier: str
-    guardrailVersion: str
-    trace: str
-    streamProcessingMode: NotRequired[str]
-
-
-class ConverseApiToolSpec(TypedDict):
-    name: str
-    description: str
-    inputSchema: dict
-
-
-class ConverseApiToolConfig(TypedDict):
-    tools: list[ConverseApiToolSpec]
-    toolChoice: dict
-
-
-class ConverseApiToolResultContent(TypedDict):
-    json: NotRequired[dict]
-    text: NotRequired[str]
-
-
-class ConverseApiToolResult(TypedDict):
-    toolUseId: str
-    content: ConverseApiToolResultContent
-    status: NotRequired[str]
-
-
-class ConverseApiRequest(TypedDict):
-    inference_config: dict
-    additional_model_request_fields: dict
-    model_id: str
-    messages: list[dict]
-    stream: bool
-    system: list[dict]
-    guardrailConfig: NotRequired[GuardrailConfig]
-    tool_config: NotRequired[ConverseApiToolConfig]
-
-
-class ConverseApiToolUseContent(TypedDict):
-    toolUseId: str
-    name: str
-    input: dict
-
-
-class ConverseApiResponseMessageContent(TypedDict):
-    text: NotRequired[str]
-    toolUse: NotRequired[ConverseApiToolUseContent]
-
-
-class ConverseApiResponseMessage(TypedDict):
-    content: list[ConverseApiResponseMessageContent]
-    role: str
-
-
-class ConverseApiResponseOutput(TypedDict):
-    message: ConverseApiResponseMessage
-
-
-class ConverseApiResponseUsage(TypedDict):
-    inputTokens: int
-    outputTokens: int
-    totalTokens: int
-
-
-class ConverseApiResponse(TypedDict):
-    ResponseMetadata: dict
-    output: ConverseApiResponseOutput
-    stopReason: str
-    usage: ConverseApiResponseUsage
-
-
-def compose_args(
-    messages: list[MessageModel],
-    model: type_model_name,
-    instruction: str | None = None,
-    stream: bool = False,
-    generation_params: GenerationParamsModel | None = None,
-) -> dict:
-    logger.warn(
-        "compose_args is deprecated. Use compose_args_for_converse_api instead."
-    )
-    return dict(
-        compose_args_for_converse_api(
-            messages, model, instruction, stream, generation_params
-        )
-    )
-
-
-def _get_converse_supported_format(ext: str) -> str:
-    supported_formats = {
-        "pdf": "pdf",
-        "csv": "csv",
-        "doc": "doc",
-        "docx": "docx",
-        "xls": "xls",
-        "xlsx": "xlsx",
-        "html": "html",
-        "txt": "txt",
-        "md": "md",
-    }
-    # If the extension is not supported, return "txt"
-    return supported_formats.get(ext, "txt")
-
-
-def _convert_to_valid_file_name(file_name: str) -> str:
-    # Note: The document file name can only contain alphanumeric characters,
-    # whitespace characters, hyphens, parentheses, and square brackets.
-    # The name can't contain more than one consecutive whitespace character.
-    file_name = re.sub(r"[^a-zA-Z0-9\s\-\(\)\[\]]", "", file_name)
-    file_name = re.sub(r"\s+", " ", file_name)
-    file_name = file_name.strip()
-
-    return file_name
+def _is_conversation_role(role: str) -> TypeGuard[ConversationRoleType]:
+    return role in ["user", "assistant"]
 
 
 def compose_args_for_converse_api(
-    messages: list[MessageModel],
+    messages: list[SimpleMessageModel],
     model: type_model_name,
-    instruction: str | None = None,
-    stream: bool = False,
+    instructions: list[str] = [],
     generation_params: GenerationParamsModel | None = None,
-    grounding_source: dict | None = None,
     guardrail: BedrockGuardrailsModel | None = None,
-) -> ConverseApiRequest:
-    def process_content(c: ContentModel, role: str):
+    grounding_source: GuardrailConverseContentBlockTypeDef | None = None,
+    tools: dict[str, AgentTool] | None = None,
+    stream: bool = True,
+) -> ConverseStreamRequestRequestTypeDef:
+    def process_content(c: ContentModel, role: str) -> list[ContentBlockTypeDef]:
         if c.content_type == "text":
-            if role == "user" and guardrail and guardrail.grounding_threshold > 0:
+            if (
+                role == "user"
+                and guardrail
+                and guardrail.grounding_threshold > 0
+                and grounding_source
+            ):
                 return [
                     {"guardContent": grounding_source},
                     {
@@ -169,43 +72,10 @@ def compose_args_for_converse_api(
                         }
                     },
                 ]
-            elif role == "assistant":
-                return [{"text": c.body if isinstance(c.body, str) else None}]
-            else:
-                return [{"text": c.body}]
-        elif c.content_type == "image":
-            # e.g. "image/png" -> "png"
-            format = c.media_type.split("/")[1] if c.media_type else "unknown"
-            return [
-                {
-                    "image": {
-                        "format": format,
-                        # decode base64 encoded image
-                        "source": {"bytes": base64.b64decode(c.body)},
-                    }
-                }
-            ]
-        elif c.content_type == "attachment":
-            return [
-                {
-                    "document": {
-                        # e.g. "document.txt" -> "txt"
-                        "format": _get_converse_supported_format(
-                            Path(c.file_name).suffix[1:]  # type: ignore
-                        ),
-                        # e.g. "document.txt" -> "document"
-                        "name": _convert_to_valid_file_name(
-                            Path(c.file_name).stem  # type: ignore
-                        ),
-                        # decode base64 encoded document
-                        "source": {"bytes": base64.b64decode(c.body)},
-                    }
-                }
-            ]
-        else:
-            raise NotImplementedError(f"Unsupported content type: {c.content_type}")
 
-    arg_messages = [
+        return c.to_contents_for_converse()
+
+    arg_messages: list[MessageTypeDef] = [
         {
             "role": message.role,
             "content": [
@@ -215,32 +85,42 @@ def compose_args_for_converse_api(
             ],
         }
         for message in messages
-        if message.role not in ["system", "instruction"]
+        if _is_conversation_role(message.role)
     ]
 
-    inference_config = {
-        **DEFAULT_GENERATION_CONFIG,
-        **(
-            {
-                "maxTokens": generation_params.max_tokens,
-                "temperature": generation_params.temperature,
-                "topP": generation_params.top_p,
-                "stopSequences": generation_params.stop_sequences,
-            }
-            if generation_params
-            else {}
-        ),
-    }
+    inference_config: InferenceConfigurationTypeDef
+    if generation_params:
+        inference_config = {
+            "maxTokens": generation_params.max_tokens,
+            "temperature": generation_params.temperature,
+            "topP": generation_params.top_p,
+            "stopSequences": generation_params.stop_sequences,
+        }
+        additional_model_request_fields = {
+            "top_k": generation_params.top_k,
+        }
 
-    additional_model_request_fields = {"top_k": inference_config.pop("top_k")}
+    else:
+        inference_config = {
+            "maxTokens": DEFAULT_GENERATION_CONFIG["max_tokens"],
+            "temperature": DEFAULT_GENERATION_CONFIG["temperature"],
+            "topP": DEFAULT_GENERATION_CONFIG["top_p"],
+            "stopSequences": DEFAULT_GENERATION_CONFIG["stop_sequences"],
+        }
+        additional_model_request_fields = {
+            "top_k": DEFAULT_GENERATION_CONFIG["top_k"],
+        }
 
-    args: ConverseApiRequest = {
-        "inference_config": convert_dict_keys_to_camel_case(inference_config),
-        "additional_model_request_fields": additional_model_request_fields,
-        "model_id": get_model_id(model),
+    args: ConverseStreamRequestRequestTypeDef = {
+        "inferenceConfig": inference_config,
+        "additionalModelRequestFields": additional_model_request_fields,
+        "modelId": get_model_id(model),
         "messages": arg_messages,
-        "stream": stream,
-        "system": [{"text": instruction}] if instruction else [],
+        "system": [
+            {"text": instruction}
+            for instruction in instructions
+            if len(instruction) > 0
+        ],
     }
 
     if guardrail and guardrail.guardrail_arn and guardrail.guardrail_version:
@@ -254,24 +134,25 @@ def compose_args_for_converse_api(
             # https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-streaming.html
             args["guardrailConfig"]["streamProcessingMode"] = "async"
 
+    if tools:
+        args["toolConfig"] = {
+            "tools": [
+                {
+                    "toolSpec": tool.to_converse_spec(),
+                }
+                for tool in tools.values()
+            ],
+        }
+
     return args
 
 
-def call_converse_api(args: ConverseApiRequest) -> ConverseApiResponse:
+def call_converse_api(
+    args: ConverseStreamRequestRequestTypeDef,
+) -> ConverseResponseTypeDef:
     client = get_bedrock_runtime_client()
 
-    base_args = {
-        "modelId": args["model_id"],
-        "messages": args["messages"],
-        "inferenceConfig": args["inference_config"],
-        "system": args["system"],
-        "additionalModelRequestFields": args["additional_model_request_fields"],
-    }
-
-    if "guardrailConfig" in args:
-        base_args["guardrailConfig"] = args["guardrailConfig"]  # type: ignore
-
-    return client.converse(**base_args)
+    return client.converse(**args)
 
 
 def calculate_price(

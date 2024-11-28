@@ -1,54 +1,8 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { TextInputChatContent } from './TextInputChatContent';
 import { AvailableTools } from './AvailableTools';
 import { AgentTool } from '../types';
 import ToolCard from './ToolCard';
 import AgentToolList from './AgentToolList';
-import { AgentToolState } from '../xstates/agentThink';
-
-export const InputChatContent = () => (
-  <TextInputChatContent
-    canRegenerate={false}
-    isLoading={false}
-    onSend={() => {}}
-    onRegenerate={() => {}}
-  />
-);
-
-export const InputChatContentLoading = () => (
-  <TextInputChatContent
-    disabledSend={true}
-    disabledRegenerate={true}
-    canRegenerate={false}
-    isLoading={true}
-    onSend={() => {}}
-    onRegenerate={() => {}}
-  />
-);
-
-export const InputChatContentDisabled = () => {
-  const { t } = useTranslation();
-  return (
-    <TextInputChatContent
-      canRegenerate={false}
-      isLoading={false}
-      disabled={true}
-      placeholder={t('bot.label.notAvailableBotInputMessage')}
-      onSend={() => {}}
-      onRegenerate={() => {}}
-    />
-  );
-};
-
-export const InputChatContentWithRegenerate = () => (
-  <TextInputChatContent
-    canRegenerate={true}
-    isLoading={false}
-    onSend={() => {}}
-    onRegenerate={() => {}}
-  />
-);
 
 export const Tools = () => {
   const availableTools: AgentTool[] = [
@@ -76,6 +30,10 @@ export const Tools = () => {
       name: 'internet_search',
       description: '',
     },
+    {
+      name: 'knowledge_base_tool',
+      description: '',
+    },
   ];
   const [tools, setTools] = useState<AgentTool[]>([]);
   return (
@@ -89,7 +47,7 @@ export const Tools = () => {
 
 export const ToolCardRunning = () => (
   <ToolCard
-    toolUseId="tool1"
+    toolUseId="tool1_tcr"
     name="internet_search"
     status="running"
     input={{ country: 'jp-jp', query: '東京 天気', time_limit: 'd' }}
@@ -98,45 +56,118 @@ export const ToolCardRunning = () => (
 
 export const ToolCardSuccess = () => (
   <ToolCard
-    toolUseId="tool2"
+    toolUseId="tool2_tcs"
     name="Database Query"
     status="success"
     input={{ query: 'SELECT * FROM table' }}
-    content={{ text: 'some data' }}
+    resultContents={[{
+      text: 'some data',
+    }]}
   />
 );
 
 export const ToolCardError = () => (
   <ToolCard
-    toolUseId="tool3"
+    toolUseId="tool3_tce"
     name="API Call"
     status="error"
     input={{ query: 'SELECT * FROM table' }}
   />
 );
 
-export const ToolCardList = () => {
-  const tools = {
-    tool1: {
-      name: 'internet_search',
-      status: 'running' as AgentToolState,
-      input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
-    },
-    tool2: {
-      name: 'database_query',
-      status: 'success' as AgentToolState,
-      input: { query: 'SELECT * FROM table' },
-      // Pass the content as stringified JSON
-      content: { text: '{"result": "success", "data": "some data"}' },
-    },
-    tool4: {
-      name: 'API Call',
-      status: 'error' as AgentToolState,
-      input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
-      // Pass the content as simple string
-      content: { text: 'Error! Connection Timeout' },
-    },
-  };
+export const ToolListRunning = () => {
+  return <AgentToolList
+    messageId="message_tlr"
+    tools={{
+      tools: {
+        tool1_tlr: {
+          name: 'internet_search',
+          status: 'running',
+          input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
+        },
+        tool2_tlr: {
+          name: 'database_query',
+          status: 'success',
+          input: { query: 'SELECT * FROM table' },
+          // Pass the content as stringified JSON
+          resultContents: [{
+            text: '{"result": "success", "data": "some data"}',
+          }],
+        },
+        tool3_tlr: {
+          name: 'API Call',
+          status: 'running',
+          input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
+        },
+      },
+    }}
+  />;
+};
 
-  return <AgentToolList tools={tools} isRunning={true} />;
+export const ToolList = () => {
+  return <AgentToolList
+    messageId="message_tl"
+    tools={{
+      thought: '東京の天気について以下のことがわかりました。\n- search result 1[^tool1_tl@0]\n- search result 2[^tool1_tl@1]\n- search result 3[^tool1_tl@2]',
+      tools: {
+        tool1_tl: {
+          name: 'internet_search',
+          status: 'success',
+          input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
+          resultContents: [
+            {
+              text: "search result 1",
+            },
+            {
+              text: "search result 2",
+            },
+            {
+              text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+            },
+          ],
+        },
+        tool2_tl: {
+          name: 'database_query',
+          status: 'success',
+          input: { query: 'SELECT * FROM table' },
+          // Pass the content as stringified JSON
+          resultContents: [{
+            text: '{"result": "success", "data": "some data"}',
+          }],
+        },
+        tool3_tl: {
+          name: 'API Call',
+          status: 'error',
+          input: { country: 'jp-jp', query: '東京 天気', time_limit: 'd' },
+          // Pass the content as simple string
+          resultContents: [{
+            text: 'Error! Connection Timeout',
+          }],
+        },
+      },
+    }}
+    relatedDocuments={[
+      {
+        content: {
+          text: 'search result 1',
+        },
+        sourceId: 'tool1_tl@0',
+        sourceName: 'internet_search',
+      },
+      {
+        content: {
+          text: 'search result 2',
+        },
+        sourceId: 'tool1_tl@1',
+        sourceName: 'internet_search',
+      },
+      {
+        content: {
+          text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        },
+        sourceId: 'tool1_tl@2',
+        sourceName: 'internet_search',
+      },
+    ]}
+  />;
 };

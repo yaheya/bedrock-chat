@@ -1,4 +1,3 @@
-import base64
 import sys
 
 from ulid import ULID
@@ -8,7 +7,8 @@ import unittest
 from pprint import pprint
 
 import boto3
-from app.config import DEFAULT_GENERATION_CONFIG
+from app.agents.tools.agent_tool import ToolRunResult
+from app.prompt import build_rag_prompt
 from app.repositories.conversation import (
     delete_conversation_by_id,
     delete_conversation_by_user_id,
@@ -22,22 +22,24 @@ from app.repositories.custom_bot import (
     update_bot_visibility,
 )
 from app.repositories.models.conversation import (
-    ContentModel,
     ConversationModel,
     MessageModel,
+    TextContentModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.routes.schemas.conversation import (
+    AttachmentContent,
     ChatInput,
-    ChatOutput,
-    Content,
+    ImageContent,
     MessageInput,
+    TextContent,
     type_model_name,
 )
+from app.stream import OnStopInput, OnThinking
 from app.usecases.chat import (
     chat,
+    chat_output_from_message,
     fetch_conversation,
-    insert_knowledge,
     propose_conversation_title,
     trace_to_root,
 )
@@ -60,11 +62,9 @@ class TestTraceToRoot(unittest.TestCase):
             "user_1": MessageModel(
                 role="user",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="user_1",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -78,11 +78,9 @@ class TestTraceToRoot(unittest.TestCase):
             "bot_1": MessageModel(
                 role="assistant",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="bot_1",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -96,11 +94,9 @@ class TestTraceToRoot(unittest.TestCase):
             "user_2": MessageModel(
                 role="user",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="user_2",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -114,11 +110,9 @@ class TestTraceToRoot(unittest.TestCase):
             "bot_2": MessageModel(
                 role="assistant",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="bot_2",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -132,11 +126,9 @@ class TestTraceToRoot(unittest.TestCase):
             "user_3a": MessageModel(
                 role="user",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="user_3a",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -150,11 +142,9 @@ class TestTraceToRoot(unittest.TestCase):
             "user_3b": MessageModel(
                 role="user",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
                         body="user_3b",
-                        media_type=None,
-                        file_name="test",
                     )
                 ],
                 model=MODEL,
@@ -190,11 +180,9 @@ class TestStartChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="あなたの名前は何ですか？",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -204,7 +192,8 @@ class TestStartChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())
@@ -238,8 +227,9 @@ class TestStartChat(unittest.TestCase):
     #         message=MessageInput(
     #             role="user",
     #             content=[
-    #                 Content(
-    #                     content_type="text", body=body, media_type=None, file_name=None
+    #                 TextContent(
+    #                     content_type="text",
+    #                     body=body,
     #                 )
     #             ],
     #             model=MISTRAL_MODEL,
@@ -249,7 +239,8 @@ class TestStartChat(unittest.TestCase):
     #         bot_id=None,
     #         continue_generate=False,
     #     )
-    #     output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+    #     conversation, message = chat(user_id="user1", chat_input=chat_input)
+    #     output = chat_output_from_message(conversation=conversation, message=message)
     #     self.output = output
 
     #     pprint(output.model_dump())
@@ -288,17 +279,14 @@ class TestAttachmentChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    AttachmentContent(
                         content_type="attachment",
                         body=body,
-                        media_type=None,
                         file_name=file_name,
                     ),
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="Summarize the document.",
-                        media_type=None,
-                        file_name=None,
                     ),
                 ],
                 model=MODEL,
@@ -308,7 +296,8 @@ class TestAttachmentChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         pprint(output.model_dump())
         self.output = output
 
@@ -323,18 +312,15 @@ class TestMultimodalChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    ImageContent(
                         content_type="image",
                         # AWS Logo image
                         body=get_aws_logo(),
                         media_type="image/png",
-                        file_name=None,
                     ),
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="Explain the image",
-                        media_type=None,
-                        file_name=None,
                     ),
                 ],
                 model="claude-v3-sonnet",  # Specify v3 model
@@ -348,7 +334,8 @@ class TestMultimodalChat(unittest.TestCase):
         print(message.content[0].body)
         print(type(message.content[0].body))
 
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         # Check the output whether the explanation is about aws logo
         pprint(output.model_dump())
         self.output = output
@@ -370,11 +357,9 @@ class TestContinueChat(unittest.TestCase):
                     "1-user": MessageModel(
                         role="user",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="こんにちは",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -388,11 +373,9 @@ class TestContinueChat(unittest.TestCase):
                     "1-assistant": MessageModel(
                         role="assistant",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="はい、こんにちは。どうしましたか?",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -415,11 +398,9 @@ class TestContinueChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="あなたの名前は？",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -429,7 +410,8 @@ class TestContinueChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())
@@ -465,11 +447,9 @@ class TestRegenerateChat(unittest.TestCase):
                     "a-1": MessageModel(
                         role="user",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="こんにちはを英語で",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -483,11 +463,9 @@ class TestRegenerateChat(unittest.TestCase):
                     "a-2": MessageModel(
                         role="assistant",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="Hello!",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -501,11 +479,9 @@ class TestRegenerateChat(unittest.TestCase):
                     "b-1": MessageModel(
                         role="user",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="こんにちはを中国語で",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -519,11 +495,9 @@ class TestRegenerateChat(unittest.TestCase):
                     "b-2": MessageModel(
                         role="assistant",
                         content=[
-                            ContentModel(
+                            TextContentModel(
                                 content_type="text",
                                 body="你好!",
-                                media_type=None,
-                                file_name=None,
                             )
                         ],
                         model=MODEL,
@@ -547,11 +521,9 @@ class TestRegenerateChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="では、おやすみなさいはなんと言う？",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -562,7 +534,8 @@ class TestRegenerateChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())  # English
@@ -575,11 +548,9 @@ class TestRegenerateChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="では、おやすみなさいはなんと言う？",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -590,7 +561,8 @@ class TestRegenerateChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())  # Chinese
@@ -608,12 +580,10 @@ class TestProposeTitle(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         # body="Australian famous site seeing place",
                         body="日本の有名な料理を3つ教えて",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -623,13 +593,15 @@ class TestProposeTitle(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
         self.output = output
 
         # chat_input.conversation_id = "test_conversation_mistral_id"
         # chat_input.message.model = MISTRAL_MODEL
-        # mistral_output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        # conversation, message = chat(user_id="user1", chat_input=chat_input)
+        # mistral_output = chat_output_from_message(conversation=conversation, message=message)
         # self.mistral_output = mistral_output
         # print(mistral_output)
 
@@ -683,11 +655,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="こんにちは",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -697,7 +667,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
         conv = find_conversation_by_id("user1", output.conversation_id)
@@ -711,11 +682,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="自己紹介して",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -725,7 +694,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
         # Edit first message
@@ -734,11 +704,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="こんばんは",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -748,7 +716,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
 
         conv = find_conversation_by_id("user1", output.conversation_id)
         self.assertEqual(len(conv.message_map["system"].children), 1)
@@ -761,11 +730,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="こんにちは",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -775,7 +742,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="public1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
 
         print(output)
 
@@ -785,11 +753,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="自己紹介して",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -799,7 +765,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
         # Delete alias
@@ -811,11 +778,9 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="君の名は？",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=MODEL,
@@ -825,7 +790,8 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
 
         conv = fetch_conversation("user1", output.conversation_id)
         # Assert that instruction is not included
@@ -834,6 +800,27 @@ class TestChatWithCustomizedBot(unittest.TestCase):
         msg = trace_to_root(conv.last_message_id, conv.message_map)  # type: ignore
         self.assertEqual(len(msg), 3)  # system + user + assistant
         pprint(msg)
+
+
+def on_thinking(to_send: OnThinking):
+    print("====================================")
+    print("Thinking...")
+    print("====================================")
+    pprint(to_send)
+
+
+def on_tool_result(run_result: ToolRunResult):
+    print("====================================")
+    print("Tool Result...")
+    print("====================================")
+    pprint(run_result)
+
+
+def on_stop(on_stop_input: OnStopInput):
+    print("====================================")
+    print("Stop...")
+    print("====================================")
+    pprint(on_stop_input)
 
 
 class TestAgentChat(unittest.TestCase):
@@ -863,11 +850,9 @@ class TestAgentChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         body="Today's amazon stock price?",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=self.model,
@@ -877,7 +862,14 @@ class TestAgentChat(unittest.TestCase):
             bot_id=self.bot_id,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id=self.user_name, chat_input=chat_input)
+        conversation, message = chat(
+            user_id=self.user_name,
+            chat_input=chat_input,
+            on_thinking=on_thinking,
+            on_tool_result=on_tool_result,
+            on_stop=on_stop,
+        )
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output.message.content[0].body)
 
         conv = find_conversation_by_id(self.user_name, output.conversation_id)
@@ -956,12 +948,10 @@ class TestGuardrailChat(unittest.TestCase):
             message=MessageInput(
                 role="user",
                 content=[
-                    Content(
+                    TextContent(
                         content_type="text",
                         # Sexual content
                         body="Which bust do you like, A cup, B cup, C cup, D cup, or E cup?",
-                        media_type=None,
-                        file_name=None,
                     )
                 ],
                 model=self.model,
@@ -971,7 +961,8 @@ class TestGuardrailChat(unittest.TestCase):
             bot_id=self.bot_id,
             continue_generate=False,
         )
-        output: ChatOutput = chat(user_id=self.user_name, chat_input=chat_input)
+        conversation, message = chat(user_id=self.user_name, chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
         print(output.message.content[0].body)
 
         # Must be blocked
@@ -980,80 +971,34 @@ class TestGuardrailChat(unittest.TestCase):
 
 class TestInsertKnowledge(unittest.TestCase):
     def test_insert_knowledge(self):
-        results = [
-            SearchResult(**x)
-            for x in [
-                {
-                    "bot_id": "bot_bb                    ",
-                    "content": "73\n\nその他リソース\n\nサービス概要: https://aws.amazon.com/jp/opensearch-service/features/serverless/\n\nよくある質問: https://aws.amazon.com/opensearch-service/faqs/#Serverless\n\n料金: https://aws.amazon.com/opensearch-\n\nservice/pricing/?nc1=h_ls#Amazon_OpenSearch_Serverless\n\nドキュメント: https://docs.aws.amazon.com/opensearch- service/latest/developerguide/serverless.html\n\nOpenSearch Service と OpenSearch Serverless の比較:\n\nhttps://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless- overview.html#serverless-comparison\n\nワークショップ: https://catalog.us-east-1.prod.workshops.aws/workshops/f8d2c175- 634d-4c5d-94cb-d83bbc656c6a\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n74\n\n本資料に関するお問い合わせ・ご感想\n\n技術的な内容に関しましては、有料のAWSサポート窓口へ お問い合わせください\n\nhttps://aws.amazon.com/jp/premiumsupport/\n\n料金面でのお問い合わせに関しましては、カスタマーサポート窓口へ お問い合わせください（マネジメントコンソールへのログインが必要です）\n\nhttps://console.aws.amazon.com/support/home#/case/create?issueType=customer- service\n\n具体的な案件に対する構成相談は、後述する個別相談会をご活用ください",
-                    "source": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
-                    "rank": 0,
-                },
-                {
-                    "bot_id": "bot_bb                    ",
-                    "content": "70\n\nAmazon OpenSearch Serverless がフィットするケース\n\n事前のキャパシティプランニングが困難\n\n一日の間で負荷の変動が激しい\n\n一般的な検索アプリケーション、もしくは小規模 (TiB オーダー) のログ分析が想定用途\n\nノードやクラスターのスケール、セキュリティパッチ適用といった 運用タスクをなるべく削減したい\n\nAmazon OpenSearch Serverless 固有の制限 (API、プラグイン) が利用上の問題にならない\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n71\n\n従来の Amazon OpenSearch Service がフィットするケース\n\n事前にキャパシティプランニングが可能\n\n一日の間で負荷が一定、もしくは増減の予測が可能\n\n数十 TiB オーダーの大規模なデータから分析や検索を行う 必要がある\n\nベクトル検索やアラート、セキュリティ機能など、 OpenSearch の高度な機能を利用する必要がある\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n72\n\nまとめ\n\nOpenSearch Serverless は OpenSearch 互換のサーバレスサービスである\n\n負荷に応じて OCU が動的に増減する、自動スケールアウト、スケールインを サポートしている\n\n従来アーキテクチャで行っていたアップデートなどの運用タスクを削減できる\n\nOpenSearch Serverless 固有の制限あり (API、プラグイン、その他機能)\n\n従来の Amazon OpenSearch Service からの移行に際しては、 既存のワークロードや要件を確認し、移行の可能性を検討してから行うこと\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n73\n\nその他リソース\n\nサービス概要: https://aws.amazon.com/jp/opensearch-service/features/serverless/",
-                    "source": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
-                    "rank": 1,
-                },
-                {
-                    "bot_id": "bot_bb                    ",
-                    "content": "67\n\n料金\n\nポイント • OpenSearch Serverless の料金モデルは、\n\n割り当てられたキャパシティユニットに応じた時間課金\n\n料金概要(東京リージョン) • OCU – インデキシング : $0.334 per OCU per hour • OCU – 検索: $0.334 per OCU per hour • マネージドストレージ: $0.026 per GB / month • OpenSearch Dashboards は無料で利用可能\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\nhttps://aws.amazon.com/jp/opensearch-service/pricing/#Amazon_OpenSearch_Serverless\n\n68\n\n主要な制限\n\nアカウント(リージョン)毎の制限 • インデックス可能なデータサイズ : 6 TiB\n\n(超過分のデータはノード上のディスクではなく S3 に格納)\n\nコレクション数: 50 • 検索用 OCU: 50 • インデキシング用 OCU: 50\n\nコレクションごとの制限 • インデックス可能なデータサイズ : 1 TiB\n\n(超過分のデータはノード上のディスクではなく S3 に格納)\n\nインデックス数(検索コレクション): 20 • インデックス数(時系列コレクション): 120\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\nhttps://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#limits-serverless\n\n69\n\nまとめ\n\n© 2023, Amazon Web Services, Inc. or its affiliates. © 2023, Amazon Web Services, Inc. or its affiliates.\n\n70\n\nAmazon OpenSearch Serverless がフィットするケース\n\n事前のキャパシティプランニングが困難\n\n一日の間で負荷の変動が激しい",
-                    "source": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
-                    "rank": 2,
-                },
-            ]
-        ]
-        conversation = ConversationModel(
-            id="conversation1",
-            create_time=1627984879.9,
-            title="Test Conversation",
-            total_price=0,
-            message_map={
-                "instruction": MessageModel(
-                    role="bot",
-                    content=[
-                        ContentModel(
-                            content_type="text",
-                            body=create_test_instruction_template("俺様風の口調で"),
-                            media_type=None,
-                            file_name=None,
-                        )
-                    ],
-                    model=MODEL,
-                    children=["1-user"],
-                    parent=None,
-                    create_time=1627984879.9,
-                    feedback=None,
-                    used_chunks=None,
-                    thinking_log=None,
-                ),
-                "1-user": MessageModel(
-                    role="user",
-                    content=[
-                        ContentModel(
-                            content_type="text",
-                            body="Serverlessのメリットを説明して",
-                            media_type=None,
-                            file_name=None,
-                        )
-                    ],
-                    model=MODEL,
-                    children=[],
-                    parent="instruction",
-                    create_time=1627984879.9,
-                    feedback=None,
-                    used_chunks=None,
-                    thinking_log=None,
-                ),
+        results: list[SearchResult] = [
+            {
+                "bot_id": "bot_bb                    ",
+                "content": "73\n\nその他リソース\n\nサービス概要: https://aws.amazon.com/jp/opensearch-service/features/serverless/\n\nよくある質問: https://aws.amazon.com/opensearch-service/faqs/#Serverless\n\n料金: https://aws.amazon.com/opensearch-\n\nservice/pricing/?nc1=h_ls#Amazon_OpenSearch_Serverless\n\nドキュメント: https://docs.aws.amazon.com/opensearch- service/latest/developerguide/serverless.html\n\nOpenSearch Service と OpenSearch Serverless の比較:\n\nhttps://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless- overview.html#serverless-comparison\n\nワークショップ: https://catalog.us-east-1.prod.workshops.aws/workshops/f8d2c175- 634d-4c5d-94cb-d83bbc656c6a\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n74\n\n本資料に関するお問い合わせ・ご感想\n\n技術的な内容に関しましては、有料のAWSサポート窓口へ お問い合わせください\n\nhttps://aws.amazon.com/jp/premiumsupport/\n\n料金面でのお問い合わせに関しましては、カスタマーサポート窓口へ お問い合わせください（マネジメントコンソールへのログインが必要です）\n\nhttps://console.aws.amazon.com/support/home#/case/create?issueType=customer- service\n\n具体的な案件に対する構成相談は、後述する個別相談会をご活用ください",
+                "source_name": "AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "source_link": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "rank": 0,
             },
-            bot_id="bot1",
-            last_message_id="1-user",
-            should_continue=False,
+            {
+                "bot_id": "bot_bb                    ",
+                "content": "70\n\nAmazon OpenSearch Serverless がフィットするケース\n\n事前のキャパシティプランニングが困難\n\n一日の間で負荷の変動が激しい\n\n一般的な検索アプリケーション、もしくは小規模 (TiB オーダー) のログ分析が想定用途\n\nノードやクラスターのスケール、セキュリティパッチ適用といった 運用タスクをなるべく削減したい\n\nAmazon OpenSearch Serverless 固有の制限 (API、プラグイン) が利用上の問題にならない\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n71\n\n従来の Amazon OpenSearch Service がフィットするケース\n\n事前にキャパシティプランニングが可能\n\n一日の間で負荷が一定、もしくは増減の予測が可能\n\n数十 TiB オーダーの大規模なデータから分析や検索を行う 必要がある\n\nベクトル検索やアラート、セキュリティ機能など、 OpenSearch の高度な機能を利用する必要がある\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n72\n\nまとめ\n\nOpenSearch Serverless は OpenSearch 互換のサーバレスサービスである\n\n負荷に応じて OCU が動的に増減する、自動スケールアウト、スケールインを サポートしている\n\n従来アーキテクチャで行っていたアップデートなどの運用タスクを削減できる\n\nOpenSearch Serverless 固有の制限あり (API、プラグイン、その他機能)\n\n従来の Amazon OpenSearch Service からの移行に際しては、 既存のワークロードや要件を確認し、移行の可能性を検討してから行うこと\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\n73\n\nその他リソース\n\nサービス概要: https://aws.amazon.com/jp/opensearch-service/features/serverless/",
+                "source_name": "AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "source_link": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "rank": 1,
+            },
+            {
+                "bot_id": "bot_bb                    ",
+                "content": "67\n\n料金\n\nポイント • OpenSearch Serverless の料金モデルは、\n\n割り当てられたキャパシティユニットに応じた時間課金\n\n料金概要(東京リージョン) • OCU – インデキシング : $0.334 per OCU per hour • OCU – 検索: $0.334 per OCU per hour • マネージドストレージ: $0.026 per GB / month • OpenSearch Dashboards は無料で利用可能\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\nhttps://aws.amazon.com/jp/opensearch-service/pricing/#Amazon_OpenSearch_Serverless\n\n68\n\n主要な制限\n\nアカウント(リージョン)毎の制限 • インデックス可能なデータサイズ : 6 TiB\n\n(超過分のデータはノード上のディスクではなく S3 に格納)\n\nコレクション数: 50 • 検索用 OCU: 50 • インデキシング用 OCU: 50\n\nコレクションごとの制限 • インデックス可能なデータサイズ : 1 TiB\n\n(超過分のデータはノード上のディスクではなく S3 に格納)\n\nインデックス数(検索コレクション): 20 • インデックス数(時系列コレクション): 120\n\n© 2023, Amazon Web Services, Inc. or its affiliates.\n\nhttps://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#limits-serverless\n\n69\n\nまとめ\n\n© 2023, Amazon Web Services, Inc. or its affiliates. © 2023, Amazon Web Services, Inc. or its affiliates.\n\n70\n\nAmazon OpenSearch Serverless がフィットするケース\n\n事前のキャパシティプランニングが困難\n\n一日の間で負荷の変動が激しい",
+                "source_name": "AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "source_link": "https://pages.awscloud.com/rs/112-TZM-766/images/AWS-Black-Belt_2023_AmazonOpenSearchServerless_0131_v1.pdf",
+                "rank": 2,
+            },
+        ]
+        instruction = build_rag_prompt(
+            search_results=results,
+            display_citation=True,
         )
-        conversation_with_context = insert_knowledge(
-            conversation, results, display_citation=True
-        )
-        print(conversation_with_context.message_map["instruction"])
+        print(instruction)
 
 
 if __name__ == "__main__":

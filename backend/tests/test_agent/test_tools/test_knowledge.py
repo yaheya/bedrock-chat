@@ -54,12 +54,11 @@ class TestKnowledgeTool(unittest.TestCase):
             bedrock_knowledge_base=None,
             bedrock_guardrails=None,
         )
+        arg = KnowledgeToolInput(query="What are delicious Japanese dishes?")
         tool = create_knowledge_tool(bot, model="claude-v3-sonnet")
-        response = tool.run(
-            KnowledgeToolInput(query="What are delicious Japanese dishes?")
-        )
-        self.assertIsInstance(response.body, str)
-        self.assertTrue(response.succeeded)
+        response = tool.run(tool_use_id="dummy", input=arg.model_dump())
+        self.assertIsInstance(response["related_documents"], list)
+        self.assertEqual(response["status"], "success")
         print(response)
 
 

@@ -1,11 +1,17 @@
 import sys
 
 sys.path.append(".")
-import json
 import unittest
 from pprint import pprint
 
 from app.agents.tools.agent_tool import AgentTool
+from app.repositories.models.conversation import (
+    RelatedDocumentModel,
+    TextToolResultModel,
+)
+from app.repositories.models.custom_bot import BotModel
+from app.routes.schemas.conversation import type_model_name
+
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +22,11 @@ class TestArg(BaseModel):
     arg4: list[str] = Field(..., description="test list")
 
 
-def test_function(arg: TestArg) -> str:
+def test_function(
+    arg: TestArg,
+    bot: BotModel | None,
+    model: type_model_name | None,
+) -> str:
     print(arg)
     return "test"
 
@@ -80,9 +90,19 @@ class TestAgentTool(unittest.TestCase):
             arg3=1,
             arg4=["test"],
         )
-        result = self.tool.run(arg)
-        self.assertEqual(result.body, "test")
-        self.assertEqual(result.succeeded, True)
+        result = self.tool.run(tool_use_id="dummy", input=arg.model_dump())
+        self.assertEqual(
+            result["related_documents"],
+            [
+                RelatedDocumentModel(
+                    content=TextToolResultModel(
+                        text="test",
+                    ),
+                    source_id="dummy",
+                ),
+            ],
+        )
+        self.assertEqual(result["status"], "success")
 
 
 if __name__ == "__main__":
