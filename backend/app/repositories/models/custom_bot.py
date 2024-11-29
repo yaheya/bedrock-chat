@@ -96,7 +96,7 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
-    model_activate: ModelActivateModel # type: ignore
+    model_activate: ModelActivateModel  # type: ignore
 
     def has_knowledge(self) -> bool:
         return (
@@ -128,7 +128,7 @@ class BotAliasModel(BaseModel):
     has_knowledge: bool
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
-    model_activate: ModelActivateModel # type: ignore
+    model_activate: ModelActivateModel  # type: ignore
 
 
 class BotMeta(BaseModel):

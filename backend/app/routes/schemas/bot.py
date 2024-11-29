@@ -135,7 +135,7 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput # type: ignore
+    model_activate: ModelActivateInput  # type: ignore
 
 
 class BotModifyInput(BaseSchema):
@@ -149,7 +149,7 @@ class BotModifyInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput # type: ignore
+    model_activate: ModelActivateInput  # type: ignore
 
     def _has_update_files(self) -> bool:
         return self.knowledge is not None and (
@@ -263,7 +263,7 @@ class BotModifyOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput # type: ignore
+    model_activate: ModelActivateOutput  # type: ignore
 
 
 class BotOutput(BaseSchema):
@@ -287,7 +287,7 @@ class BotOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput # type: ignore
+    model_activate: ModelActivateOutput  # type: ignore
 
 
 class BotMetaOutput(BaseSchema):
@@ -318,7 +318,7 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
-    model_activate: ModelActivateOutput # type: ignore
+    model_activate: ModelActivateOutput  # type: ignore
 
 
 class BotSwitchVisibilityInput(BaseSchema):

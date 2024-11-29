@@ -113,7 +113,7 @@ def update_bot(
     sync_status: type_sync_status,
     sync_status_reason: str,
     display_retrieved_chunks: bool,
-    model_activate: ModelActivateModel, # type: ignore
+    model_activate: ModelActivateModel,  # type: ignore
     conversation_quick_starters: list[ConversationQuickStarterModel],
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None = None,
     bedrock_guardrails: BedrockGuardrailsModel | None = None,
@@ -165,7 +165,7 @@ def update_bot(
 
     if model_activate:
         update_expression += ", ModelActivate = :model_activate"
-        expression_attribute_values[":model_activate"] = model_activate.model_dump() # type: ignore[attr-defined]
+        expression_attribute_values[":model_activate"] = model_activate.model_dump()  # type: ignore[attr-defined]
 
     try:
         response = table.update_item(
