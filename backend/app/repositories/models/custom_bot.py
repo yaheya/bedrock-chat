@@ -1,31 +1,26 @@
-from typing import Optional, get_args, Dict, Any
+from typing import get_args, Dict, Any, List, Type
 from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import type_sync_status
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, create_model
 from app.routes.schemas.conversation import type_model_name
 
 
-class ModelActivateModel(BaseModel):
-    claude_instant_v1: bool = True
-    claude_v2: bool = True
-    claude_v3_sonnet: bool = True
-    claude_v3_5_sonnet: bool = True
-    claude_v3_5_sonnet_v2: bool = True
-    claude_v3_5_haiku: bool = True
-    claude_v3_haiku: bool = True
-    claude_v3_opus: bool = True
-    mistral_7b_instruct: bool = True
-    mistral_large: bool = True
-    mixtral_8x7b_instruct: bool = True
+class DynamicBaseModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    @classmethod
-    def create(cls, data: Dict[str, Any] | None = None) -> "ModelActivateModel":
-        """Factory method to create an instance with optional data."""
-        if data is None:
-            return cls()
-        return cls(**data)
+
+def create_model_activate_model(model_names: List[str]) -> Type[DynamicBaseModel]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, False) for name in model_names
+    }
+    return create_model("ModelActivateModel", __base__=DynamicBaseModel, **fields)
+
+
+ModelActivateModel: Type[BaseModel] = create_model_activate_model(
+    list(get_args(type_model_name))
+)
 
 
 class KnowledgeModel(BaseModel):
@@ -101,7 +96,7 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
-    model_activate: ModelActivateModel
+    model_activate: ModelActivateModel # type: ignore
 
     def has_knowledge(self) -> bool:
         return (
@@ -133,7 +128,7 @@ class BotAliasModel(BaseModel):
     has_knowledge: bool
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
-    model_activate: ModelActivateModel
+    model_activate: ModelActivateModel # type: ignore
 
 
 class BotMeta(BaseModel):

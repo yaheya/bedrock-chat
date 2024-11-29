@@ -4,10 +4,16 @@ from typing import (
     TYPE_CHECKING,
     Literal,
     Optional,
+    List,
+    Dict,
+    Type,
+    get_args,
+    Any,
 )
 from pydantic import (
     Field,
     validator,
+    create_model,
 )
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
@@ -35,37 +41,24 @@ type_sync_status = Literal[
 ]
 
 
-# Create concrete classes
-class ModelActivateInput(BaseSchema):
-    """Model activation input schema with fields matching type_model_name"""
-
-    claude_instant_v1: bool = True
-    claude_v2: bool = True
-    claude_v3_sonnet: bool = True
-    claude_v3_5_sonnet: bool = True
-    claude_v3_5_sonnet_v2: bool = True
-    claude_v3_5_haiku: bool = True
-    claude_v3_haiku: bool = True
-    claude_v3_opus: bool = True
-    mistral_7b_instruct: bool = True
-    mistral_large: bool = True
-    mixtral_8x7b_instruct: bool = True
+def create_model_activate_input(model_names: List[str]) -> Type[BaseSchema]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ModelActivateInput", **fields, __base__=BaseSchema)
 
 
-class ModelActivateOutput(BaseSchema):
-    """Model activation output schema with fields matching type_model_name"""
+ModelActivateInput = create_model_activate_input(list(get_args(type_model_name)))
 
-    claude_instant_v1: bool = True
-    claude_v2: bool = True
-    claude_v3_sonnet: bool = True
-    claude_v3_5_sonnet: bool = True
-    claude_v3_5_sonnet_v2: bool = True
-    claude_v3_5_haiku: bool = True
-    claude_v3_haiku: bool = True
-    claude_v3_opus: bool = True
-    mistral_7b_instruct: bool = True
-    mistral_large: bool = True
-    mixtral_8x7b_instruct: bool = True
+
+def create_model_activate_output(model_names: List[str]) -> Type[BaseSchema]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ModelActivateOutput", **fields, __base__=BaseSchema)
+
+
+ModelActivateOutput = create_model_activate_output(list(get_args(type_model_name)))
 
 
 class GenerationParams(BaseSchema):
@@ -142,7 +135,7 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput
+    model_activate: ModelActivateInput # type: ignore
 
 
 class BotModifyInput(BaseSchema):
@@ -156,7 +149,7 @@ class BotModifyInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
-    model_activate: ModelActivateInput
+    model_activate: ModelActivateInput # type: ignore
 
     def _has_update_files(self) -> bool:
         return self.knowledge is not None and (
@@ -270,7 +263,7 @@ class BotModifyOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput
+    model_activate: ModelActivateOutput # type: ignore
 
 
 class BotOutput(BaseSchema):
@@ -294,7 +287,7 @@ class BotOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
-    model_activate: ModelActivateOutput
+    model_activate: ModelActivateOutput # type: ignore
 
 
 class BotMetaOutput(BaseSchema):
@@ -325,7 +318,7 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
-    model_activate: ModelActivateOutput
+    model_activate: ModelActivateOutput # type: ignore
 
 
 class BotSwitchVisibilityInput(BaseSchema):
