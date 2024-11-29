@@ -149,7 +149,7 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
       setFilteredModels(availableModels)
     } else if (processedModelActivate) {
       const filtered = availableModels.filter(model => {
-        const key = model.modelId as keyof ModelActivate;
+        const key = toCamelCase(model.modelId) as keyof ModelActivate;
         return processedModelActivate[key] !== false;
       });
       setFilteredModels(filtered);
@@ -168,7 +168,7 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
 
   // select the model via list of modelActivate 
   const selectModel = useCallback((targetModelId: Model) => {
-    const modelExists = filteredModels.some(m => m.modelId === targetModelId);
+    const modelExists = filteredModels.some(m => toCamelCase(m.modelId) === toCamelCase(targetModelId));
     return modelExists ? targetModelId : getDefaultModel();
   }, [filteredModels, getDefaultModel]);
 
@@ -207,16 +207,18 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
     }else{
       // Processing when botId and previousBotID are the same, but there is an update in FilteredModels
       if (botId) {
-        const lastModelAvailable = filteredModels.some(m => m.modelId === recentUseModelId || m.modelId === botModelId );
+        const lastModelAvailable = filteredModels.some(m => toCamelCase(m.modelId) === toCamelCase(recentUseModelId) || toCamelCase(m.modelId) === toCamelCase(botModelId) );
         if (!lastModelAvailable) {
           setModelId(selectModel(getDefaultModel()));
+        }else{
+          setModelId(selectModel(recentUseModelId as Model));
         }
       }
     }
   }, [botId, previousBotId, botModelId, recentUseModelId, modelId, filteredModels, setModelId, selectModel, getDefaultModel, processedModelActivate]);
 
   const model = useMemo(() => {
-    return filteredModels.find((model) => model.modelId === modelId);
+    return filteredModels.find((model) => toCamelCase(model.modelId) === toCamelCase(modelId));
   }, [filteredModels, modelId]);
 
   return {

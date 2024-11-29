@@ -5,6 +5,7 @@ import { Fragment } from 'react/jsx-runtime';
 import { useMemo } from 'react';
 import { PiCaretDown, PiCheck } from 'react-icons/pi';
 import { ModelActivate } from '../@types/bot';
+import { toCamelCase } from '../utils/StringUtils';
 
 interface Props extends BaseProps {
   modelActivate: ModelActivate;
@@ -17,7 +18,7 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
   const availableModels = useMemo(() => {
     return allModels.filter(model => {
       if (props.modelActivate) {
-        return props.modelActivate[model.modelId] === true;
+        return props.modelActivate[toCamelCase(model.modelId)] === true;
       }
       return true;
     });

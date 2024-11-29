@@ -32,6 +32,7 @@ import PopoverItem from '../components/PopoverItem';
 import { ModelActivate } from '../@types/bot';
 
 import { copyBotUrl } from '../utils/BotUtils';
+import { toCamelCase } from '../utils/StringUtils'
 import { produce } from 'immer';
 import ButtonIcon from '../components/ButtonIcon';
 import StatusSyncBot from '../components/StatusSyncBot';
@@ -57,7 +58,7 @@ const MISTRAL_ENABLED: boolean =
 // Default model activation settings when no bot is selected
 const defaultModelActivate: ModelActivate = (() => {
   return Object.fromEntries(
-    MODEL_KEYS.map(key => [key, true])
+    MODEL_KEYS.map(key => [toCamelCase(key), true])
   ) as ModelActivate;
 })();
 

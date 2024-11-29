@@ -144,7 +144,6 @@ const BotKbEditPage: React.FC = () => {
       acc[toCamelCase(key)] = true;
       return acc;
     }, {} as ModelActivate);
-    console.log("Initial modelActivate:", initialState);
     return initialState;
   });
 
