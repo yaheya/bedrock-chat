@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import base64
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -8,7 +9,6 @@ sys.path.append(".")
 
 
 from app.repositories.conversation import (
-    ContentModel,
     ConversationModel,
     MessageModel,
     RecordNotFoundError,
@@ -26,11 +26,13 @@ from app.repositories.custom_bot import (
     store_bot,
 )
 from app.repositories.models.conversation import (
-    AgentContentModel,
-    AgentMessageModel,
-    AgentToolUseContentModel,
+    SimpleMessageModel,
     ChunkModel,
     FeedbackModel,
+    TextContentModel,
+    ImageContentModel,
+    ToolUseContentModel,
+    ToolUseContentModelBody,
 )
 from app.repositories.models.custom_bot import (
     AgentModel,
@@ -39,8 +41,88 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
-    ModelActivateModel,
 )
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
+
+# class TestRowLevelAccess(unittest.TestCase):
+#     def setUp(self) -> None:
+#         self.conversation_user_1 = ConversationModel(
+#             id="1",
+#             create_time=1627984879.9,
+#             title="Test Conversation",
+#             message_map={
+#                 "a": MessageModel(
+#                     role="user",
+#                     content=TextContentModel(content_type="text", body="Hello"),
+#                     model="model",
+#                     children=["x", "y"],
+#                     parent="z",
+#                     create_time=1627984879.9,
+#                 )
+#             },
+#             last_message_id="x",
+#         )
+#         store_conversation("user1", self.conversation_user_1)
+
+#         self.conversation_user_2 = ConversationModel(
+#             id="2",
+#             create_time=1627984879.9,
+#             title="Test Conversation",
+#             message_map={
+#                 "a": MessageModel(
+#                     role="user",
+#                     content=TextContentModel(content_type="text", body="Hello"),
+#                     model="model",
+#                     children=["x", "y"],
+#                     parent="z",
+#                     create_time=1627984879.9,
+#                 )
+#             },
+#             last_message_id="x",
+#         )
+#         store_conversation("user2", self.conversation_user_2)
+
+#     def test_find_conversation_by_user_id(self):
+#         # Create table client for user1
+#         table = _get_table_client("user1")
+
+#         table.query(
+#             KeyConditionExpression=Key("PK").eq(
+#                 compose_conv_id("user1", self.conversation_user_1.id)
+#             )
+#         )
+
+#         with self.assertRaises(ClientError):
+#             # Raise `AccessDeniedException` because user1 cannot access user2's data
+#             table.query(
+#                 KeyConditionExpression=Key("PK").eq(
+#                     compose_conv_id("user2", self.conversation_user_2.id)
+#                 )
+#             )
+
+#     def test_find_conversation_by_id(self):
+#         # Create table client for user1
+#         table = _get_table_client("user1")
+
+#         table.query(
+#             IndexName="SKIndex",
+#             KeyConditionExpression=Key("SK").eq(
+#                 compose_conv_id("user1", self.conversation_user_1.id)
+#             ),
+#         )
+#         with self.assertRaises(ClientError):
+#             # Raise `AccessDeniedException` because user1 cannot access user2's data
+#             table.query(
+#                 IndexName="SKIndex",
+#                 KeyConditionExpression=Key("SK").eq(
+#                     compose_conv_id("user2", self.conversation_user_2.id)
+#                 ),
+#             )
+
+#     def tearDown(self) -> None:
+#         delete_conversation_by_user_id("user1")
+#         delete_conversation_by_user_id("user2")
 
 
 class TestConversationRepository(unittest.TestCase):
@@ -81,17 +163,16 @@ class TestConversationRepository(unittest.TestCase):
                 "a": MessageModel(
                     role="user",
                     content=[
-                        ContentModel(
+                        TextContentModel(
                             content_type="text",
                             body="Hello",
-                            media_type=None,
-                            file_name=None,
                         ),
-                        ContentModel(
+                        ImageContentModel(
                             content_type="image",
-                            body="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+                            body=base64.b64decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                            ),
                             media_type="image/png",
-                            file_name=None,
                         ),
                     ],
                     model="claude-instant-v1",
@@ -108,12 +189,12 @@ class TestConversationRepository(unittest.TestCase):
                         ),
                     ],
                     thinking_log=[
-                        AgentMessageModel(
+                        SimpleMessageModel(
                             role="agent",
                             content=[
-                                AgentContentModel(
+                                ToolUseContentModel(
                                     content_type="toolUse",
-                                    body=AgentToolUseContentModel(
+                                    body=ToolUseContentModelBody(
                                         tool_use_id="xyz1234",
                                         name="internet_search",
                                         input={
@@ -220,7 +301,6 @@ class TestConversationRepository(unittest.TestCase):
             content[1].body,
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
         )
-        self.assertEqual(found_conversation.message_map["a"].role, "user")
         self.assertEqual(message_map["a"].model, "claude-instant-v1")
         self.assertEqual(message_map["a"].children, ["x", "y"])
         self.assertEqual(message_map["a"].parent, "z")
@@ -299,11 +379,10 @@ class TestConversationRepository(unittest.TestCase):
             f"msg_{i}": MessageModel(
                 role="user",
                 content=[
-                    ContentModel(
+                    TextContentModel(
                         content_type="text",
-                        body="This is a large message." * 1000,
-                        media_type=None,
-                        file_name=None,
+                        body="This is a large message."
+                        * 1000,  # Repeating to make it large
                     )
                 ],
                 model="claude-instant-v1",
@@ -425,7 +504,6 @@ class TestConversationRepository(unittest.TestCase):
             self.assertEqual(len(message.content), 1)
             self.assertEqual(message.content[0].content_type, "text")
             self.assertEqual(message.content[0].body, "This is a large message." * 1000)
-            self.assertEqual(message.content[0].media_type, None)
             self.assertEqual(message.model, "claude-instant-v1")
             self.assertEqual(message.children, [])
             self.assertEqual(message.parent, None)
@@ -473,12 +551,17 @@ class TestConversationBotRepository(unittest.TestCase):
                 "a": MessageModel(
                     role="user",
                     content=[
-                        ContentModel(
+                        TextContentModel(
                             content_type="text",
                             body="Hello",
-                            media_type=None,
-                            file_name=None,
-                        )
+                        ),
+                        ImageContentModel(
+                            content_type="image",
+                            body=base64.b64decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                            ),
+                            media_type="image/png",
+                        ),
                     ],
                     model="claude-instant-v1",
                     children=["x", "y"],
@@ -503,17 +586,16 @@ class TestConversationBotRepository(unittest.TestCase):
                 "a": MessageModel(
                     role="user",
                     content=[
-                        ContentModel(
+                        TextContentModel(
                             content_type="text",
                             body="Hello",
-                            media_type=None,
-                            file_name=None,
                         ),
-                        ContentModel(
+                        ImageContentModel(
                             content_type="image",
-                            body="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+                            body=base64.b64decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                            ),
                             media_type="image/png",
-                            file_name=None,
                         ),
                     ],
                     model="claude-instant-v1",

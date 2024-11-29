@@ -17,12 +17,7 @@ const usePostMessageStreaming = create<{
   }) => Promise<string>;
 }>(() => {
   return {
-    post: async ({ input, dispatch, hasKnowledge, thinkingDispatch }) => {
-      if (hasKnowledge) {
-        dispatch(i18next.t('bot.label.retrievingKnowledge'));
-      } else {
-        dispatch(i18next.t('app.chatWaitingSymbol'));
-      }
+    post: async ({ input, dispatch, thinkingDispatch }) => {
       const token = (await fetchAuthSession()).tokens?.idToken?.toString();
       const payloadString = JSON.stringify({
         ...input,
@@ -90,10 +85,15 @@ const usePostMessageStreaming = create<{
 
             if (data.status) {
               switch (data.status) {
-                case PostStreamingStatus.FETCHING_KNOWLEDGE:
-                  dispatch(i18next.t('bot.label.retrievingKnowledge'));
-                  break;
                 case PostStreamingStatus.AGENT_THINKING:
+                  if (completion.length > 0) {
+                    dispatch('');
+                    thinkingDispatch({
+                      type: 'thought',
+                      thought: completion,
+                    });
+                    completion = '';
+                  }
                   Object.entries(data.log).forEach(([toolUseId, toolInfo]) => {
                     const typedToolInfo = toolInfo as {
                       name: string;
@@ -112,18 +112,18 @@ const usePostMessageStreaming = create<{
                     type: 'tool-result',
                     toolUseId: data.result.toolUseId,
                     status: data.result.status,
-                    content: data.result.content,
+                  });
+                  break;
+                case PostStreamingStatus.AGENT_RELATED_DOCUMENT:
+                  thinkingDispatch({
+                    type: 'related-document',
+                    toolUseId: data.result.toolUseId,
+                    relatedDocument: data.result.relatedDocument,
                   });
                   break;
                 case PostStreamingStatus.STREAMING:
                   if (data.completion || data.completion === '') {
-                    if (
-                      completion.endsWith(i18next.t('app.chatWaitingSymbol'))
-                    ) {
-                      completion = completion.slice(0, -1);
-                    }
-                    completion +=
-                      data.completion + i18next.t('app.chatWaitingSymbol');
+                    completion += data.completion;
                     dispatch(completion);
                   }
                   break;
@@ -131,11 +131,6 @@ const usePostMessageStreaming = create<{
                   thinkingDispatch({
                     type: 'goodbye',
                   });
-
-                  if (completion.endsWith(i18next.t('app.chatWaitingSymbol'))) {
-                    completion = completion.slice(0, -1);
-                    dispatch(completion);
-                  }
                   ws.close();
                   break;
                 case PostStreamingStatus.ERROR:
@@ -143,7 +138,8 @@ const usePostMessageStreaming = create<{
                   console.error(data);
                   throw new Error(i18next.t('error.predict.invalidResponse'));
                 default:
-                  dispatch(i18next.t('app.chatWaitingSymbol'));
+                  dispatch('');
+                  break;
               }
             } else {
               ws.close();

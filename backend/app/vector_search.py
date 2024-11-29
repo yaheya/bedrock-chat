@@ -1,89 +1,66 @@
-import json
 import logging
-import re
-from typing import Any, Literal
+from typing import TypedDict
+from urllib.parse import urlparse
 
-from app.repositories.custom_bot import find_public_bot_by_id
+from app.repositories.models.conversation import (
+    RelatedDocumentModel,
+    TextToolResultModel,
+)
 from app.repositories.models.custom_bot import BotModel
-from app.utils import generate_presigned_url, get_bedrock_agent_client
+from app.utils import get_bedrock_agent_client
+
 from botocore.exceptions import ClientError
-from pydantic import BaseModel
+from mypy_boto3_bedrock_runtime.type_defs import (
+    GuardrailConverseContentBlockTypeDef,
+)
+from mypy_boto3_bedrock_agent_runtime.type_defs import (
+    KnowledgeBaseRetrievalResultTypeDef,
+)
 
 logger = logging.getLogger(__name__)
 agent_client = get_bedrock_agent_client()
 
 
-class SearchResult(BaseModel):
+class SearchResult(TypedDict):
     bot_id: str
     content: str
-    source: str
+    source_name: str
+    source_link: str
     rank: int
+
+
+def search_result_to_related_document(
+    search_result: SearchResult,
+    source_id_base: str,
+) -> RelatedDocumentModel:
+    return RelatedDocumentModel(
+        content=TextToolResultModel(
+            text=search_result["content"],
+        ),
+        source_id=f"{source_id_base}@{search_result['rank']}",
+        source_name=search_result["source_name"],
+        source_link=search_result["source_link"],
+    )
 
 
 def to_guardrails_grounding_source(
     search_results: list[SearchResult],
-) -> dict:
+) -> GuardrailConverseContentBlockTypeDef:
     """Convert search results to Guardrails Grounding source format."""
-    grounding_source = {
+    grounding_source: GuardrailConverseContentBlockTypeDef = {
         "text": {
-            "text": "\n\n".join(x.content for x in search_results),
+            "text": "\n\n".join(x["content"] for x in search_results),
             "qualifiers": ["grounding_source"],
         }
     }
     return grounding_source
 
 
-def filter_used_results(
-    generated_text: str, search_results: list[SearchResult]
-) -> list[SearchResult]:
-    """Filter the search results based on the citations in the generated text.
-    Note that the citations in the generated text are in the format of [^rank].
-    """
-    used_results: list[SearchResult] = []
-
-    try:
-        # Extract citations from the generated text
-        citations = [
-            citation.strip("[]^")
-            for citation in re.findall(r"\[\^(\d+)\]", generated_text)
-        ]
-    except Exception as e:
-        logger.error(f"Error extracting citations from the generated text: {e}")
-        return used_results
-
-    for result in search_results:
-        if str(result.rank) in citations:
-            used_results.append(result)
-
-    return used_results
-
-
-def get_source_link(source: str) -> tuple[Literal["s3", "url"], str]:
-    if source.startswith("s3://"):
-        s3_path = source[5:]  # Remove "s3://" prefix
-        path_parts = s3_path.split("/", 1)
-        bucket_name = path_parts[0]
-        object_key = path_parts[1] if len(path_parts) > 1 else ""
-
-        source_link = generate_presigned_url(
-            bucket=bucket_name,
-            key=object_key,
-            client_method="get_object",
-        )
-        return "s3", source_link
-    else:
-        # Return the source as is for knowledge base references
-        return "url", source
-
-
 def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResult]:
-    if (
-        not bot.bedrock_knowledge_base
-        or not bot.bedrock_knowledge_base.knowledge_base_id
-    ):
-        logger.warning("Bedrock Knowledge Base or Knowledge Base ID is not configured")
-        return []
-
+    assert (
+        bot.bedrock_knowledge_base is not None
+        and bot.bedrock_knowledge_base.knowledge_base_id is not None
+    )
     if bot.bedrock_knowledge_base.search_params.search_type == "semantic":
         search_type = "SEMANTIC"
     elif bot.bedrock_knowledge_base.search_params.search_type == "hybrid":
@@ -106,25 +83,39 @@ def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResu
             },
         )
 
-        def extract_source_from_retrieval_result(retrieval_result):
+        def extract_source_from_retrieval_result(
+            retrieval_result: KnowledgeBaseRetrievalResultTypeDef,
+        ) -> tuple[str, str] | None:
             """Extract source URL/URI from retrieval result based on location type."""
             location = retrieval_result.get("location", {})
             location_type = location.get("type")
 
             if location_type == "WEB":
-                return location.get("webLocation", {}).get("url", "")
+                url = location.get("webLocation", {}).get("url", "")
+                return (url, url)
+
             elif location_type == "S3":
-                return location.get("s3Location", {}).get("uri", "")
-            return ""
+                uri = location.get("s3Location", {}).get("uri", "")
+                source_name = urlparse(url=uri).path.split("/")[-1]
+                return (source_name, uri)
+
+            return None
 
         search_results = []
         for i, retrieval_result in enumerate(response.get("retrievalResults", [])):
             content = retrieval_result.get("content", {}).get("text", "")
             source = extract_source_from_retrieval_result(retrieval_result)
 
-            search_results.append(
-                SearchResult(rank=i, bot_id=bot.id, content=content, source=source)
-            )
+            if source is not None:
+                search_results.append(
+                    SearchResult(
+                        rank=i,
+                        bot_id=bot.id,
+                        content=content,
+                        source_name=source[0],
+                        source_link=source[1],
+                    )
+                )
 
         return search_results
 

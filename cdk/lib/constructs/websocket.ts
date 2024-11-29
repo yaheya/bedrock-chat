@@ -13,6 +13,7 @@ import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { Auth } from "./auth";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnRouteResponse } from "aws-cdk-lib/aws-apigatewayv2";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { excludeDockerImage } from "../constants/docker";
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
@@ -110,6 +111,7 @@ export class WebSocket extends Construct {
       },
       role: handlerRole,
       snapStart: SnapStartConf.ON_PUBLISHED_VERSIONS,
+      logRetention: logs.RetentionDays.THREE_MONTHS,
     });
 
     const webSocketApi = new apigwv2.WebSocketApi(this, "WebSocketApi", {

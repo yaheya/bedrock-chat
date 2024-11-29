@@ -70,14 +70,247 @@ export const Conversation = () => {
             message.role === 'assistant' ? 'bg-aws-squid-ink/5' : ''
           }`}>
           <ChatMessage
-            isAgentThinking={false}
             chatContent={message}
-            relatedDocuments={message.usedChunks?.map((chunk) => ({
-              chunkBody: chunk.content,
-              contentType: chunk.contentType,
-              sourceLink: chunk.source,
-              rank: chunk.rank,
-            }))}
+          />
+
+          <div className="w-full border-b border-aws-squid-ink/10"></div>
+        </div>
+      ))}
+    </>
+  );
+};
+
+export const ConversationThinking = () => {
+  const messages: DisplayMessageContent[] = [
+    {
+      id: '1',
+      role: 'user',
+      content: [
+        {
+          contentType: 'text',
+          body: "Check tomorrow's weather and suggest places to go with my family.",
+        },
+      ],
+      model: 'claude-v3.5-sonnet',
+      feedback: null,
+      usedChunks: null,
+      parent: null,
+      children: [],
+      sibling: [],
+      thinkingLog: null,
+    },
+    {
+      id: '2',
+      role: 'assistant',
+      content: [
+        {
+          contentType: 'text',
+          body: '',
+        },
+      ],
+      model: 'claude-v3.5-sonnet',
+      feedback: null,
+      usedChunks: null,
+      parent: null,
+      children: [],
+      sibling: [],
+      thinkingLog: [],
+    },
+  ];
+  return (
+    <>
+      {messages?.map((message, idx) => (
+        <div
+          key={idx}
+          className={`${
+            message.role === 'assistant' ? 'bg-aws-squid-ink/5' : ''
+          }`}>
+          <ChatMessage
+            chatContent={message}
+          />
+
+          <div className="w-full border-b border-aws-squid-ink/10"></div>
+        </div>
+      ))}
+    </>
+  );
+};
+
+export const ConversationWithAgnet = () => {
+  const messages: DisplayMessageContent[] = [
+    {
+      id: '1',
+      role: 'user',
+      content: [
+        {
+          contentType: 'text',
+          body: "Check tomorrow's weather and suggest places to go with my family.",
+        },
+      ],
+      model: 'claude-v3.5-sonnet',
+      feedback: null,
+      usedChunks: null,
+      parent: null,
+      children: [],
+      sibling: [],
+      thinkingLog: null,
+    },
+    {
+      id: '2',
+      role: 'assistant',
+      content: [
+        {
+          contentType: 'text',
+          body: 'I recommend going to an amusement park.[^tool2_cwa@0]',
+        },
+      ],
+      model: 'claude-v3.5-sonnet',
+      feedback: null,
+      usedChunks: null,
+      parent: null,
+      children: [],
+      sibling: [],
+      thinkingLog: [
+        {
+          role: 'assistant',
+          content: [
+            {
+              contentType: 'text',
+              body: "Use tools to check tomorrow's weather.",
+            },
+            {
+              contentType: 'toolUse',
+              body: {
+                toolUseId: 'tool1_cwa',
+                name: 'get_weather',
+                input: {},
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              contentType: 'toolResult',
+              body: {
+                toolUseId: 'tool1_cwa',
+                content: [
+                  {
+                    json: {
+                      source_id: 'tool1_cwa',
+                      content: {
+                        weather: 'Clear skies',
+                      },
+                    },
+                  },
+                ],
+                status: 'success',
+              },
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              contentType: 'text',
+              body: "Tomorrow's weather will be clear skies.[^tool1_cwa]\nSearch for recommended family leisure places on clear weather.",
+            },
+            {
+              contentType: 'toolUse',
+              body: {
+                toolUseId: 'tool2_cwa',
+                name: 'internet_search',
+                input: {
+                  country: 'en-us',
+                  query: 'recommendation family leisure places clear weather',
+                  time_limit: 'd',
+                },
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              contentType: 'toolResult',
+              body: {
+                toolUseId: 'tool2_cwa',
+                content: [
+                  {
+                    json: {
+                      source_id: 'tool2_cwa@0',
+                      content: 'amusement park',
+                    },
+                  },
+                  {
+                    json: {
+                      source_id: 'tool2_cwa@1',
+                      content: 'athletic field',
+                    },
+                  },
+                  {
+                    json: {
+                      source_id: 'tool2_cwa@2',
+                      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+                    },
+                  },
+                ],
+                status: 'success',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  return (
+    <>
+      {messages?.map((message, idx) => (
+        <div
+          key={idx}
+          className={`${
+            message.role === 'assistant' ? 'bg-aws-squid-ink/5' : ''
+          }`}>
+          <ChatMessage
+            chatContent={message}
+            relatedDocuments={[
+              {
+                content: {
+                  json: {
+                    weather: 'Clear skies',
+                  },
+                },
+                sourceId: 'tool1_cwa',
+                sourceName: 'get_weather',
+              },
+              {
+                content: {
+                  text: 'amusement park',
+                },
+                sourceId: 'tool2_cwa@0',
+                sourceName: 'Amusement park Guidebook',
+                sourceLink: 'http://example.com/amusement_park_guidebook.html',
+              },
+              {
+                content: {
+                  text: 'athletic field',
+                },
+                sourceId: 'tool2_cwa@1',
+                sourceName: 'Athletic field Guidebook',
+                sourceLink: 'http://example.com/athletic_field_guidebook.html',
+              },
+              {
+                content: {
+                  text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+                },
+                sourceId: 'tool2_cwa@2',
+                sourceName: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+                sourceLink: 'http://example.com/lorem_ipsim.html?keyword=Lorem%20ipsum%20dolor%20sit%20amet%20consectetur%20adipiscing%20elit%20sed%20do%20eiusmod%20tempor%20incididunt%20ut%20labore%20et%20dolore%20magna%20aliqua',
+              },
+            ]}
           />
 
           <div className="w-full border-b border-aws-squid-ink/10"></div>

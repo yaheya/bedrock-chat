@@ -6,8 +6,12 @@ sys.path.append(".")
 import unittest
 
 import boto3
-from app.bedrock import compose_args_for_converse_api
-from app.repositories.models.conversation import ContentModel, MessageModel
+from app.repositories.models.conversation import (
+    TextContentModel,
+    ImageContentModel,
+    AttachmentContentModel,
+    MessageModel,
+)
 from app.repositories.models.custom_bot import GenerationParamsModel
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.stream import ConverseApiStreamHandler, OnStopInput
@@ -21,44 +25,36 @@ def on_stream(x: str) -> None:
 
 
 def on_stop(x: OnStopInput) -> None:
-    print(f"Stop reason: {x.stop_reason}")
-    print(f"Price: {x.price}")
-    print(f"Input token count: {x.input_token_count}")
-    print(f"Output token count: {x.output_token_count}")
+    print(f"Stop reason: {x['stop_reason']}")
+    print(f"Price: {x['price']}")
+    print(f"Input token count: {x['input_token_count']}")
+    print(f"Output token count: {x['output_token_count']}")
 
 
 class TestConverseApiStreamHandler(unittest.TestCase):
     MODEL = "claude-v3-sonnet"
     # MODEL = "mistral-7b-instruct"
 
-    def setUp(self) -> None:
-        self.stream_handler = ConverseApiStreamHandler.from_model(model=self.MODEL)  # type: ignore
-        self.stream_handler.bind(on_stream=on_stream, on_stop=on_stop)
-
-    def _run(self, message, instruction=None, generation_params=None, guardrail=None):
-        args = compose_args_for_converse_api(
-            [message],
-            self.MODEL,
-            instruction=instruction,
-            stream=True,
+    def _run(self, message, instructions=[], generation_params=None, guardrail=None):
+        self.stream_handler = ConverseApiStreamHandler(
+            model=self.MODEL,
+            instructions=instructions,
             generation_params=generation_params,
-            grounding_source=None,
             guardrail=guardrail,
+            on_stream=on_stream,
         )
-        for _ in self.stream_handler.run(
-            args=args,
-        ):
-            pass
+        result = self.stream_handler.run(
+            messages=[message],
+        )
+        on_stop(result)
 
     def test_run(self):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="Hello, World!",
-                    file_name=None,
                 )
             ],
             model=self.MODEL,
@@ -75,11 +71,9 @@ class TestConverseApiStreamHandler(unittest.TestCase):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="Hello!",
-                    file_name=None,
                 )
             ],
             model=self.MODEL,
@@ -98,11 +92,9 @@ class TestConverseApiStreamHandler(unittest.TestCase):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="Hello!",
-                    file_name=None,
                 )
             ],
             model=self.MODEL,
@@ -127,23 +119,19 @@ class TestConverseApiStreamHandler(unittest.TestCase):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                ImageContentModel(
                     content_type="image",
                     media_type="image/png",
                     body=get_aws_logo(),
-                    file_name="image.png",
                 ),
-                ContentModel(
+                ImageContentModel(
                     content_type="image",
                     media_type="image/png",
                     body=get_cdk_logo(),
-                    file_name=None,
                 ),
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="Explain the images.",
-                    file_name=None,
                 ),
             ],
             model=self.MODEL,
@@ -162,17 +150,14 @@ class TestConverseApiStreamHandler(unittest.TestCase):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                AttachmentContentModel(
                     content_type="attachment",
-                    media_type=None,
                     body=body,
                     file_name=file_name,
                 ),
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="要約して",
-                    file_name=None,
                 ),
             ],
             model=self.MODEL,
@@ -191,9 +176,6 @@ class TestConverseApiStreamHandlerGuardrail(unittest.TestCase):
     # MODEL = "mistral-7b-instruct"
 
     def setUp(self) -> None:
-        self.stream_handler = ConverseApiStreamHandler.from_model(model=self.MODEL)  # type: ignore
-        self.stream_handler.bind(on_stream=on_stream, on_stop=on_stop)
-
         # Note that the region must be the same as the one used in the bedrock client
         # https://github.com/aws/aws-sdk-js-v3/issues/6482
         self.bedrock_client = boto3.client("bedrock", region_name="us-east-1")
@@ -223,30 +205,26 @@ class TestConverseApiStreamHandlerGuardrail(unittest.TestCase):
         except Exception as e:
             print(f"Error deleting guardrail: {e}")
 
-    def _run(self, message, instruction=None, generation_params=None, guardrail=None):
-        args = compose_args_for_converse_api(
-            [message],
-            self.MODEL,
-            instruction=instruction,
-            stream=True,
+    def _run(self, message, instructions=[], generation_params=None, guardrail=None):
+        self.stream_handler = ConverseApiStreamHandler(
+            model=self.MODEL,
+            instructions=instructions,
             generation_params=generation_params,
-            grounding_source=None,
             guardrail=guardrail,
+            on_stream=on_stream,
         )
-        for _ in self.stream_handler.run(
-            args=args,
-        ):
-            pass
+        result = self.stream_handler.run(
+            messages=[message],
+        )
+        on_stop(result)
 
     def test_run_with_guardrail(self):
         message = MessageModel(
             role="user",
             content=[
-                ContentModel(
+                TextContentModel(
                     content_type="text",
-                    media_type=None,
                     body="Hello, World!",
-                    file_name=None,
                 )
             ],
             model=self.MODEL,

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import ChatMessageMarkdown from './ChatMessageMarkdown';
 import ButtonCopy from './ButtonCopy';
 import {
@@ -24,11 +25,13 @@ import UploadedAttachedFile from './UploadedAttachedFile';
 import { TEXT_FILE_EXTENSIONS } from '../constants/supportedAttachedFiles';
 import AgentToolList from '../features/agent/components/AgentToolList';
 import { AgentToolsProps } from '../features/agent/xstates/agentThink';
+import { convertThinkingLogToAgentToolProps } from '../features/agent/utils/AgentUtils';
+import { convertUsedChunkToRelatedDocument } from '../utils/MessageUtils';
 
 type Props = BaseProps & {
-  isAgentThinking: boolean;
-  tools?: AgentToolsProps;
+  tools?: AgentToolsProps[];
   chatContent?: DisplayMessageContent;
+  isStreaming?: boolean;
   relatedDocuments?: RelatedDocument[];
   onChangeMessageId?: (messageId: string) => void;
   onSubmit?: (messageId: string, content: string) => void;
@@ -40,8 +43,6 @@ const ChatMessage: React.FC<Props> = (props) => {
   const [isEdit, setIsEdit] = useState(false);
   const [changedContent, setChangedContent] = useState('');
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
-  const { relatedDocuments } = props;
 
   const [firstTextContent, setFirstTextContent] = useState(0);
 
@@ -63,9 +64,32 @@ const ChatMessage: React.FC<Props> = (props) => {
     null
   );
 
-  const chatContent = useMemo<DisplayMessageContent | undefined>(() => {
+  const chatContent = useMemo(() => {
     return props.chatContent;
-  }, [props]);
+  }, [props.chatContent]);
+
+  const relatedDocuments = useMemo(() => {
+    if (chatContent?.usedChunks) {
+      return [
+        ...props.relatedDocuments ?? [],
+        ...chatContent.usedChunks.map(chunk => (
+          convertUsedChunkToRelatedDocument(chunk)
+        )),
+      ];
+    } else {
+      return props.relatedDocuments;
+    }
+  }, [props.relatedDocuments, chatContent]);
+
+  const tools = useMemo(() => {
+    if (props.tools != null) {
+      return props.tools;
+    }
+    if (chatContent?.thinkingLog == null) {
+      return undefined;
+    }
+    return convertThinkingLogToAgentToolProps(chatContent.thinkingLog, relatedDocuments);
+  }, [props.tools, chatContent, relatedDocuments]);
 
   const nodeIndex = useMemo(() => {
     return chatContent?.sibling.findIndex((s) => s === chatContent.id) ?? -1;
@@ -98,7 +122,7 @@ const ChatMessage: React.FC<Props> = (props) => {
   );
 
   return (
-    <div className={`${props.className ?? ''} grid grid-cols-12 gap-2 p-3 `}>
+    <div className={twMerge(props.className, 'grid grid-cols-12 gap-2 p-3')}>
       <div className="col-start-1 lg:col-start-2 ">
         {(chatContent?.sibling.length ?? 0) > 1 && (
           <div className="flex items-center justify-start text-sm lg:justify-end">
@@ -138,22 +162,17 @@ const ChatMessage: React.FC<Props> = (props) => {
         )}
 
         <div className="ml-5 grow ">
-          {chatContent?.role === 'assistant' && (
+          {chatContent?.role === 'assistant' && tools != null && tools.length > 0 && (
             <div className="flex flex-col">
-              {props.isAgentThinking ? (
-                <AgentToolList tools={props.tools ?? {}} isRunning={true} />
-              ) : (
-                <>
-                  {chatContent.thinkingLog && (
-                    <div className="mb-3 mt-0">
-                      <AgentToolList
-                        tools={props.tools ?? {}}
-                        isRunning={false}
-                      />
-                    </div>
-                  )}
-                </>
-              )}
+              {tools.map((tools, index) => (
+                <div key={index} className="mb-3 mt-0">
+                  <AgentToolList
+                    messageId={chatContent.id}
+                    tools={tools}
+                    relatedDocuments={relatedDocuments}
+                  />
+                </div>
+              ))}
             </div>
           )}
           {chatContent?.role === 'user' && !isEdit && (
@@ -280,6 +299,7 @@ const ChatMessage: React.FC<Props> = (props) => {
           )}
           {chatContent?.role === 'assistant' && (
             <ChatMessageMarkdown
+              isStreaming={props.isStreaming}
               relatedDocuments={relatedDocuments}
               messageId={chatContent.id}>
               {chatContent.content[0].body}
@@ -288,8 +308,8 @@ const ChatMessage: React.FC<Props> = (props) => {
         </div>
       </div>
 
-      <div className="col-start-11">
-        <div className="flex flex-col items-end">
+      <div className="col-start-11 col-span-2">
+        <div className="flex flex-col items-end lg:items-start">
           {chatContent?.role === 'user' && !isEdit && (
             <ButtonIcon
               className="text-dark-gray"

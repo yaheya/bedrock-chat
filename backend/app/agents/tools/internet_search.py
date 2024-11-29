@@ -1,5 +1,3 @@
-import json
-
 from app.agents.tools.agent_tool import AgentTool
 from app.repositories.models.custom_bot import BotModel
 from app.routes.schemas.conversation import type_model_name
@@ -37,7 +35,7 @@ class InternetSearchInput(BaseModel):
 
 def internet_search(
     tool_input: InternetSearchInput, bot: BotModel | None, model: type_model_name | None
-) -> str:
+) -> list:
     query = tool_input.query
     time_limit = tool_input.time_limit
     country = tool_input.country
@@ -46,17 +44,22 @@ def internet_search(
     SAFE_SEARCH = "moderate"
     MAX_RESULTS = 20
     BACKEND = "api"
-    res = []
     with DDGS() as ddgs:
-        res = ddgs.text(
-            query,
-            region=REGION,
-            safesearch=SAFE_SEARCH,
-            timelimit=time_limit,
-            max_results=MAX_RESULTS,
-            backend=BACKEND,
-        )
-    return json.dumps(res)
+        return [
+            {
+                "content": result["body"],
+                "source_name": result["title"],
+                "source_link": result["href"],
+            }
+            for result in ddgs.text(
+                keywords=query,
+                region=REGION,
+                safesearch=SAFE_SEARCH,
+                timelimit=time_limit,
+                max_results=MAX_RESULTS,
+                backend=BACKEND,
+            )
+        ]
 
 
 internet_search_tool = AgentTool(
