@@ -21,12 +21,10 @@ type Props = BaseProps & {
 };
 
 const SUPPORTED_FILES = [
-  '.text',
   '.txt',
   '.md',
   '.xlsx',
   '.docx',
-  '.pptx',
   '.pdf',
   '.csv',
 ];
