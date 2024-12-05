@@ -89,6 +89,7 @@ def store_bot(user_id: str, custom_bot: BotModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
+        "ModelActivate": custom_bot.model_activate.model_dump(),  # type: ignore[attr-defined]
     }
     if custom_bot.bedrock_knowledge_base:
         item["BedrockKnowledgeBase"] = custom_bot.bedrock_knowledge_base.model_dump()
