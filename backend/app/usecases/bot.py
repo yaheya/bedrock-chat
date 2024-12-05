@@ -27,9 +27,6 @@ from app.repositories.custom_bot import (
     update_bot_last_used_time,
     update_bot_pin_status,
 )
-from app.repositories.models.common import (
-    ModelActivateModel,
-)
 from app.repositories.models.custom_bot import (
     AgentModel,
     AgentToolModel,
@@ -39,6 +36,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    ModelActivateModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel

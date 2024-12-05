@@ -20,7 +20,6 @@ from app.repositories.common import (
     decompose_bot_alias_id,
     decompose_bot_id,
 )
-from app.repositories.models.common import ModelActivateModel
 from app.repositories.models.custom_bot import (
     AgentModel,
     BotAliasModel,
@@ -30,6 +29,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    ModelActivateModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel

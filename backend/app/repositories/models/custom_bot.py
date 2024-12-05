@@ -4,10 +4,19 @@ from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import type_sync_status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, create_model
 from app.routes.schemas.conversation import type_model_name
-from app.repositories.models.common import ModelActivateModel
+from app.repositories.models.common import DynamicBaseModel
 
+def _create_model_activate_model(model_names: List[str]) -> Type[DynamicBaseModel]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ModelActivateModel", __base__=DynamicBaseModel, **fields)
+
+ModelActivateModel: Type[BaseModel] = _create_model_activate_model(
+    list(get_args(type_model_name))
+)
 
 class KnowledgeModel(BaseModel):
     source_urls: list[str]
