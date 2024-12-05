@@ -1,30 +1,18 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Literal,
-    Optional,
-    List,
-    Dict,
-    Type,
-    get_args,
-    Any,
-)
-from pydantic import (
-    Field,
-    validator,
-    create_model,
-)
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Type, get_args
+
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
     BedrockGuardrailsInput,
     BedrockGuardrailsOutput,
 )
-from app.routes.schemas.conversation import type_model_name
 from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseInput,
     BedrockKnowledgeBaseOutput,
 )
+from app.routes.schemas.conversation import type_model_name
+from pydantic import Field, create_model, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -41,14 +29,14 @@ type_sync_status = Literal[
 ]
 
 
-def create_model_activate_input(model_names: List[str]) -> Type[BaseSchema]:
+def _create_model_activate_input(model_names: List[str]) -> Type[BaseSchema]:
     fields: Dict[str, Any] = {
         name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
     }
     return create_model("ModelActivateInput", **fields, __base__=BaseSchema)
 
 
-ModelActivateInput = create_model_activate_input(list(get_args(type_model_name)))
+ModelActivateInput = _create_model_activate_input(list(get_args(type_model_name)))
 
 
 def create_model_activate_output(model_names: List[str]) -> Type[BaseSchema]:
