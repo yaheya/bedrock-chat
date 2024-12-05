@@ -20,6 +20,7 @@ from app.repositories.common import (
     decompose_bot_alias_id,
     decompose_bot_id,
 )
+from app.repositories.models.common import ModelActivateModel
 from app.repositories.models.custom_bot import (
     AgentModel,
     BotAliasModel,
@@ -29,7 +30,6 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
-    ModelActivateModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
@@ -134,7 +134,8 @@ def update_bot(
         "SyncStatusReason = :sync_status_reason, "
         "GenerationParams = :generation_params, "
         "DisplayRetrievedChunks = :display_retrieved_chunks, "
-        "ConversationQuickStarters = :conversation_quick_starters"
+        "ConversationQuickStarters = :conversation_quick_starters, "
+        "ModelActivate = :model_activate"
     )
 
     expression_attribute_values = {
@@ -150,6 +151,7 @@ def update_bot(
         ":conversation_quick_starters": [
             starter.model_dump() for starter in conversation_quick_starters
         ],
+        ":model_activate": model_activate.model_dump(),  # type: ignore[attr-defined]
     }
     if bedrock_knowledge_base:
         update_expression += ", BedrockKnowledgeBase = :bedrock_knowledge_base"
@@ -162,10 +164,6 @@ def update_bot(
         expression_attribute_values[":bedrock_guardrails"] = (
             bedrock_guardrails.model_dump()
         )
-
-    if model_activate:
-        update_expression += ", ModelActivate = :model_activate"
-        expression_attribute_values[":model_activate"] = model_activate.model_dump()  # type: ignore[attr-defined]
 
     try:
         response = table.update_item(
@@ -494,7 +492,7 @@ def find_private_bot_by_id(user_id: str, bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
-        model_activate=ModelActivateModel.model_validate(item.get("ModelActivate")),
+        model_activate=ModelActivateModel.model_validate(item.get("ModelActivate", {})),
     )
 
     logger.info(f"Found bot: {bot}")

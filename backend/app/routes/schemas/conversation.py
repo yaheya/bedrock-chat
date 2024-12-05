@@ -1,13 +1,16 @@
-from typing import Literal, Annotated
+from typing import Literal, Annotated, TYPE_CHECKING
 
 from app.routes.schemas.base import BaseSchema
-from app.repositories.models.common import Base64EncodedBytes
 from pydantic import Field, Discriminator, JsonValue, root_validator
 
 from mypy_boto3_bedrock_runtime.literals import (
     DocumentFormatType,
     ImageFormatType,
 )
+
+# To avoid circular imports errors
+if TYPE_CHECKING:
+    from app.repositories.models.common import Base64EncodedBytes
 
 type_model_name = Literal[
     "claude-instant-v1",
@@ -43,7 +46,7 @@ class ImageContent(BaseSchema):
         ...,
         description="MIME type of the image. Must be specified if `content_type` is `image`.",
     )
-    body: Base64EncodedBytes = Field(..., description="Content body.")
+    body: "Base64EncodedBytes" = Field(..., description="Content body.")
 
 
 class AttachmentContent(BaseSchema):
@@ -54,7 +57,7 @@ class AttachmentContent(BaseSchema):
         ...,
         description="File name of the attachment. Must be specified if `content_type` is `attachment`.",
     )
-    body: Base64EncodedBytes = Field(..., description="Content body.")
+    body: "Base64EncodedBytes" = Field(..., description="Content body.")
 
 
 class FeedbackInput(BaseSchema):
@@ -113,13 +116,13 @@ class JsonToolResult(BaseSchema):
 
 class ImageToolResult(BaseSchema):
     format: ImageFormatType
-    image: Base64EncodedBytes
+    image: "Base64EncodedBytes"
 
 
 class DocumentToolResult(BaseSchema):
     format: DocumentFormatType
     name: str
-    document: Base64EncodedBytes
+    document: "Base64EncodedBytes"
 
 
 ToolResult = TextToolResult | JsonToolResult | ImageToolResult | DocumentToolResult

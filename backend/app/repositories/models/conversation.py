@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Literal, Any, Annotated, Self, TypedDict, TypeGuard
+from typing import Literal, Any, Annotated, Self, TypedDict, TypeGuard, TYPE_CHECKING
 from pathlib import Path
 import re
 from urllib.parse import urlparse
-
-from app.repositories.models.common import Base64EncodedBytes
 from app.routes.schemas.conversation import (
     SimpleMessage,
     MessageInput,
@@ -39,6 +37,10 @@ from mypy_boto3_bedrock_runtime.literals import (
     DocumentFormatType,
     ImageFormatType,
 )
+
+# To avoid circular imports errors
+if TYPE_CHECKING:
+    from app.repositories.models.common import Base64EncodedBytes
 
 
 class TextContentModel(BaseModel):
@@ -76,7 +78,7 @@ def _is_converse_supported_image_format(format: str) -> TypeGuard[ImageFormatTyp
 class ImageContentModel(BaseModel):
     content_type: Literal["image"]
     media_type: str
-    body: Base64EncodedBytes = Field(
+    body: "Base64EncodedBytes" = Field(
         ...,
         description="Image bytes.",
     )
@@ -142,7 +144,7 @@ def _convert_to_valid_file_name(file_name: str) -> str:
 
 class AttachmentContentModel(BaseModel):
     content_type: Literal["attachment"]
-    body: Base64EncodedBytes = Field(
+    body: "Base64EncodedBytes" = Field(
         ...,
         description="Attachment file bytes.",
     )
@@ -305,7 +307,7 @@ class JsonToolResultModel(BaseModel):
 
 class ImageToolResultModel(BaseModel):
     format: ImageFormatType
-    image: Base64EncodedBytes
+    image: "Base64EncodedBytes"
 
     @classmethod
     def from_image_tool_result(cls, tool_result: ImageToolResult) -> Self:
@@ -334,7 +336,7 @@ class ImageToolResultModel(BaseModel):
 class DocumentToolResultModel(BaseModel):
     format: DocumentFormatType
     name: str
-    document: Base64EncodedBytes
+    document: "Base64EncodedBytes"
 
     @classmethod
     def from_document_tool_result(cls, tool_result: DocumentToolResult) -> Self:

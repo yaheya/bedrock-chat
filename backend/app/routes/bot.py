@@ -154,7 +154,7 @@ def get_private_bot(request: Request, bot_id: str):
             if bot.bedrock_guardrails
             else None
         ),
-        model_activate=ModelActivateOutput(**dict(bot.model_activate)),
+        model_activate=ModelActivateOutput.model_validate(dict(bot.model_activate)),
     )
     return output
 

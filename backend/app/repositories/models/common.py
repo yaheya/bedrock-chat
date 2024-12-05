@@ -1,9 +1,11 @@
 import base64
 from decimal import Decimal
-
+from typing import get_args, Dict, Any, List, Type
+from pydantic import BaseModel, ConfigDict, create_model
 from pydantic.functional_serializers import PlainSerializer
 from pydantic.functional_validators import PlainValidator
 from typing import Annotated, Any
+from app.routes.schemas.conversation import type_model_name
 
 # Declare customized float type
 Float = Annotated[
@@ -35,3 +37,19 @@ Base64EncodedBytes = Annotated[
         return_type=str,
     ),
 ]
+
+
+class DynamicBaseModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+def create_model_activate_model(model_names: List[str]) -> Type[DynamicBaseModel]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ModelActivateModel", __base__=DynamicBaseModel, **fields)
+
+
+ModelActivateModel: Type[BaseModel] = create_model_activate_model(
+    list(get_args(type_model_name))
+)
