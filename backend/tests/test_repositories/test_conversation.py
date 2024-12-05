@@ -1,7 +1,7 @@
+import base64
 import json
 import os
 import sys
-import base64
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -26,11 +26,11 @@ from app.repositories.custom_bot import (
     store_bot,
 )
 from app.repositories.models.conversation import (
-    SimpleMessageModel,
     ChunkModel,
     FeedbackModel,
-    TextContentModel,
     ImageContentModel,
+    SimpleMessageModel,
+    TextContentModel,
     ToolUseContentModel,
     ToolUseContentModelBody,
 )
@@ -41,6 +41,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    ModelActivateModel,
 )
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError

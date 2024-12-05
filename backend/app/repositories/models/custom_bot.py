@@ -1,4 +1,5 @@
-from typing import get_args, Dict, Any, List, Type
+from typing import Any, Dict, List, Type, get_args
+
 from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel

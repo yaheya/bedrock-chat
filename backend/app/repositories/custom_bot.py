@@ -90,8 +90,6 @@ def store_bot(user_id: str, custom_bot: BotModel):
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
     }
-    if custom_bot.model_activate is not None:
-        item["ModelActivate"] = custom_bot.model_activate.model_dump()
     if custom_bot.bedrock_knowledge_base:
         item["BedrockKnowledgeBase"] = custom_bot.bedrock_knowledge_base.model_dump()
     if custom_bot.bedrock_guardrails:
@@ -201,9 +199,8 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
+        "ModelActivate": alias.model_activate.model_dump(),
     }
-    if alias.model_activate is not None:
-        item["ModelActivate"] = alias.model_activate.model_dump()
 
     response = table.put_item(Item=item)
     return response
