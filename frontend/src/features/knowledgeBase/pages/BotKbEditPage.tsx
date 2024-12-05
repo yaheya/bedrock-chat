@@ -192,6 +192,18 @@ const BotKbEditPage: React.FC = () => {
           {
             key: 'claude-v3.5-haiku',
             label: t('model.haiku3-5.label')
+          },
+          {
+            key: 'amazon-nova-pro',
+            label: t('model.novaPro.label'),
+          },
+          {
+            key: 'amazon-nova-lite',
+            label: t('model.novaLite.label'),
+          },
+          {
+            key: 'amazon-nova-micro',
+            label: t('model.novaMicro.label'),
           }
         ]
   })();
