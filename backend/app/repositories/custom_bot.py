@@ -200,7 +200,7 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
-        "ModelActivate": alias.model_activate.model_dump(),
+        "ModelActivate": alias.model_activate.model_dump(),  # type: ignore[attr-defined]
     }
 
     response = table.put_item(Item=item)

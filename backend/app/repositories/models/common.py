@@ -41,4 +41,3 @@ Base64EncodedBytes = Annotated[
 
 class DynamicBaseModel(BaseModel):
     model_config = ConfigDict(extra="allow")
-
