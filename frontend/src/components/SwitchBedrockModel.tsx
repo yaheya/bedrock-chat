@@ -18,7 +18,7 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
   const availableModels = useMemo(() => {
     return allModels.filter(model => {
       if (props.modelActivate) {
-        return props.modelActivate[toCamelCase(model.modelId)] === true;
+        return props.modelActivate[toCamelCase(model.modelId) as keyof ModelActivate] === true;
       }
       return true;
     });

@@ -61,7 +61,7 @@ const useModel = (botId?: string | null, modelActivate?: ModelActivate) => {
     // Create a new object with all models set to true
     return MODEL_KEYS.reduce((acc, model) => {
       // Optimize string replacement by doing it in one operation
-      acc[toCamelCase(model)] = true;
+      acc[toCamelCase(model) as keyof ModelActivate ] = true;
       return acc;
     }, {} as ModelActivate);
     

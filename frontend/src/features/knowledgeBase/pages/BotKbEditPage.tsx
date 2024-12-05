@@ -141,7 +141,7 @@ const BotKbEditPage: React.FC = () => {
 
   const [modelActivate, setModelActivate] = useState<ModelActivate>(() => {
     const initialState = MODEL_KEYS.reduce((acc, key) => {
-      acc[toCamelCase(key)] = true;
+      acc[toCamelCase(key) as keyof ModelActivate] = true;
       return acc;
     }, {} as ModelActivate);
     return initialState;
@@ -586,7 +586,7 @@ const BotKbEditPage: React.FC = () => {
   const onChangeModelActivate = useCallback(
     (key: string, value: boolean) => {
       setModelActivate((prevState) => {
-        const camelKey = toCamelCase(key);
+        const camelKey = toCamelCase(key) as keyof ModelActivate;
         const newState = { ...prevState };
         newState[camelKey] = value;
         return newState;
