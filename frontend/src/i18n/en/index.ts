@@ -8,7 +8,7 @@ const translation = {
     app: {
       name: 'Bedrock Claude Chat',
       nameWithoutClaude: 'Bedrock Chat',
-      inputMessage: 'Send a message',
+      inputMessage: 'Can I Help You?',
       starredBots: 'Starred Bots',
       recentlyUsedBots: 'Recently Used Bots',
       conversationHistory: 'History',
@@ -53,6 +53,18 @@ const translation = {
       mistralLarge: {
         label: 'Mistral Large',
       },
+      novaPro: {
+        label: "Amazon Nova Pro",
+        description: 'A highly capable multimodal model with the best combination of accuracy, speed, and cost for a wide range of tasks.',
+      },
+      novaLite: {
+        label: 'Amazon Nova Lite',
+        description: 'A very low-cost multimodal model that is lightning fast for processing image, video, and text inputs.',
+      },
+      novaMicro: {
+        label: 'Amazon Nova Micro',
+        description: 'A text-only model that delivers the lowest latency responses in the Amazon Nova family of models at a very low cost.',
+      }
     },
     agent: {
       label: 'Agent',

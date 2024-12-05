@@ -52,8 +52,6 @@ import {
   MODEL_KEYS
 } from '../constants';
 
-const MISTRAL_ENABLED: boolean =
-  import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
 
 // Default model activation settings when no bot is selected
 const defaultModelActivate: ModelActivate = (() => {
@@ -503,11 +501,6 @@ const ChatPage: React.FC = () => {
                       botId={botId}
                     />
                   )}
-                  <div className="absolute mx-3 my-20 flex items-center justify-center text-4xl font-bold text-gray">
-                    {!MISTRAL_ENABLED
-                      ? t('app.name')
-                      : t('app.nameWithoutClaude')}
-                  </div>
                 </div>
               ) : (
                 <>
@@ -558,7 +551,7 @@ const ChatPage: React.FC = () => {
         </section>
       </div>
 
-      <div className="bottom-0 z-0 flex w-full flex-col items-center justify-center">
+      <div className={`bottom-0 z-0 flex w-full flex-col items-center justify-center ${messages.length === 0 ? 'absolute top-1/2 -translate-y-1/2' : ''}`}>
         {bot && bot.syncStatus !== SyncStatus.SUCCEEDED && (
           <div className="mb-8 w-1/2">
             <Alert
@@ -600,6 +593,7 @@ const ChatPage: React.FC = () => {
           canRegenerate={messages.length > 1}
           canContinue={getShouldContinue()}
           isLoading={postingMessage}
+          isNewChat={messages.length == 0}
           onSend={onSend}
           onRegenerate={onRegenerate}
           continueGenerate={onContinueGenerate}

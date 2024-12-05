@@ -1,12 +1,12 @@
-# Bedrock Claude Chat
+# Bedrock Claude Chat (Nova)
 
-> [!Warning] > **V2 がリリースされました。** 更新する際は、[移行ガイド](./migration/V1_TO_V2.md)を必ずご確認ください。 **注意を払わずに進めると、V1 の BOT は使用できなくなります。**
+> [!Warning]
+> **V2 がリリースされました。** 更新する際は、[移行ガイド](./migration/V1_TO_V2.md)を必ずご確認ください。 **注意を払わずに進めると、V1 の BOT は使用できなくなります。**
 
 このリポジトリは、生成系 AI を提供する[Amazon Bedrock](https://aws.amazon.com/jp/bedrock/)の基盤モデルの一つである、Anthropic 社製 LLM [Claude](https://www.anthropic.com/)を利用したチャットボットのサンプルです。
 
 ### 基本的な会話
 
-[Claude 3](https://www.anthropic.com/news/claude-3-family)によるテキストと画像の両方を利用したチャットが可能です。現在`Haiku`および`Sonnet`、または`Opus`をサポートしています。
 ![](./imgs/demo_ja.gif)
 
 ### ボットのカスタマイズ
@@ -33,7 +33,7 @@
 
 ## 🚀 まずはお試し
 
-- us-east-1 リージョンにて、[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` > `Anthropic / Claude 3 Haiku`, `Anthropic / Claude 3 Sonnet`, `Anthropic / Claude 3.5 Sonnet` `Cohere / Embed Multilingual`をチェックし、`Save changes`をクリックします
+- us-east-1 リージョンにて、[Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` > すべての`Anthropic / Claude 3`、 すべての `Amazon / Nova`、`Cohere / Embed Multilingual`をチェックし、`Save changes`をクリックします
 
 <details>
 <summary>スクリーンショット</summary>
@@ -60,6 +60,7 @@ chmod +x bin.sh
 デプロイ時に以下のパラメータを指定することで、セキュリティとカスタマイズを強化できます。
 
 - **--disable-self-register**: セルフ登録を無効にします（デフォルト: 有効）。このフラグを設定すると、Cognito 上で全てのユーザーを作成する必要があり、ユーザーが自分でアカウントを登録することはできなくなります。
+- **--enable-lambda-snapstart**: [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) を有効化します (デフォルト: 無効)。 このフラグを設定すると、Lambda 関数のコールドスタート時間を短縮し、レスポンスタイムの改善によってユーザー体験を向上させます。
 - **--ipv4-ranges**: 許可する IPv4 範囲のカンマ区切りリスト。（デフォルト: 全ての IPv4 アドレスを許可）
 - **--ipv6-ranges**: 許可する IPv6 範囲のカンマ区切りリスト。（デフォルト: 全ての IPv6 アドレスを許可）
 - **--disable-ipv6**: IPv6 での接続を無効にします (デフォルト: 有効)
@@ -145,6 +146,7 @@ cdk bootstrap aws://<account id>/ap-northeast-1
 
   - `bedrockRegion`: Bedrock が利用できるリージョン
   - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: 許可する IP アドレス範囲の指定
+  - `enableLambdaSnapStart`: デフォルトでは true ですが、[Python 関数の Lambda SnapStart をサポートしていないリージョン](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html#snapstart-supported-regions)にデプロイする場合は false に変更してください。
 
 - プロジェクトをデプロイします
 
@@ -255,6 +257,14 @@ cli および CDK を利用されている場合、`cdk destroy`を実行して�
 
 ```json
 "enableBedrockCrossRegionInference": true
+```
+
+### Lambda SnapStart
+
+[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) は Lambda 関数のコールドスタート時間を短縮し、レスポンスタイムの改善によってユーザー体験を向上させます。ただし、Python 関数については[キャッシュサイズに比例した利用料金](https://aws.amazon.com/lambda/pricing/#SnapStart_Pricing)が発生するのに加え、[一部のリージョン](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html#snapstart-supported-regions)では現在利用できません。SnapStart を無効化するには、`cdk.json` を以下のように編集します。
+
+```json
+"enableLambdaSnapStart": false
 ```
 
 ### ローカルでの開発について
