@@ -631,5 +631,3 @@ def fetch_conversation(user_id: str, conversation_id: str) -> Conversation:
         should_continue=conversation.should_continue,
     )
     return output
-
-
