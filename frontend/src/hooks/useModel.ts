@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import { Model } from '../@types/conversation';
+import { Model, MODEL_KEYS } from '../@types/conversation';
 import { useEffect, useMemo, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useLocalStorage from './useLocalStorage';
 import { ActiveModels } from '../@types/bot';
-import { MODEL_KEYS } from '../constants';
 import { toCamelCase } from '../utils/StringUtils';
 
 const MISTRAL_ENABLED: boolean =
@@ -57,7 +56,7 @@ const useModel = (botId?: string | null, activeModels?: ActiveModels) => {
     }
 
     // Create a new object with all models set to true
-    return MODEL_KEYS.reduce((acc, model) => {
+    return MODEL_KEYS.reduce((acc: ActiveModels, model: Model) => {
       // Optimize string replacement by doing it in one operation
       acc[toCamelCase(model) as keyof ActiveModels] = true;
       return acc;

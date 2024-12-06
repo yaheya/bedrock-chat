@@ -50,8 +50,8 @@ import {
 import {
   GUARDRAILS_FILTERS_THRESHOLD,
   GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD,
-  MODEL_KEYS,
 } from '../../../constants';
+import { Model, MODEL_KEYS } from '../../../@types/conversation';
 import {
   ChunkingStrategy,
   FixedSizeParams,
@@ -64,7 +64,6 @@ import {
   WebCrawlingScope,
 } from '../types';
 import { toCamelCase } from '../../../utils/StringUtils';
-import { Model } from '../../../@types/conversation';
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
@@ -146,7 +145,7 @@ const BotKbEditPage: React.FC = () => {
   });
 
   const [activeModels, setActiveModels] = useState<ActiveModels>(() => {
-    const initialState = MODEL_KEYS.reduce((acc, key) => {
+    const initialState = MODEL_KEYS.reduce((acc: ActiveModels, key: Model) => {
       acc[toCamelCase(key) as keyof ActiveModels] = true;
       return acc;
     }, {} as ActiveModels);
@@ -157,22 +156,23 @@ const BotKbEditPage: React.FC = () => {
     key: Model;
     label: string;
   }[] = (() => {
-    const getMistralModels = () => MODEL_KEYS
-      .filter(key => key.includes('mistral') || key.includes('mixtral'))
-      .map(key => ({
+    const getMistralModels = () =>
+      MODEL_KEYS.filter(
+        (key) => key.includes('mistral') || key.includes('mixtral')
+      ).map((key) => ({
         key: key as Model,
-        label: t(`model.${key}.label`) as string
+        label: t(`model.${key}.label`) as string,
       }));
-  
+
     const getClaudeAndNovaModels = () => {
-      return MODEL_KEYS
-        .filter(key => key.includes('claude') || key.includes('nova'))
-        .map(key => ({
-          key: key as Model,
-          label: t(`model.${key}.label`) as string
-        }));
+      return MODEL_KEYS.filter(
+        (key) => key.includes('claude') || key.includes('nova')
+      ).map((key) => ({
+        key: key as Model,
+        label: t(`model.${key}.label`) as string,
+      }));
     };
-  
+
     return MISTRAL_ENABLED ? getMistralModels() : getClaudeAndNovaModels();
   })();
 

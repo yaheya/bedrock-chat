@@ -49,14 +49,16 @@ import { BottomHelper } from '../features/helper/components/BottomHelper';
 import { useIsWindows } from '../hooks/useIsWindows';
 import {
   DisplayMessageContent,
+  Model,
   PutFeedbackRequest,
-} from '../@types/conversation';
-import usePostMessageStreaming from '../hooks/usePostMessageStreaming';import { MODEL_KEYS } from '../constants';
+  MODEL_KEYS,
+} from '../@types/conversation.ts';
+import usePostMessageStreaming from '../hooks/usePostMessageStreaming.ts';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
   return Object.fromEntries(
-    MODEL_KEYS.map((key) => [toCamelCase(key), true])
+    MODEL_KEYS.map((key: Model) => [toCamelCase(key), true])
   ) as ActiveModels;
 })();
 
