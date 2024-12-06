@@ -103,8 +103,6 @@ export const GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD = {
 };
 
 export const MODEL_KEYS: Model[] = [
-  'claude-instant-v1',
-  'claude-v2',
   'claude-v3-opus',
   'claude-v3-sonnet',
   'claude-v3.5-sonnet',

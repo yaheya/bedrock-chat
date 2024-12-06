@@ -19,53 +19,53 @@ const translation = {
       adminConsoles: '管理者用',
     },
     model: {
-      haiku3: {
+      'claude-v3-haiku': {
         label: 'Claude 3 (Haiku)',
         description:
           '旧バージョンで、スピードとコンパクトさを最適化しており、ほぼ瞬時の応答を提供',
       },
-      sonnet3: {
+      'claude-v3-sonnet': {
         label: 'Claude 3 (Sonnet)',
         description: '賢さとスピードのバランスが取れたモデル',
       },
-      'sonnet3-5': {
+      'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
         description:
           'Claude 3.5の初期バージョン。幅広いタスクに対応しますが、v2の方が精度が向上',
       },
-      'sonnet3-5-v2': {
+      'claude-v3.5-sonnet-v2': {
         label: 'Claude 3.5 (Sonnet) v2',
         description:
           'Claude 3.5の最新バージョン。v1をさらに強化し、より高い精度とパフォーマンスを提供',
       },
-      'haiku3-5': {
+      'claude-v3.5-haiku': {
         label: 'Claude 3.5 (Haiku) v1',
         description: 'Haiku最新バージョン。精度を保ち、高速な応答を実現',
       },
-      opus3: {
+      'claude-v3-opus': {
         label: 'Claude 3 (Opus)',
         description: '非常に複雑なタスクに対応するパワフルなモデル',
       },
-      mistral7b: {
+      'mistral-7b-instruct': {
         label: 'Mistral 7B',
       },
-      mistral8x7b: {
-        label: 'Mixtral-8x7B',
+      'mixtral-8x7b-instruct': {
+        label: 'Mistral-8x7B',
       },
-      mistralLarge: {
+      'mistral-large': {
         label: 'Mistral Large',
       },
-      novaPro: {
+      'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
         description:
           '精度、速度、コストのバランスが最も優れた高性能マルチモーダルモデル',
       },
-      novaLite: {
+      'amazon-nova-lite': {
         label: 'Amazon Nova Lite',
         description:
           '非常に低コストで高速なマルチモーダルモデルで、リアルタイム処理に最適',
       },
-      novaMicro: {
+      'amazon-nova-micro': {
         label: 'Amazon Nova Micro',
         description:
           '最も低いレイテンシーと低コストで提供される軽量なテキストモデル',

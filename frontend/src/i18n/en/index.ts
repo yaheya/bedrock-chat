@@ -16,54 +16,54 @@ const translation = {
       adminConsoles: 'Admin Only',
     },
     model: {
-      haiku3: {
+      'claude-v3-haiku': {
         label: 'Claude 3 (Haiku)',
         description:
           'Previous version optimized for speed and compactness, providing near-instant responsiveness.',
       },
-      sonnet3: {
+      'claude-v3-sonnet': {
         label: 'Claude 3 (Sonnet)',
         description: 'Balance of intelligence and speed.',
       },
-      'sonnet3-5': {
+      'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
         description:
           'An earlier version of Claude 3.5. Supports a wide range of tasks, but v2 offers improved accuracy.',
       },
-      'sonnet3-5-v2': {
+      'claude-v3.5-sonnet-v2': {
         label: 'Claude 3.5 (Sonnet) v2',
         description:
           'The latest version of Claude 3.5. An enhanced model that builds on v1 with higher accuracy and performance.',
       },
-      'haiku3-5': {
+      'claude-v3.5-haiku': {
         label: 'Claude 3.5 (Haiku) v1',
         description:
           'The latest version, offering even faster responsiveness and improved capabilities over Haiku 3.',
       },
-      opus3: {
+      'claude-v3-opus': {
         label: 'Claude 3 (Opus)',
         description: 'Powerful model for highly complex tasks.',
       },
-      mistral7b: {
+      'mistral-7b-instruct': {
         label: 'Mistral 7B',
       },
-      mistral8x7b: {
-        label: 'Mixtral-8x7B',
+      'mixtral-8x7b-instruct': {
+        label: 'Mistral-8x7B',
       },
-      mistralLarge: {
+      'mistral-large': {
         label: 'Mistral Large',
       },
-      novaPro: {
+      'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
         description:
           'A highly capable multimodal model with the best combination of accuracy, speed, and cost for a wide range of tasks.',
       },
-      novaLite: {
+      'amazon-nova-lite': {
         label: 'Amazon Nova Lite',
         description:
           'A very low-cost multimodal model that is lightning fast for processing image, video, and text inputs.',
       },
-      novaMicro: {
+      'amazon-nova-micro': {
         label: 'Amazon Nova Micro',
         description:
           'A text-only model that delivers the lowest latency responses in the Amazon Nova family of models at a very low cost.',

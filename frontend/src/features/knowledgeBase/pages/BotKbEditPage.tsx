@@ -64,6 +64,7 @@ import {
   WebCrawlingScope,
 } from '../types';
 import { toCamelCase } from '../../../utils/StringUtils';
+import { Model } from '../../../@types/conversation';
 
 const MISTRAL_ENABLED: boolean =
   import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
@@ -153,62 +154,26 @@ const BotKbEditPage: React.FC = () => {
   });
 
   const activeModelsOptions: {
-    key: string;
+    key: Model;
     label: string;
   }[] = (() => {
-    return MISTRAL_ENABLED
-      ? [
-          {
-            key: 'mistral-7b-instruct',
-            label: t('model.mistral7b.label'),
-          },
-          {
-            key: 'mixtral-8x7b-instruct',
-            label: t('model.mistral8x7b.label'),
-          },
-          {
-            key: 'mistral-large',
-            label: t('model.mistralLarge.label'),
-          },
-        ]
-      : [
-          {
-            key: 'claude-v3-sonnet',
-            label: t('model.sonnet3.label'),
-          },
-          {
-            key: 'claude-v3-haiku',
-            label: t('model.haiku3.label'),
-          },
-          {
-            key: 'claude-v3-opus',
-            label: t('model.opus3.label'),
-          },
-          {
-            key: 'claude-v3.5-sonnet',
-            label: t('model.sonnet3-5.label'),
-          },
-          {
-            key: 'claude-v3.5-sonnet-v2',
-            label: t('model.sonnet3-5-v2.label'),
-          },
-          {
-            key: 'claude-v3.5-haiku',
-            label: t('model.haiku3-5.label'),
-          },
-          {
-            key: 'amazon-nova-pro',
-            label: t('model.novaPro.label'),
-          },
-          {
-            key: 'amazon-nova-lite',
-            label: t('model.novaLite.label'),
-          },
-          {
-            key: 'amazon-nova-micro',
-            label: t('model.novaMicro.label'),
-          },
-        ];
+    const getMistralModels = () => MODEL_KEYS
+      .filter(key => key.includes('mistral') || key.includes('mixtral'))
+      .map(key => ({
+        key: key as Model,
+        label: t(`model.${key}.label`) as string
+      }));
+  
+    const getClaudeAndNovaModels = () => {
+      return MODEL_KEYS
+        .filter(key => key.includes('claude') || key.includes('nova'))
+        .map(key => ({
+          key: key as Model,
+          label: t(`model.${key}.label`) as string
+        }));
+    };
+  
+    return MISTRAL_ENABLED ? getMistralModels() : getClaudeAndNovaModels();
   })();
 
   const embeddingsModelOptions: {
