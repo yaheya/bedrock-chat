@@ -56,17 +56,20 @@ const translation = {
         label: 'Mistral Large',
       },
       novaPro: {
-        label: "Amazon Nova Pro",
-        description: '精度、速度、コストのバランスが最も優れた高性能マルチモーダルモデル',
+        label: 'Amazon Nova Pro',
+        description:
+          '精度、速度、コストのバランスが最も優れた高性能マルチモーダルモデル',
       },
       novaLite: {
         label: 'Amazon Nova Lite',
-        description: '非常に低コストで高速なマルチモーダルモデルで、リアルタイム処理に最適',
+        description:
+          '非常に低コストで高速なマルチモーダルモデルで、リアルタイム処理に最適',
       },
       novaMicro: {
         label: 'Amazon Nova Micro',
-        description: '最も低いレイテンシーと低コストで提供される軽量なテキストモデル',
-      }
+        description:
+          '最も低いレイテンシーと低コストで提供される軽量なテキストモデル',
+      },
     },
     agent: {
       label: 'エージェント',
@@ -365,7 +368,7 @@ const translation = {
           '同一ファイル名のファイルが既にアップロードされています。',
         failDeleteApi: 'APIの削除に失敗しました。',
       },
-      modelActivate: {
+      activeModels: {
         title: 'モデル設定',
         description: 'このボットで使用可能なモデルを設定します。',
       },
@@ -666,8 +669,9 @@ const translation = {
       },
       advancedParsing: {
         label: '高度なドキュメント解析機能',
-        description: 'ドキュメントの高度なドキュメント解析機能に使用するモデルを選択してください。',
-        hint: '構造が損なわれていないPDF内の表など、サポートされている文書形式の標準テキスト以外の解析に適しています。生成AIを使用した解析のために追加のコストが発生します。'
+        description:
+          'ドキュメントの高度なドキュメント解析機能に使用するモデルを選択してください。',
+        hint: '構造が損なわれていないPDF内の表など、サポートされている文書形式の標準テキスト以外の解析に適しています。生成AIを使用した解析のために追加のコストが発生します。',
       },
       parsingModel: {
         label: '高度なパースモデル',
@@ -682,24 +686,24 @@ const translation = {
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',
           hint: 'Claude 3 Haiku v1を使用してドキュメントの高度な解析を行います。',
-        }
+        },
       },
       webCrawlerConfig: {
         title: 'Webクローラーの設定',
         crawlingScope: {
           label: 'スコープ',
-          default:{
+          default: {
             label: 'デフォルト',
-            hint: 'クロールを、同じホストに属し、同じ初期URLパスを持つウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、このパスとこのパスから派生するウェブページのみがクロールされます。例えば "https://aws.amazon.com/bedrock/agents/" などです。"https://aws.amazon.com/ec2/" のような兄弟URLはクロールされません。'
+            hint: 'クロールを、同じホストに属し、同じ初期URLパスを持つウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、このパスとこのパスから派生するウェブページのみがクロールされます。例えば "https://aws.amazon.com/bedrock/agents/" などです。"https://aws.amazon.com/ec2/" のような兄弟URLはクロールされません。',
           },
           subdomains: {
             label: 'サブドメイン',
-            hint: 'シードURLと同じプライマリドメインを持つすべてのウェブページのクロールを含めます。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"amazon.com" を含むすべてのウェブページがクロールされます。"https://www.amazon.com" のようなページも含まれます。'
+            hint: 'シードURLと同じプライマリドメインを持つすべてのウェブページのクロールを含めます。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"amazon.com" を含むすべてのウェブページがクロールされます。"https://www.amazon.com" のようなページも含まれます。',
           },
           hostOnly: {
             label: 'ホストオンリー',
-            hint: 'クロールを同じホストに属するウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"https://docs.aws.amazon.com" のようなウェブページもクロールされます。"https://aws.amazon.com/ec2" のようなページも含まれます。'
-          }
+            hint: 'クロールを同じホストに属するウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"https://docs.aws.amazon.com" のようなウェブページもクロールされます。"https://aws.amazon.com/ec2" のようなページも含まれます。',
+          },
         },
         includePatterns: {
           label: 'ウェブクロールに含めるパターン',
@@ -709,7 +713,7 @@ const translation = {
           label: 'ウェブクロールに含めないパターン',
           hint: 'ウェブクロールから除外するパターンを指定します。これらのパターンに一致するURLはクロールされません。',
         },
-      }
+      },
     },
     error: {
       answerResponse: '回答中にエラーが発生しました。',

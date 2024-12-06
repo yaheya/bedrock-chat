@@ -29,17 +29,20 @@ import useBot from '../hooks/useBot';
 import useConversation from '../hooks/useConversation';
 import ButtonPopover from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
-import { ModelActivate } from '../@types/bot';
+import { ActiveModels } from '../@types/bot';
 
 import { copyBotUrl } from '../utils/BotUtils';
-import { toCamelCase } from '../utils/StringUtils'
+import { toCamelCase } from '../utils/StringUtils';
 import { produce } from 'immer';
 import ButtonIcon from '../components/ButtonIcon';
 import StatusSyncBot from '../components/StatusSyncBot';
 import Alert from '../components/Alert';
 import useBotSummary from '../hooks/useBotSummary';
 import useModel from '../hooks/useModel';
-import { AgentState, AgentToolsProps } from '../features/agent/xstates/agentThink';
+import {
+  AgentState,
+  AgentToolsProps,
+} from '../features/agent/xstates/agentThink';
 import { getRelatedDocumentsOfToolUse } from '../features/agent/utils/AgentUtils';
 import { SyncStatus } from '../constants';
 import { BottomHelper } from '../features/helper/components/BottomHelper';
@@ -48,16 +51,13 @@ import {
   DisplayMessageContent,
   PutFeedbackRequest,
 } from '../@types/conversation';
-import {
-  MODEL_KEYS
-} from '../constants';
-
+import { MODEL_KEYS } from '../constants';
 
 // Default model activation settings when no bot is selected
-const defaultModelActivate: ModelActivate = (() => {
+const defaultActiveModels: ActiveModels = (() => {
   return Object.fromEntries(
-    MODEL_KEYS.map(key => [toCamelCase(key), true])
-  ) as ModelActivate;
+    MODEL_KEYS.map((key) => [toCamelCase(key), true])
+  ) as ActiveModels;
 })();
 
 const ChatPage: React.FC = () => {
@@ -335,11 +335,13 @@ const ChatPage: React.FC = () => {
   }> = React.memo((props) => {
     const { chatContent: message } = props;
 
-    const isAgentThinking = useMemo(() => (
-      [AgentState.THINKING, AgentState.LEAVING].some(v => (
-        v === agentThinking.value
-      ))
-    ), []);
+    const isAgentThinking = useMemo(
+      () =>
+        [AgentState.THINKING, AgentState.LEAVING].some(
+          (v) => v === agentThinking.value
+        ),
+      []
+    );
 
     const tools: AgentToolsProps[] | undefined = useMemo(() => {
       if (isAgentThinking) {
@@ -373,8 +375,14 @@ const ChatPage: React.FC = () => {
 
         if (bot?.hasKnowledge) {
           const pseudoToolUseId = message.id;
-          const relatedDocumentsOfVectorSearch = getRelatedDocumentsOfToolUse(relatedDocuments, pseudoToolUseId);
-          if (relatedDocumentsOfVectorSearch != null && relatedDocumentsOfVectorSearch.length > 0) {
+          const relatedDocumentsOfVectorSearch = getRelatedDocumentsOfToolUse(
+            relatedDocuments,
+            pseudoToolUseId
+          );
+          if (
+            relatedDocumentsOfVectorSearch != null &&
+            relatedDocumentsOfVectorSearch.length > 0
+          ) {
             return [
               {
                 tools: {
@@ -394,11 +402,13 @@ const ChatPage: React.FC = () => {
       }
     }, [isAgentThinking, message]);
 
-    const relatedDocumentsForCitation = useMemo(() => (
-      isAgentThinking
-        ? agentThinking.context.relatedDocuments
-        : relatedDocuments
-    ), [isAgentThinking]);
+    const relatedDocumentsForCitation = useMemo(
+      () =>
+        isAgentThinking
+          ? agentThinking.context.relatedDocuments
+          : relatedDocuments,
+      [isAgentThinking]
+    );
 
     return (
       <ChatMessage
@@ -413,12 +423,13 @@ const ChatPage: React.FC = () => {
     );
   });
 
-  const modelActivate = useMemo(() => {
+  const activeModels = useMemo(() => {
     if (!bot) {
-      return defaultModelActivate;
+      return defaultActiveModels;
     }
-    const isModelActivateEmpty = Object.keys(bot?.modelActivate ?? {}).length === 0;
-    return isModelActivateEmpty ? defaultModelActivate : bot.modelActivate;
+    const isActiveModelsEmpty =
+      Object.keys(bot?.activeModels ?? {}).length === 0;
+    return isActiveModelsEmpty ? defaultActiveModels : bot.activeModels;
   }, [bot]);
 
   return (
@@ -495,9 +506,9 @@ const ChatPage: React.FC = () => {
               {messages?.length === 0 ? (
                 <div className="relative flex w-full justify-center">
                   {!loadingConversation && (
-                    <SwitchBedrockModel 
-                      className="mt-3 w-min" 
-                      modelActivate={modelActivate}
+                    <SwitchBedrockModel
+                      className="mt-3 w-min"
+                      activeModels={activeModels}
                       botId={botId}
                     />
                   )}
@@ -551,7 +562,8 @@ const ChatPage: React.FC = () => {
         </section>
       </div>
 
-      <div className={`bottom-0 z-0 flex w-full flex-col items-center justify-center ${messages.length === 0 ? 'absolute top-1/2 -translate-y-1/2' : ''}`}>
+      <div
+        className={`bottom-0 z-0 flex w-full flex-col items-center justify-center ${messages.length === 0 ? 'absolute top-1/2 -translate-y-1/2' : ''}`}>
         {bot && bot.syncStatus !== SyncStatus.SUCCEEDED && (
           <div className="mb-8 w-1/2">
             <Alert
