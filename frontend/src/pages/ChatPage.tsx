@@ -51,7 +51,7 @@ import {
   DisplayMessageContent,
   PutFeedbackRequest,
 } from '../@types/conversation';
-import { MODEL_KEYS } from '../constants';
+import usePostMessageStreaming from '../hooks/usePostMessageStreaming';import { MODEL_KEYS } from '../constants';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -64,6 +64,7 @@ const ChatPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { open: openSnackbar } = useSnackbar();
+  const { errorDetail } = usePostMessageStreaming();
 
   const {
     agentThinking,
@@ -541,7 +542,7 @@ const ChatPage: React.FC = () => {
                 <div className="mb-12 mt-2 flex flex-col items-center">
                   <div className="flex items-center font-bold text-red">
                     <PiWarningCircleFill className="mr-1 text-2xl" />
-                    {t('error.answerResponse')}
+                    {errorDetail ?? t('error.answerResponse')}
                   </div>
 
                   <Button
