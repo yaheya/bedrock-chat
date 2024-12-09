@@ -25,13 +25,13 @@ import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import { UsageAnalysis } from "./usage-analysis";
 import { excludeDockerImage } from "../constants/docker";
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
+import { Database } from "./database";
 
 export interface ApiProps {
-  readonly database: ITable;
+  readonly database: Database;
   readonly corsAllowOrigins?: string[];
   readonly auth: Auth;
   readonly bedrockRegion: string;
-  readonly tableAccessRole: iam.IRole;
   readonly documentBucket: IBucket;
   readonly largeMessageBucket: IBucket;
   readonly apiPublishProject: codebuild.IProject;
@@ -47,11 +47,8 @@ export class Api extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const {
-      database,
-      tableAccessRole,
-      corsAllowOrigins: allowOrigins = ["*"],
-    } = props;
+    const { database, corsAllowOrigins: allowOrigins = ["*"] } = props;
+    const { tableAccessRole } = database;
 
     const usageAnalysisOutputLocation =
       `s3://${props.usageAnalysis?.resultOutputBucket.bucketName}` || "";
@@ -186,7 +183,8 @@ export class Api extends Construct {
       memorySize: 1024,
       timeout: Duration.minutes(15),
       environment: {
-        TABLE_NAME: database.tableName,
+        CONVERSATION_TABLE_NAME: database.conversationTable.tableName,
+        BOT_TABLE_NAME: database.botTable.tableName,
         CORS_ALLOW_ORIGINS: allowOrigins.join(","),
         USER_POOL_ID: props.auth.userPool.userPoolId,
         CLIENT_ID: props.auth.client.userPoolClientId,
@@ -211,7 +209,9 @@ export class Api extends Construct {
       },
       role: handlerRole,
       logRetention: logs.RetentionDays.THREE_MONTHS,
-      snapStart: props.enableLambdaSnapStart ? SnapStartConf.ON_PUBLISHED_VERSIONS : undefined,
+      snapStart: props.enableLambdaSnapStart
+        ? SnapStartConf.ON_PUBLISHED_VERSIONS
+        : undefined,
       layers: [
         LayerVersion.fromLayerVersionArn(
           this,

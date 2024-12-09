@@ -56,6 +56,7 @@ const webAclArn = cdk.Fn.importValue("PublishedApiWebAclArn");
 const conversationTableName = cdk.Fn.importValue(
   "BedrockClaudeChatConversationTableName"
 );
+const botTableName = cdk.Fn.importValue("BedrockClaudeChatBotTableName");
 const tableAccessRoleArn = cdk.Fn.importValue(
   "BedrockClaudeChatTableAccessRoleArn"
 );
@@ -73,6 +74,7 @@ const publishedApi = new ApiPublishmentStack(
     },
     bedrockRegion: BEDROCK_REGION,
     conversationTableName: conversationTableName,
+    botTableName: botTableName,
     tableAccessRoleArn: tableAccessRoleArn,
     webAclArn: webAclArn,
     largeMessageBucketName: largeMessageBucketName,

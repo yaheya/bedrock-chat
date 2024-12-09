@@ -238,14 +238,14 @@ export class UsageAnalysis extends Construct {
       runtime: Runtime.PYTHON_3_11,
       environment: {
         BUCKET_NAME: ddbBucket.bucketName,
-        TABLE_ARN: props.sourceDatabase.table.tableArn,
+        TABLE_ARN: props.sourceDatabase.conversationTable.tableArn,
       },
       logRetention: logs.RetentionDays.THREE_MONTHS,
     });
     exportHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["dynamodb:ExportTableToPointInTime"],
-        resources: [props.sourceDatabase.table.tableArn],
+        resources: [props.sourceDatabase.conversationTable.tableArn],
       })
     );
     ddbBucket.grantReadWrite(exportHandler);

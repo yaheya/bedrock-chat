@@ -2,11 +2,7 @@ import { Construct } from "constructs";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import { WebSocketLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
-import {
-  IFunction,
-  Runtime,
-  SnapStartConf,
-} from "aws-cdk-lib/aws-lambda";
+import { IFunction, Runtime, SnapStartConf } from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
@@ -17,12 +13,12 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { excludeDockerImage } from "../constants/docker";
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
+import { Database } from "./database";
 
 export interface WebSocketProps {
-  readonly database: ITable;
+  readonly database: Database;
   readonly auth: Auth;
   readonly bedrockRegion: string;
-  readonly tableAccessRole: iam.IRole;
   readonly documentBucket: s3.IBucket;
   readonly websocketSessionTable: ITable;
   readonly largeMessageBucket: s3.IBucket;
@@ -40,7 +36,8 @@ export class WebSocket extends Construct {
   constructor(scope: Construct, id: string, props: WebSocketProps) {
     super(scope, id);
 
-    const { database, tableAccessRole } = props;
+    const { database } = props;
+    const { tableAccessRole } = database;
 
     // Bucket for SNS large payload support
     // See: https://docs.aws.amazon.com/sns/latest/dg/extended-client-library-python.html
@@ -85,7 +82,7 @@ export class WebSocket extends Construct {
     props.largeMessageBucket.grantReadWrite(handlerRole);
     props.documentBucket.grantRead(handlerRole);
 
-    const handler =  new PythonFunction(this, "HandlerV2", {
+    const handler = new PythonFunction(this, "HandlerV2", {
       entry: path.join(__dirname, "../../../backend"),
       index: "app/websocket.py",
       bundling: {
@@ -101,7 +98,8 @@ export class WebSocket extends Construct {
         USER_POOL_ID: props.auth.userPool.userPoolId,
         CLIENT_ID: props.auth.client.userPoolClientId,
         BEDROCK_REGION: props.bedrockRegion,
-        TABLE_NAME: database.tableName,
+        CONVERSATION_TABLE_NAME: database.conversationTable.tableName,
+        BOT_TABLE_NAME: database.botTable.tableName,
         TABLE_ACCESS_ROLE_ARN: tableAccessRole.roleArn,
         LARGE_MESSAGE_BUCKET: props.largeMessageBucket.bucketName,
         LARGE_PAYLOAD_SUPPORT_BUCKET: largePayloadSupportBucket.bucketName,
@@ -111,7 +109,9 @@ export class WebSocket extends Construct {
           props.enableBedrockCrossRegionInference.toString(),
       },
       role: handlerRole,
-      snapStart: props.enableLambdaSnapStart ? SnapStartConf.ON_PUBLISHED_VERSIONS : undefined,
+      snapStart: props.enableLambdaSnapStart
+        ? SnapStartConf.ON_PUBLISHED_VERSIONS
+        : undefined,
       logRetention: logs.RetentionDays.THREE_MONTHS,
     });
 

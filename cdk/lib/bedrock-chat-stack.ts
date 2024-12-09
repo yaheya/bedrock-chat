@@ -156,10 +156,9 @@ export class BedrockChatStack extends cdk.Stack {
     });
 
     const backendApi = new Api(this, "BackendApi", {
-      database: database.table,
+      database,
       auth,
       bedrockRegion: props.bedrockRegion,
-      tableAccessRole: database.tableAccessRole,
       documentBucket: props.documentBucket,
       apiPublishProject: apiPublishCodebuild.project,
       bedrockCustomBotProject: bedrockCustomBotCodebuild.project,
@@ -173,8 +172,7 @@ export class BedrockChatStack extends cdk.Stack {
     // For streaming response
     const websocket = new WebSocket(this, "WebSocket", {
       accessLogBucket,
-      database: database.table,
-      tableAccessRole: database.tableAccessRole,
+      database,
       websocketSessionTable: database.websocketSessionTable,
       auth,
       bedrockRegion: props.bedrockRegion,
@@ -209,8 +207,7 @@ export class BedrockChatStack extends cdk.Stack {
 
     const embedding = new Embedding(this, "Embedding", {
       bedrockRegion: props.bedrockRegion,
-      database: database.table,
-      tableAccessRole: database.tableAccessRole,
+      database,
       documentBucket: props.documentBucket,
       bedrockCustomBotProject: bedrockCustomBotCodebuild.project,
       useStandbyReplicas: props.useStandbyReplicas,
@@ -239,8 +236,12 @@ export class BedrockChatStack extends cdk.Stack {
       exportName: "PublishedApiWebAclArn",
     });
     new CfnOutput(this, "ConversationTableName", {
-      value: database.table.tableName,
+      value: database.conversationTable.tableName,
       exportName: "BedrockClaudeChatConversationTableName",
+    });
+    new CfnOutput(this, "BotTableName", {
+      value: database.botTable.tableName,
+      exportName: "BedrockClaudeChatBotTableName",
     });
     new CfnOutput(this, "TableAccessRoleArn", {
       value: database.tableAccessRole.roleArn,

@@ -16,6 +16,7 @@ import { excludeDockerImage } from "./constants/docker";
 interface ApiPublishmentStackProps extends StackProps {
   readonly bedrockRegion: string;
   readonly conversationTableName: string;
+  readonly botTableName: string;
   readonly tableAccessRoleArn: string;
   readonly webAclArn: string;
   readonly usagePlan: apigateway.UsagePlanProps;
@@ -80,7 +81,8 @@ export class ApiPublishmentStack extends Stack {
       environment: {
         PUBLISHED_API_ID: id.replace("ApiPublishmentStack", ""),
         QUEUE_URL: chatQueue.queueUrl,
-        TABLE_NAME: props.conversationTableName,
+        CONVERSATION_TABLE_NAME: props.conversationTableName,
+        BOT_TABLE_NAME: props.botTableName,
         CORS_ALLOW_ORIGINS: (props.corsOptions?.allowOrigins ?? ["*"]).join(
           ","
         ),
@@ -113,7 +115,8 @@ export class ApiPublishmentStack extends Stack {
         environment: {
           PUBLISHED_API_ID: id.replace("ApiPublishmentStack", ""),
           QUEUE_URL: chatQueue.queueUrl,
-          TABLE_NAME: props.conversationTableName,
+          CONVERSATION_TABLE_NAME: props.conversationTableName,
+          BOT_TABLE_NAME: props.botTableName,
           CORS_ALLOW_ORIGINS: (props.corsOptions?.allowOrigins ?? ["*"]).join(
             ","
           ),

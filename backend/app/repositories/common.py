@@ -1,14 +1,19 @@
 import json
 import os
+from typing import Literal
 
 import boto3
 
 DDB_ENDPOINT_URL = os.environ.get("DDB_ENDPOINT_URL")
-TABLE_NAME = os.environ.get("TABLE_NAME", "")
+CONVERSATION_TABLE_NAME = os.environ.get("CONVERSATION_TABLE_NAME", "")
+BOT_TABLE_NAME = os.environ.get("BOT_TABLE_NAME", "")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 REGION = os.environ.get("REGION", "ap-northeast-1")
 TABLE_ACCESS_ROLE_ARN = os.environ.get("TABLE_ACCESS_ROLE_ARN", "")
 TRANSACTION_BATCH_SIZE = 25
+
+type_table = Literal["conversation", "bot"]
+_table_name_map = {"conversation": CONVERSATION_TABLE_NAME, "bot": BOT_TABLE_NAME}
 
 
 class RecordNotFoundError(Exception):
@@ -63,7 +68,7 @@ def decompose_related_document_source_id(composed_id: str):
     return composed_id.split("#")[-1]
 
 
-def _get_aws_resource(service_name, user_id=None):
+def _get_aws_resource(service_name, table_name: str, user_id=None):
     """Get AWS resource with optional row-level access control for DynamoDB.
     Ref: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_dynamodb_items.html
     """
@@ -97,8 +102,8 @@ def _get_aws_resource(service_name, user_id=None):
                     "dynamodb:UpdateItem",
                 ],
                 "Resource": [
-                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{TABLE_NAME}",
-                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{TABLE_NAME}/index/*",
+                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{table_name}",
+                    f"arn:aws:dynamodb:{REGION}:{ACCOUNT}:table/{table_name}/index/*",
                 ],
             }
         ]
@@ -124,18 +129,30 @@ def _get_aws_resource(service_name, user_id=None):
     return session.resource(service_name, region_name=REGION)
 
 
-def _get_dynamodb_client(user_id=None):
+def _get_dynamodb_client(user_id=None, table_type: type_table = "conversation"):
     """Get a DynamoDB client, optionally with row-level access control."""
-    return _get_aws_resource("dynamodb", user_id=user_id).meta.client
+    if table_type == "bot":
+        # Bot table does not have row-level access control
+        user_id = None
+    return _get_aws_resource(
+        "dynamodb", user_id=user_id, table_name=_table_name_map[table_type]
+    ).meta.client
 
 
-def _get_table_client(user_id):
+def _get_table_client(user_id, table_type: type_table = "conversation"):
     """Get a DynamoDB table client with row-level access."""
-    return _get_aws_resource("dynamodb", user_id=user_id).Table(TABLE_NAME)
+    if table_type == "bot":
+        # Bot table does not have row-level access control
+        user_id = None
+    return _get_aws_resource(
+        "dynamodb", user_id=user_id, table_name=_table_name_map[table_type]
+    ).Table(_table_name_map[table_type])
 
 
-def _get_table_public_client():
+def _get_table_public_client(table_type: type_table = "conversation"):
     """Get a DynamoDB table client.
     Warning: No row-level access. Use for only limited use case.
     """
-    return _get_aws_resource("dynamodb").Table(TABLE_NAME)
+    return _get_aws_resource("dynamodb", table_name=_table_name_map[table_type]).Table(
+        _table_name_map[table_type]
+    )

@@ -18,7 +18,8 @@ poetry install
 - Configure environment variables
 
 ```sh
-export TABLE_NAME=BedrockChatStack-DatabaseConversationTablexxxx
+export CONVERSATION_TABLE_NAME=BedrockChatStack-DatabaseConversationTablexxxx
+export BOT_TABLE_NAME=BedrockChatStack-DatabaseBotTablexxxx
 export ACCOUNT=yyyy
 export REGION=ap-northeast-1
 export BEDROCK_REGION=us-east-1

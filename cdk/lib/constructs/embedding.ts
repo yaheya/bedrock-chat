@@ -18,11 +18,11 @@ import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { Database } from "./database";
 
 export interface EmbeddingProps {
-  readonly database: ITable;
+  readonly database: Database;
   readonly bedrockRegion: string;
-  readonly tableAccessRole: iam.IRole;
   readonly documentBucket: IBucket;
   readonly bedrockCustomBotProject: codebuild.IProject;
   readonly useStandbyReplicas: boolean;
@@ -57,7 +57,7 @@ export class Embedding extends Construct {
       // Assume the table access role for row-level access control.
       new iam.PolicyStatement({
         actions: ["sts:AssumeRole"],
-        resources: [props.tableAccessRole.roleArn],
+        resources: [props.database.tableAccessRole.roleArn],
       })
     );
     handlerRole.addToPolicy(
@@ -86,7 +86,7 @@ export class Embedding extends Construct {
         ],
         resources: ["arn:aws:logs:*:*:*"],
       })
-    )
+    );
 
     this._updateSyncStatusHandler = new DockerImageFunction(
       this,
@@ -108,8 +108,9 @@ export class Embedding extends Construct {
         environment: {
           ACCOUNT: Stack.of(this).account,
           REGION: Stack.of(this).region,
-          TABLE_NAME: props.database.tableName,
-          TABLE_ACCESS_ROLE_ARN: props.tableAccessRole.roleArn,
+          CONVERSATION_TABLE_NAME: props.database.conversationTable.tableName,
+          BOT_TABLE_NAME: props.database.botTable.tableName,
+          TABLE_ACCESS_ROLE_ARN: props.database.tableAccessRole.roleArn,
         },
         role: handlerRole,
         logRetention: logs.RetentionDays.THREE_MONTHS,
@@ -160,8 +161,9 @@ export class Embedding extends Construct {
         environment: {
           ACCOUNT: Stack.of(this).account,
           REGION: Stack.of(this).region,
-          TABLE_NAME: props.database.tableName,
-          TABLE_ACCESS_ROLE_ARN: props.tableAccessRole.roleArn,
+          CONVERSATION_TABLE_NAME: props.database.conversationTable.tableName,
+          BOT_TABLE_NAME: props.database.botTable.tableName,
+          TABLE_ACCESS_ROLE_ARN: props.database.tableAccessRole.roleArn,
         },
         role: handlerRole,
         logRetention: logs.RetentionDays.THREE_MONTHS,
@@ -187,8 +189,9 @@ export class Embedding extends Construct {
         environment: {
           ACCOUNT: Stack.of(this).account,
           REGION: Stack.of(this).region,
-          TABLE_NAME: props.database.tableName,
-          TABLE_ACCESS_ROLE_ARN: props.tableAccessRole.roleArn,
+          CONVERSATION_TABLE_NAME: props.database.conversationTable.tableName,
+          BOT_TABLE_NAME: props.database.botTable.tableName,
+          TABLE_ACCESS_ROLE_ARN: props.database.tableAccessRole.roleArn,
         },
         role: handlerRole,
         logRetention: logs.RetentionDays.THREE_MONTHS,
@@ -464,7 +467,7 @@ export class Embedding extends Construct {
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
         ],
-        resources: [props.database.tableStreamArn!],
+        resources: [props.database.botTable.tableStreamArn!],
       })
     );
     this._pipeRole.addToPolicy(
@@ -481,7 +484,7 @@ export class Embedding extends Construct {
     );
 
     new CfnPipe(this, "Pipe", {
-      source: props.database.tableStreamArn!,
+      source: props.database.botTable.tableStreamArn!,
       sourceParameters: {
         dynamoDbStreamParameters: {
           batchSize: 1,
@@ -523,7 +526,7 @@ export class Embedding extends Construct {
       // Assume the table access role for row-level access control.
       new iam.PolicyStatement({
         actions: ["sts:AssumeRole"],
-        resources: [props.tableAccessRole.roleArn],
+        resources: [props.database.tableAccessRole.roleArn],
       })
     );
     removeHandlerRole.addToPolicy(
@@ -560,8 +563,8 @@ export class Embedding extends Construct {
         ],
         resources: ["arn:aws:logs:*:*:*"],
       })
-    )
-    props.database.grantStreamRead(removeHandlerRole);
+    );
+    props.database.botTable.grantStreamRead(removeHandlerRole);
     props.documentBucket.grantReadWrite(removeHandlerRole);
 
     this._removalHandler = new DockerImageFunction(this, "BotRemovalHandler", {
@@ -579,15 +582,16 @@ export class Embedding extends Construct {
         ACCOUNT: Stack.of(this).account,
         REGION: Stack.of(this).region,
         BEDROCK_REGION: props.bedrockRegion,
-        TABLE_NAME: props.database.tableName,
-        TABLE_ACCESS_ROLE_ARN: props.tableAccessRole.roleArn,
+        CONVERSATION_TABLE_NAME: props.database.conversationTable.tableName,
+        BOT_TABLE_NAME: props.database.botTable.tableName,
+        TABLE_ACCESS_ROLE_ARN: props.database.tableAccessRole.roleArn,
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
       },
       role: removeHandlerRole,
       logRetention: logs.RetentionDays.THREE_MONTHS,
     });
     this._removalHandler.addEventSource(
-      new DynamoEventSource(props.database, {
+      new DynamoEventSource(props.database.botTable, {
         startingPosition: lambda.StartingPosition.TRIM_HORIZON,
         batchSize: 1,
         retryAttempts: 2,
