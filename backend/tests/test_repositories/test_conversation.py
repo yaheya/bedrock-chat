@@ -1,5 +1,5 @@
-import sys
 import base64
+import sys
 import unittest
 
 sys.path.append(".")
@@ -23,11 +23,11 @@ from app.repositories.custom_bot import (
     store_bot,
 )
 from app.repositories.models.conversation import (
-    SimpleMessageModel,
     ChunkModel,
     FeedbackModel,
-    TextContentModel,
     ImageContentModel,
+    SimpleMessageModel,
+    TextContentModel,
     ToolUseContentModel,
     ToolUseContentModelBody,
 )
@@ -193,9 +193,7 @@ class TestConversationRepository(unittest.TestCase):
         self.assertEqual(len(conversations), 1)
 
         # Test finding conversation by id
-        found_conversation = find_conversation_by_id(
-            user_id="user", conversation_id="1"
-        )
+        found_conversation = find_conversation_by_id(user_id="user", conversation_id="1")
         self.assertEqual(found_conversation.id, "1")
         message_map = found_conversation.message_map
         # Assert whether the message map is correctly reconstructed
@@ -238,9 +236,7 @@ class TestConversationRepository(unittest.TestCase):
             conversation_id="1",
             new_title="Updated title",
         )
-        found_conversation = find_conversation_by_id(
-            user_id="user", conversation_id="1"
-        )
+        found_conversation = find_conversation_by_id(user_id="user", conversation_id="1")
         self.assertEqual(found_conversation.title, "Updated title")
 
         # Test give a feedback
@@ -253,9 +249,7 @@ class TestConversationRepository(unittest.TestCase):
                 thumbs_up=True, category="Good", comment="The response is pretty good."
             ),
         )
-        found_conversation = find_conversation_by_id(
-            user_id="user", conversation_id="1"
-        )
+        found_conversation = find_conversation_by_id(user_id="user", conversation_id="1")
         feedback = found_conversation.message_map["a"].feedback
         self.assertIsNotNone(feedback)
         self.assertEqual(feedback.thumbs_up, True)  # type: ignore
@@ -312,9 +306,7 @@ class TestConversationRepository(unittest.TestCase):
         self.assertIsNotNone(response)
 
         # Test finding large conversation by id
-        found_conversation = find_conversation_by_id(
-            user_id="user", conversation_id="2"
-        )
+        found_conversation = find_conversation_by_id(user_id="user", conversation_id="2")
         self.assertEqual(found_conversation.id, "2")
         self.assertEqual(found_conversation.title, "Large Conversation")
         self.assertEqual(found_conversation.total_price, 200)
@@ -427,7 +419,7 @@ class TestConversationBotRepository(unittest.TestCase):
             create_time=1627984879.9,
             last_used_time=1627984879.9,
             public_bot_id="1",
-            is_pinned=False,
+            is_starred=False,
             owner_user_id="user",
             generation_params=GenerationParamsModel(
                 max_tokens=2000,
@@ -469,7 +461,7 @@ class TestConversationBotRepository(unittest.TestCase):
             create_time=1627984879.9,
             last_used_time=1627984879.9,
             public_bot_id="2",
-            is_pinned=False,
+            is_starred=False,
             owner_user_id="user",
             generation_params=GenerationParamsModel(
                 max_tokens=2000,

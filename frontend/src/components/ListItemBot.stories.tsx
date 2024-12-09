@@ -27,7 +27,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: false,
-    isPinned: false,
+    IsStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: true,
@@ -39,7 +39,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: true,
-    isPinned: true,
+    IsStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: true,
@@ -51,7 +51,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: false,
-    isPinned: false,
+    IsStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: false,
@@ -63,7 +63,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: true,
-    isPinned: true,
+    IsStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: false,
@@ -111,7 +111,7 @@ export const MyBots = () => {
             </div>
 
             <div className="mr-5">
-              {bot.isPinned ? (
+              {bot.IsStarred ? (
                 <ButtonIcon disabled={!bot.available} onClick={() => {}}>
                   <PiStarFill className="text-aws-aqua" />
                 </ButtonIcon>
@@ -173,7 +173,7 @@ export const RecentlyUsedSharedBots = () => {
           bot={bot}
           onClick={() => {}}
           className="last:border-b-0">
-          {bot.isPinned ? (
+          {bot.IsStarred ? (
             <ButtonIcon disabled={!bot.available} onClick={() => {}}>
               <PiStarFill className="text-aws-aqua" />
             </ButtonIcon>

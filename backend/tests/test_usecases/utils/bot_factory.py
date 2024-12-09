@@ -16,7 +16,7 @@ from app.repositories.models.custom_bot import (
 
 def create_test_private_bot(
     id,
-    is_pinned,
+    is_starred,
     owner_user_id,
     instruction="Test Bot Prompt",
     sync_status="RUNNING",
@@ -33,7 +33,7 @@ def create_test_private_bot(
         create_time=1627984879.9,
         last_used_time=1627984879.9,
         # Pinned
-        is_pinned=is_pinned,
+        is_starred=is_starred,
         public_bot_id=None,
         owner_user_id=owner_user_id,
         generation_params=GenerationParamsModel(
@@ -63,9 +63,7 @@ def create_test_private_bot(
                 s3_urls=["s3://example/doc/"],
             )
             if set_dummy_knowledge
-            else KnowledgeModel(
-                source_urls=[], sitemap_urls=[], filenames=[], s3_urls=[]
-            )
+            else KnowledgeModel(source_urls=[], sitemap_urls=[], filenames=[], s3_urls=[])
         ),
         sync_status=sync_status,
         sync_status_reason="reason",
@@ -82,7 +80,7 @@ def create_test_private_bot(
 
 def create_test_public_bot(
     id,
-    is_pinned,
+    is_starred,
     owner_user_id,
     public_bot_id=None,
     instruction="Test Public Bot Prompt",
@@ -96,7 +94,7 @@ def create_test_public_bot(
         instruction=instruction,
         create_time=1627984879.9,
         last_used_time=1627984879.9,
-        is_pinned=is_pinned,
+        is_starred=is_starred,
         public_bot_id=public_bot_id,
         owner_user_id=owner_user_id,
         generation_params=GenerationParamsModel(
@@ -134,7 +132,7 @@ def create_test_public_bot(
     )
 
 
-def create_test_bot_alias(id, original_bot_id, is_pinned):
+def create_test_bot_alias(id, original_bot_id, is_starred):
     return BotAliasModel(
         id=id,
         # Different from original. Should be updated after `fetch_all_bots_by_user_id`
@@ -143,7 +141,7 @@ def create_test_bot_alias(id, original_bot_id, is_pinned):
         original_bot_id=original_bot_id,
         last_used_time=1627984879.9,
         create_time=1627984879.9,
-        is_pinned=is_pinned,
+        is_starred=is_starred,
         sync_status="RUNNING",
         has_knowledge=True,
         has_agent=False,

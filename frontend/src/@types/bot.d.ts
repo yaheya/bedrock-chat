@@ -9,7 +9,7 @@ export type BotMeta = {
   createTime: Date;
   lastUsedTime: Date;
   isPublic: boolean;
-  isPinned: boolean;
+  IsStarred: boolean;
   owned: boolean;
   syncStatus: BotSyncStatus;
 };

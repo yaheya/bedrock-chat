@@ -22,7 +22,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: false,
-    isPinned: false,
+    IsStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: true,
@@ -34,7 +34,7 @@ const bots: BotListItem[] = [
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: true,
-    isPinned: true,
+    IsStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: true,
@@ -63,8 +63,8 @@ export const Admin: Story = () => {
     <ChatListDrawer
       isAdmin={true}
       conversations={conversations}
-      starredBots={bots.filter((bot) => bot.isPinned)}
-      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.isPinned)}
+      starredBots={bots.filter((bot) => bot.IsStarred)}
+      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.IsStarred)}
       updateConversationTitle={async () => {}}
       onSignOut={() => {}}
       onDeleteConversation={() => {}}
@@ -79,8 +79,8 @@ export const NonAdmin: Story = () => {
     <ChatListDrawer
       isAdmin={false}
       conversations={conversations}
-      starredBots={bots.filter((bot) => bot.isPinned)}
-      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.isPinned)}
+      starredBots={bots.filter((bot) => bot.IsStarred)}
+      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.IsStarred)}
       updateConversationTitle={async () => {}}
       onSignOut={() => {}}
       onDeleteConversation={() => {}}

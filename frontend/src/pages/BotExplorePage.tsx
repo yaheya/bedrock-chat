@@ -193,7 +193,7 @@ const BotExplorePage: React.FC = () => {
                       </div>
 
                       <div className="mr-5">
-                        {bot.isPinned ? (
+                        {bot.IsStarred ? (
                           <ButtonIcon
                             disabled={!bot.available}
                             onClick={() => {
@@ -272,7 +272,7 @@ const BotExplorePage: React.FC = () => {
                     bot={bot}
                     onClick={onClickBot}
                     className="last:border-b-0">
-                    {bot.isPinned ? (
+                    {bot.IsStarred ? (
                       <ButtonIcon
                         disabled={!bot.available}
                         onClick={() => {

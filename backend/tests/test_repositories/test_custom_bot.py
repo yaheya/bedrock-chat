@@ -36,9 +36,7 @@ from app.repositories.models.custom_bot_kb import (
     FixedSizeParamsModel,
     OpenSearchParamsModel,
 )
-from app.repositories.models.custom_bot_kb import (
-    SearchParamsModel as SearchParamsModelKB,
-)
+from app.repositories.models.custom_bot_kb import SearchParamsModel as SearchParamsModelKB
 from app.usecases.bot import fetch_all_bots_by_user_id
 from tests.test_repositories.utils.bot_factory import (
     create_test_private_bot,
@@ -103,7 +101,7 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.instruction, "Test Bot Prompt")
         self.assertEqual(bot.create_time, 1627984879.9)
         self.assertEqual(bot.last_used_time, 1627984879.9)
-        self.assertEqual(bot.is_pinned, False)
+        self.assertEqual(bot.is_starred, False)
 
         self.assertEqual(bot.generation_params.max_tokens, 2000)
         self.assertEqual(bot.generation_params.top_k, 250)
@@ -162,8 +160,8 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot[0].title, "Test Bot")
         self.assertEqual(bot[0].create_time, 1627984879.9)
         self.assertEqual(bot[0].last_used_time, 1627984879.9)
-        self.assertEqual(bot[0].is_pinned, False)
-        self.assertEqual(bot[0].is_pinned, False)
+        self.assertEqual(bot[0].is_starred, False)
+        self.assertEqual(bot[0].is_starred, False)
         self.assertEqual(bot[0].description, "Test Bot Description")
         self.assertEqual(bot[0].is_public, False)
 
@@ -361,15 +359,15 @@ class TestCustomBotRepository(unittest.TestCase):
 
 class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        bot1 = create_test_private_bot("1", is_pinned=True, owner_user_id="user1")
-        bot2 = create_test_private_bot("2", is_pinned=True, owner_user_id="user1")
-        bot3 = create_test_private_bot("3", is_pinned=False, owner_user_id="user1")
-        bot4 = create_test_private_bot("4", is_pinned=False, owner_user_id="user1")
+        bot1 = create_test_private_bot("1", is_starred=True, owner_user_id="user1")
+        bot2 = create_test_private_bot("2", is_starred=True, owner_user_id="user1")
+        bot3 = create_test_private_bot("3", is_starred=False, owner_user_id="user1")
+        bot4 = create_test_private_bot("4", is_starred=False, owner_user_id="user1")
         public_bot1 = create_test_public_bot(
-            "public1", is_pinned=True, owner_user_id="user2"
+            "public1", is_starred=True, owner_user_id="user2"
         )
         public_bot2 = create_test_public_bot(
-            "public2", is_pinned=True, owner_user_id="user2"
+            "public2", is_starred=True, owner_user_id="user2"
         )
 
         alias1 = BotAliasModel(
@@ -381,7 +379,7 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
             last_used_time=1627984879.9,
             create_time=1627984879.9,
             # Pinned
-            is_pinned=True,
+            is_starred=True,
             sync_status="RUNNING",
             has_knowledge=True,
             has_agent=True,
@@ -397,7 +395,7 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
             last_used_time=1627984879.9,
             create_time=1627984879.9,
             # Not Pinned
-            is_pinned=False,
+            is_starred=False,
             sync_status="RUNNING",
             has_knowledge=True,
             has_agent=True,
@@ -452,10 +450,10 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
 
 class TestUpdateBotVisibility(unittest.TestCase):
     def setUp(self) -> None:
-        bot1 = create_test_private_bot("1", is_pinned=True, owner_user_id="user1")
-        bot2 = create_test_private_bot("2", is_pinned=True, owner_user_id="user1")
+        bot1 = create_test_private_bot("1", is_starred=True, owner_user_id="user1")
+        bot2 = create_test_private_bot("2", is_starred=True, owner_user_id="user1")
         public1 = create_test_public_bot(
-            "public1", is_pinned=True, owner_user_id="user2"
+            "public1", is_starred=True, owner_user_id="user2"
         )
         alias1 = BotAliasModel(
             id="4",
@@ -464,7 +462,7 @@ class TestUpdateBotVisibility(unittest.TestCase):
             original_bot_id="public1",
             last_used_time=1627984879.9,
             create_time=1627984879.9,
-            is_pinned=True,
+            is_starred=True,
             sync_status="RUNNING",
             has_knowledge=True,
             has_agent=True,

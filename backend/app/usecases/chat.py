@@ -7,11 +7,8 @@ from app.agents.tools.agent_tool import (
 )
 from app.agents.tools.knowledge import create_knowledge_tool
 from app.agents.utils import get_tool_by_name
-from app.bedrock import (
-    call_converse_api,
-    compose_args_for_converse_api,
-)
-from app.prompt import build_rag_prompt, PROMPT_TO_CITE_TOOL_RESULTS
+from app.bedrock import call_converse_api, compose_args_for_converse_api
+from app.prompt import PROMPT_TO_CITE_TOOL_RESULTS, build_rag_prompt
 from app.repositories.conversation import (
     RecordNotFoundError,
     find_conversation_by_id,
@@ -20,13 +17,13 @@ from app.repositories.conversation import (
 )
 from app.repositories.custom_bot import find_alias_by_id, store_alias
 from app.repositories.models.conversation import (
-    SimpleMessageModel,
     ConversationModel,
     MessageModel,
     RelatedDocumentModel,
+    SimpleMessageModel,
     TextContentModel,
-    ToolUseContentModel,
     ToolResultContentModel,
+    ToolUseContentModel,
 )
 from app.repositories.models.custom_bot import (
     BotAliasModel,
@@ -47,8 +44,8 @@ from app.usecases.bot import fetch_bot, modify_bot_last_used_time
 from app.utils import get_current_time
 from app.vector_search import (
     SearchResult,
-    search_result_to_related_document,
     search_related_docs,
+    search_result_to_related_document,
     to_guardrails_grounding_source,
 )
 from ulid import ULID
@@ -144,7 +141,7 @@ def prepare_conversation(
                             original_bot_id=chat_input.bot_id,
                             create_time=current_time,
                             last_used_time=current_time,
-                            is_pinned=False,
+                            is_starred=False,
                             sync_status=bot.sync_status,
                             has_knowledge=bot.has_knowledge(),
                             has_agent=bot.is_agent_enabled(),
@@ -191,8 +188,7 @@ def prepare_conversation(
     # If the "Generate continue" button is pressed, a new_message is not generated.
     else:
         message_id = (
-            conversation.message_map[conversation.last_message_id].parent
-            or "instruction"
+            conversation.message_map[conversation.last_message_id].parent or "instruction"
         )
 
     return (message_id, conversation, bot)

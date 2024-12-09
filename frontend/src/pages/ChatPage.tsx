@@ -229,10 +229,10 @@ const ChatPage: React.FC = () => {
     if (!bot) {
       return;
     }
-    const isStarred = !bot.isPinned;
+    const isStarred = !bot.IsStarred;
     mutateBot(
       produce(bot, (draft) => {
-        draft.isPinned = isStarred;
+        draft.IsStarred = isStarred;
       }),
       {
         revalidate: false,
@@ -442,7 +442,7 @@ const ChatPage: React.FC = () => {
                     />
                   )}
                   <ButtonIcon onClick={onClickStar}>
-                    {bot?.isPinned ? (
+                    {bot?.IsStarred ? (
                       <PiStarFill className="text-aws-aqua" />
                     ) : (
                       <PiStar />

@@ -170,7 +170,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
             create_time=current_time,
             last_used_time=current_time,
             public_bot_id=None,
-            is_pinned=False,
+            is_starred=False,
             owner_user_id=user_id,  # Owner is the creator
             generation_params=GenerationParamsModel(**generation_params),
             agent=agent,
@@ -220,7 +220,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
         create_time=current_time,
         last_used_time=current_time,
         is_public=False,
-        is_pinned=False,
+        is_starred=False,
         owned=True,
         generation_params=GenerationParams(**generation_params),
         agent=Agent(
@@ -251,9 +251,7 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
             ]
         ),
         bedrock_knowledge_base=(
-            BedrockKnowledgeBaseOutput(
-                **(bot_input.bedrock_knowledge_base.model_dump())
-            )
+            BedrockKnowledgeBaseOutput(**(bot_input.bedrock_knowledge_base.model_dump()))
             if bot_input.bedrock_knowledge_base
             else None
         ),
@@ -314,8 +312,7 @@ def modify_owned_bot(
             tools=[
                 AgentToolModel(name=t.name, description=t.description)
                 for t in [
-                    get_tool_by_name(tool_name)
-                    for tool_name in modify_input.agent.tools
+                    get_tool_by_name(tool_name) for tool_name in modify_input.agent.tools
                 ]
             ]
         )
@@ -363,9 +360,7 @@ def modify_owned_bot(
             ]
         ),
         bedrock_knowledge_base=(
-            BedrockKnowledgeBaseModel(
-                **modify_input.bedrock_knowledge_base.model_dump()
-            )
+            BedrockKnowledgeBaseModel(**modify_input.bedrock_knowledge_base.model_dump())
             if modify_input.bedrock_knowledge_base
             else None
         ),
@@ -464,7 +459,7 @@ def fetch_all_bots_by_user_id(
     if limit:
         query_params["Limit"] = limit
     if only_pinned:
-        query_params["FilterExpression"] = Attr("IsPinned").eq(True)
+        query_params["FilterExpression"] = Attr("IsStarred").eq(True)
 
     response = table.query(**query_params)
 
@@ -481,7 +476,7 @@ def fetch_all_bots_by_user_id(
                     title=bot.title,
                     create_time=float(bot.create_time),
                     last_used_time=float(bot.last_used_time),
-                    is_pinned=item["IsPinned"],
+                    is_starred=item["IsStarred"],
                     owned=False,
                     available=True,
                     description=bot.description,
@@ -498,7 +493,7 @@ def fetch_all_bots_by_user_id(
                     title=item["Title"],
                     create_time=float(item["CreateTime"]),
                     last_used_time=float(item["LastBotUsed"]),
-                    is_pinned=item["IsPinned"],
+                    is_starred=item["IsStarred"],
                     owned=False,
                     # NOTE: Original bot is removed
                     available=False,
@@ -530,7 +525,7 @@ def fetch_all_bots_by_user_id(
                         original_bot_id=item["OriginalBotId"],
                         create_time=float(item["CreateTime"]),
                         last_used_time=float(item["LastBotUsed"]),
-                        is_pinned=item["IsPinned"],
+                        is_starred=item["IsStarred"],
                         sync_status=bot.sync_status,
                         has_knowledge=bot.has_knowledge(),
                         has_agent=bot.is_agent_enabled(),
@@ -547,7 +542,7 @@ def fetch_all_bots_by_user_id(
                     title=item["Title"],
                     create_time=float(item["CreateTime"]),
                     last_used_time=float(item["LastBotUsed"]),
-                    is_pinned=item["IsPinned"],
+                    is_starred=item["IsStarred"],
                     owned=True,
                     available=True,
                     description=item["Description"],
@@ -598,7 +593,7 @@ def fetch_all_bots(
                 title=bot.title,
                 create_time=bot.create_time,
                 last_used_time=bot.last_used_time,
-                is_pinned=bot.is_pinned,
+                is_starred=bot.is_starred,
                 owned=bot.owned,
                 available=bot.available,
                 description=bot.description,
@@ -618,7 +613,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
             description=bot.description,
             create_time=bot.create_time,
             last_used_time=bot.last_used_time,
-            is_pinned=bot.is_pinned,
+            is_starred=bot.is_starred,
             is_public=True if bot.public_bot_id else False,
             has_agent=bot.is_agent_enabled(),
             owned=True,
@@ -644,7 +639,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
             description=alias.description,
             create_time=alias.create_time,
             last_used_time=alias.last_used_time,
-            is_pinned=alias.is_pinned,
+            is_starred=alias.is_starred,
             is_public=True,
             has_agent=alias.has_agent,
             owned=False,
@@ -679,7 +674,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                 original_bot_id=bot_id,
                 create_time=current_time,
                 last_used_time=current_time,
-                is_pinned=False,
+                is_starred=False,
                 sync_status=bot.sync_status,
                 has_knowledge=bot.has_knowledge(),
                 has_agent=bot.is_agent_enabled(),
@@ -698,7 +693,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
             description=bot.description,
             create_time=bot.create_time,
             last_used_time=bot.last_used_time,
-            is_pinned=False,  # NOTE: Shared bot is not pinned by default.
+            is_starred=False,  # NOTE: Shared bot is not pinned by default.
             is_public=True,
             has_agent=bot.is_agent_enabled(),
             owned=False,

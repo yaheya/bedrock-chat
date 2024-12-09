@@ -238,7 +238,7 @@ class BotOutput(BaseSchema):
     create_time: float
     last_used_time: float
     is_public: bool
-    is_pinned: bool
+    is_starred: bool
     # Whether the bot is owned by the user
     owned: bool
     generation_params: GenerationParams
@@ -259,7 +259,7 @@ class BotMetaOutput(BaseSchema):
     description: str
     create_time: float
     last_used_time: float
-    is_pinned: bool
+    is_starred: bool
     is_public: bool
     owned: bool
     # Whether the bot is available or not.
@@ -274,7 +274,7 @@ class BotSummaryOutput(BaseSchema):
     description: str
     create_time: float
     last_used_time: float
-    is_pinned: bool
+    is_starred: bool
     is_public: bool
     has_agent: bool
     owned: bool

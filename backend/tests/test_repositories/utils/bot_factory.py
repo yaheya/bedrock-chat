@@ -20,7 +20,7 @@ from app.routes.schemas.bot import type_sync_status
 
 def create_test_private_bot(
     id,
-    is_pinned: bool,
+    is_starred: bool,
     owner_user_id: str,
     instruction: str = "Test Bot Prompt",
     sync_status: type_sync_status = "RUNNING",
@@ -39,7 +39,7 @@ def create_test_private_bot(
         instruction=instruction,
         create_time=1627984879.9,
         last_used_time=1627984879.9,
-        is_pinned=is_pinned,
+        is_starred=is_starred,
         public_bot_id=None,
         owner_user_id=owner_user_id,
         generation_params=GenerationParamsModel(
@@ -78,7 +78,7 @@ def create_test_private_bot(
 
 def create_test_public_bot(
     id,
-    is_pinned,
+    is_starred,
     owner_user_id,
     public_bot_id=None,
     instruction="Test Public Bot Prompt",
@@ -93,7 +93,7 @@ def create_test_public_bot(
         instruction=instruction,
         create_time=1627984879.9,
         last_used_time=1627984879.9,
-        is_pinned=is_pinned,
+        is_starred=is_starred,
         public_bot_id=public_bot_id,
         owner_user_id=owner_user_id,
         generation_params=GenerationParamsModel(

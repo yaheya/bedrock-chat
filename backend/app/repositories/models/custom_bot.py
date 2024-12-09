@@ -64,7 +64,7 @@ class BotModel(BaseModel):
     # This can be used as the bot is public or not. Also used for GSI PK
     public_bot_id: str | None
     owner_user_id: str
-    is_pinned: bool
+    is_starred: bool
     generation_params: GenerationParamsModel
     agent: AgentModel
     knowledge: KnowledgeModel
@@ -101,7 +101,7 @@ class BotAliasModel(BaseModel):
     original_bot_id: str
     create_time: float
     last_used_time: float
-    is_pinned: bool
+    is_starred: bool
     sync_status: type_sync_status
     has_knowledge: bool
     has_agent: bool
@@ -114,7 +114,7 @@ class BotMeta(BaseModel):
     description: str
     create_time: float
     last_used_time: float
-    is_pinned: bool
+    is_starred: bool
     is_public: bool
     # Whether the bot is owned by the user
     owned: bool

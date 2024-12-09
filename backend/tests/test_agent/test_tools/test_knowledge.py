@@ -22,7 +22,7 @@ class TestKnowledgeTool(unittest.TestCase):
             create_time=1627984879.9,
             last_used_time=1627984879.9,
             # Pinned
-            is_pinned=True,
+            is_starred=True,
             public_bot_id=None,
             owner_user_id="dummy",
             generation_params=GenerationParamsModel(

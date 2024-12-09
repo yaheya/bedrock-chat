@@ -36,7 +36,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
     myBots,
     starredBots: starredBots?.filter((bot) => bot.available),
     recentlyUsedUnsterredBots: recentlyUsedBots?.filter(
-      (bot) => !bot.isPinned && bot.available
+      (bot) => !bot.IsStarred && bot.available
     ),
     recentlyUsedSharedBots: recentlyUsedBots?.filter((bot) => !bot.owned),
     getMyBot: async (botId: string) => {
@@ -52,7 +52,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
             available: true,
             createTime: new Date(),
             lastUsedTime: new Date(),
-            isPinned: false,
+            IsStarred: false,
             isPublic: false,
             owned: true,
             syncStatus: 'QUEUED',
@@ -110,7 +110,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       mutateMyBots(
         produce(myBots, (draft) => {
           if (draft) {
-            draft[idxMybots].isPinned = isStarred;
+            draft[idxMybots].IsStarred = isStarred;
           }
         }),
         {
@@ -122,7 +122,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         produce(recentlyUsedBots, (draft) => {
           const idx = draft?.findIndex((bot) => bot.id === botId) ?? -1;
           if (draft) {
-            draft[idx].isPinned = isStarred;
+            draft[idx].IsStarred = isStarred;
           }
         }),
         {
@@ -159,7 +159,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       mutateRecentlyUsedBots(
         produce(recentlyUsedBots, (draft) => {
           if (draft) {
-            draft[idx].isPinned = isStarred;
+            draft[idx].IsStarred = isStarred;
           }
         }),
         {

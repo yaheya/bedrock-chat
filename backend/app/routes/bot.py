@@ -110,7 +110,7 @@ def get_private_bot(request: Request, bot_id: str):
         create_time=bot.create_time,
         last_used_time=bot.last_used_time,
         is_public=True if bot.public_bot_id else False,
-        is_pinned=bot.is_pinned,
+        is_starred=bot.is_starred,
         owned=True,
         agent=Agent(
             tools=[
@@ -174,9 +174,7 @@ def delete_bot(request: Request, bot_id: str):
 
 
 @router.get("/bot/{bot_id}/presigned-url", response_model=BotPresignedUrlOutput)
-def get_bot_presigned_url(
-    request: Request, bot_id: str, filename: str, contentType: str
-):
+def get_bot_presigned_url(request: Request, bot_id: str, filename: str, contentType: str):
     """Get presigned url for bot"""
     current_user: User = request.state.current_user
     url = issue_presigned_url(current_user.id, bot_id, filename, contentType)

@@ -62,7 +62,7 @@ export const DeleteApiKey = () => {
   const [isOpenDialog, setIsOpenDialog] = useState(true);
   return (
     <DialogConfirmDeleteApiKey
-      apiKeyTitle='API Key 1'
+      apiKeyTitle="API Key 1"
       isOpen={isOpenDialog}
       onDelete={() => {
         setIsOpenDialog(false);
@@ -86,7 +86,7 @@ export const DeleteBot = () => {
         createTime: new Date(),
         lastUsedTime: new Date(),
         isPublic: false,
-        isPinned: false,
+        IsStarred: false,
         owned: true,
         syncStatus: 'SUCCEEDED',
       }}
@@ -110,7 +110,7 @@ export const DeleteConversation = () => {
         title: 'Conversation 1',
         createTime: new Date().getTime(),
         lastMessageId: '1',
-        model: 'claude-v3.5-sonnet'
+        model: 'claude-v3.5-sonnet',
       }}
       onDelete={() => {
         setIsOpenDeleteModal(false);
@@ -174,7 +174,7 @@ export const ShareBot = () => {
     createTime: new Date(),
     lastUsedTime: new Date(),
     isPublic: false,
-    isPinned: false,
+    IsStarred: false,
     owned: true,
     syncStatus: 'SUCCEEDED',
   });
@@ -183,7 +183,7 @@ export const ShareBot = () => {
       isOpen={isOpenShareDialog}
       target={bot}
       onToggleShare={() => {
-        setBot(current => ({
+        setBot((current) => ({
           ...current,
           isPublic: !current.isPublic,
         }));
