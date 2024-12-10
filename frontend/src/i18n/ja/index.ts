@@ -369,7 +369,7 @@ const translation = {
         failDeleteApi: 'APIの削除に失敗しました。',
       },
       activeModels: {
-        title: 'モデル設定',
+        title: '利用可能なモデル設定',
         description: 'このボットで使用可能なモデルを設定します。',
       },
     },
