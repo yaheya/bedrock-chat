@@ -251,18 +251,8 @@ const useModel = (botId?: string | null, activeModels?: ActiveModels) => {
         }
       }
     }
-  }, [
-    botId,
-    previousBotId,
-    botModelId,
-    recentUseModelId,
-    modelId,
-    filteredModels,
-    setModelId,
-    selectModel,
-    getDefaultModel,
-    processedActiveModels,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [botId]);
 
   const model = useMemo(() => {
     return filteredModels.find(
