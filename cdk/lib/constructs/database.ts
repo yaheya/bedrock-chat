@@ -44,30 +44,39 @@ export class Database extends Construct {
     const botTable = new Table(this, "BotTable", {
       // PK: UserId
       partitionKey: { name: "PK", type: AttributeType.STRING },
-      // SK: LastUsedTime
+      // SK: ItemType
       sortKey: { name: "SK", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
       stream: StreamViewType.NEW_IMAGE,
       encryption: TableEncryption.AWS_MANAGED,
     });
+    // LSI-1
     botTable.addLocalSecondaryIndex({
-      // Used to fetch starred bots
       indexName: "StarredIndex",
       sortKey: { name: "IsStarred", type: AttributeType.STRING },
     });
+    // LSI-2
+    botTable.addLocalSecondaryIndex({
+      indexName: "LastUsedTimeIndex",
+      sortKey: { name: "LastUsedTime", type: AttributeType.NUMBER },
+    });
+    // GSI-1
     botTable.addGlobalSecondaryIndex({
       indexName: "BotIdIndex",
       partitionKey: { name: "BotId", type: AttributeType.STRING },
     });
+    // GSI-2
     botTable.addGlobalSecondaryIndex({
       indexName: "SharedScopeIndex",
       partitionKey: { name: "SharedScope", type: AttributeType.STRING },
       sortKey: { name: "SharedStatus", type: AttributeType.STRING },
     });
+    // GSI-3
     botTable.addGlobalSecondaryIndex({
       indexName: "ItemTypeIndex",
       partitionKey: { name: "ItemType", type: AttributeType.STRING },
+      sortKey: { name: "LastUsedTime", type: AttributeType.NUMBER },
     });
 
     const tableAccessRole = new Role(this, "TableAccessRole", {

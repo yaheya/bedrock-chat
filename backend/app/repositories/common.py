@@ -10,7 +10,11 @@ BOT_TABLE_NAME = os.environ.get("BOT_TABLE_NAME", "")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 REGION = os.environ.get("REGION", "ap-northeast-1")
 TABLE_ACCESS_ROLE_ARN = os.environ.get("TABLE_ACCESS_ROLE_ARN", "")
-TRANSACTION_BATCH_SIZE = 25
+
+# DynamoDB batch operation limits
+# Ref: https://docs.aws.amazon.com/en_en/amazondynamodb/latest/developerguide/read-write-operations.html
+TRANSACTION_BATCH_WRITE_SIZE = 25
+TRANSACTION_BATCH_READ_SIZE = 100
 
 type_table = Literal["conversation", "bot"]
 _table_name_map = {"conversation": CONVERSATION_TABLE_NAME, "bot": BOT_TABLE_NAME}
@@ -37,24 +41,6 @@ def decompose_conv_id(conv_id: str):
     return conv_id.split("#")[-1]
 
 
-def compose_bot_id(user_id: str, bot_id: str):
-    # Add user_id prefix for row level security to match with `LeadingKeys` condition
-    return f"{user_id}#BOT#{bot_id}"
-
-
-def decompose_bot_id(composed_bot_id: str):
-    return composed_bot_id.split("#")[-1]
-
-
-def compose_bot_alias_id(user_id: str, alias_id: str):
-    # Add user_id prefix for row level security to match with `LeadingKeys` condition
-    return f"{user_id}#BOT_ALIAS#{alias_id}"
-
-
-def decompose_bot_alias_id(composed_alias_id: str):
-    return composed_alias_id.split("#")[-1]
-
-
 def compose_related_document_source_id(
     user_id: str,
     conversation_id: str,
@@ -66,6 +52,37 @@ def compose_related_document_source_id(
 
 def decompose_related_document_source_id(composed_id: str):
     return composed_id.split("#")[-1]
+
+
+def compose_item_type(user_id: str, item_type: Literal["bot", "alias"]):
+    if item_type == "bot":
+        return f"{user_id}#BOT"
+    elif item_type == "alias":
+        return f"{user_id}#ALIAS"
+
+
+def compose_sk(bot_id: str, item_type: Literal["bot", "alias"]):
+    if item_type == "bot":
+        return f"BOT#{bot_id}"
+    elif item_type == "alias":
+        return f"ALIAS#{bot_id}"
+
+
+def decompose_sk(sk: str):
+    """Decompose sort key to get bot_id."""
+    return sk.split("#")[-1]
+
+
+# def compose_pk(user_id: str, bot_id: str, item_type: Literal["bot", "alias"]):
+#     if item_type == "bot":
+#         return f"{user_id}#BOT#{bot_id}"
+#     elif item_type == "alias":
+#         return f"{user_id}#ALIAS#{bot_id}"
+
+
+# def decompose_pk(pk: str):
+#     """Decompose partition key to get bot_id."""
+#     return pk.split("#")[-1]
 
 
 def _get_aws_resource(service_name, table_name: str, user_id=None):
@@ -131,28 +148,29 @@ def _get_aws_resource(service_name, table_name: str, user_id=None):
 
 def _get_dynamodb_client(user_id=None, table_type: type_table = "conversation"):
     """Get a DynamoDB client, optionally with row-level access control."""
-    if table_type == "bot":
-        # Bot table does not have row-level access control
-        user_id = None
     return _get_aws_resource(
         "dynamodb", user_id=user_id, table_name=_table_name_map[table_type]
     ).meta.client
 
 
-def _get_table_client(user_id, table_type: type_table = "conversation"):
-    """Get a DynamoDB table client with row-level access."""
-    if table_type == "bot":
-        # Bot table does not have row-level access control
-        user_id = None
+def get_conversation_table_client(user_id: str):
+    """Get a DynamoDB table client for conversation table."""
     return _get_aws_resource(
-        "dynamodb", user_id=user_id, table_name=_table_name_map[table_type]
-    ).Table(_table_name_map[table_type])
+        "dynamodb", user_id=user_id, table_name=CONVERSATION_TABLE_NAME
+    ).Table(CONVERSATION_TABLE_NAME)
 
 
-def _get_table_public_client(table_type: type_table = "conversation"):
-    """Get a DynamoDB table client.
+def get_conversation_table_public_client():
+    """Get a DynamoDB table client for conversation table.
     Warning: No row-level access. Use for only limited use case.
     """
-    return _get_aws_resource("dynamodb", table_name=_table_name_map[table_type]).Table(
-        _table_name_map[table_type]
+    return _get_aws_resource("dynamodb", table_name=CONVERSATION_TABLE_NAME).Table(
+        CONVERSATION_TABLE_NAME
     )
+
+
+def get_bot_table_client():
+    """Get a DynamoDB table client for bot table.
+    Note: Bot table does not have row-level access control.
+    """
+    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(BOT_TABLE_NAME)

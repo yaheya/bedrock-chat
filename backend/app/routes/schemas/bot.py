@@ -27,6 +27,8 @@ type_sync_status = Literal[
     "ORIGINAL_NOT_FOUND",
 ]
 
+type_shared_scope = Literal["partial", "all"]
+
 
 class GenerationParams(BaseSchema):
     max_tokens: int
@@ -102,6 +104,23 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
+
+    def has_knowledge(self) -> bool:
+        if self.knowledge is None:
+            return False
+
+        return (
+            len(self.knowledge.source_urls) > 0
+            or len(self.knowledge.sitemap_urls) > 0
+            or len(self.knowledge.filenames) > 0
+            or len(self.knowledge.s3_urls) > 0
+        )
+
+    def has_guardrails(self) -> bool:
+        if self.bedrock_guardrails is None:
+            return False
+
+        return self.bedrock_guardrails.is_guardrail_enabled == True
 
 
 class BotModifyInput(BaseSchema):
@@ -260,12 +279,16 @@ class BotMetaOutput(BaseSchema):
     create_time: float
     last_used_time: float
     is_starred: bool
-    is_public: bool
     owned: bool
     # Whether the bot is available or not.
     # This can be `False` if the bot is not owned by the user and original bot is removed.
     available: bool
     sync_status: type_sync_status
+    shared_scope: type_shared_scope | None
+    shared_status: str = Field(
+        ...,
+        description="Shared status of the bot. Possible values: `private`, `shared` and `pinned@xxx",
+    )
 
 
 class BotSummaryOutput(BaseSchema):
@@ -275,12 +298,16 @@ class BotSummaryOutput(BaseSchema):
     create_time: float
     last_used_time: float
     is_starred: bool
-    is_public: bool
     has_agent: bool
     owned: bool
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
+    shared_scope: type_shared_scope | None
+    shared_status: str = Field(
+        ...,
+        description="Shared status of the bot. Possible values: `private`, `shared` and `pinned@xxx",
+    )
 
 
 class BotSwitchVisibilityInput(BaseSchema):

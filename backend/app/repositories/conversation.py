@@ -4,18 +4,14 @@ import os
 from decimal import Decimal as decimal
 
 import boto3
-from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
-from pydantic import TypeAdapter
-
 from app.repositories.common import (
-    TRANSACTION_BATCH_SIZE,
+    TRANSACTION_BATCH_WRITE_SIZE,
     RecordNotFoundError,
-    _get_table_client,
     compose_conv_id,
-    decompose_conv_id,
     compose_related_document_source_id,
+    decompose_conv_id,
     decompose_related_document_source_id,
+    get_conversation_table_client,
 )
 from app.repositories.models.conversation import (
     ConversationMeta,
@@ -25,6 +21,9 @@ from app.repositories.models.conversation import (
     RelatedDocumentModel,
     ToolResultModel,
 )
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
+from pydantic import TypeAdapter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -40,7 +39,7 @@ def store_conversation(
     user_id: str, conversation: ConversationModel, threshold=THRESHOLD_LARGE_MESSAGE
 ):
     logger.info(f"Storing conversation: {conversation.model_dump_json()}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
 
     item_params = {
         "PK": user_id,
@@ -63,9 +62,7 @@ def store_conversation(
     message_map_size = len(json.dumps(message_map).encode("utf-8"))
     logger.info(f"Message map size: {message_map_size}")
     if message_map_size > threshold:
-        logger.info(
-            f"Message map size {message_map_size} exceeds threshold {threshold}"
-        )
+        logger.info(f"Message map size {message_map_size} exceeds threshold {threshold}")
         item_params["IsLargeMessage"] = True
         large_message_path = f"{user_id}/{conversation.id}/message_map.json"
         item_params["LargeMessagePath"] = large_message_path
@@ -91,7 +88,7 @@ def store_conversation(
 
 def find_conversation_by_user_id(user_id: str) -> list[ConversationMeta]:
     logger.info(f"Finding conversations for user: {user_id}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
 
     query_params = {
         "KeyConditionExpression": Key("PK").eq(user_id)
@@ -150,7 +147,7 @@ def find_conversation_by_user_id(user_id: str) -> list[ConversationMeta]:
 
 def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationModel:
     logger.info(f"Finding conversation: {conversation_id}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     response = table.query(
         IndexName="SKIndex",
         KeyConditionExpression=Key("SK").eq(compose_conv_id(user_id, conversation_id)),
@@ -185,7 +182,7 @@ def find_conversation_by_id(user_id: str, conversation_id: str) -> ConversationM
 
 def delete_conversation_by_id(user_id: str, conversation_id: str):
     logger.info(f"Deleting conversation: {conversation_id}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
 
     try:
         # Check if the conversation has a large message map
@@ -213,9 +210,7 @@ def delete_conversation_by_id(user_id: str, conversation_id: str):
 
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(
-                f"Conversation with id {conversation_id} not found"
-            )
+            raise RecordNotFoundError(f"Conversation with id {conversation_id} not found")
         else:
             raise e
 
@@ -224,7 +219,7 @@ def delete_conversation_by_id(user_id: str, conversation_id: str):
 
 def delete_conversation_by_user_id(user_id: str):
     logger.info(f"Deleting ALL conversations for user: {user_id}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
 
     query_params = {
         "KeyConditionExpression": Key("PK").eq(user_id)
@@ -254,8 +249,8 @@ def delete_conversation_by_user_id(user_id: str):
             items = response.get("Items", [])
             delete_large_messages(items)
 
-            for i in range(0, len(items), TRANSACTION_BATCH_SIZE):
-                batch = items[i : i + TRANSACTION_BATCH_SIZE]
+            for i in range(0, len(items), TRANSACTION_BATCH_WRITE_SIZE):
+                batch = items[i : i + TRANSACTION_BATCH_WRITE_SIZE]
                 delete_batch(batch)
 
             # Check if next page exists
@@ -276,7 +271,7 @@ def delete_conversation_by_user_id(user_id: str):
 
 def change_conversation_title(user_id: str, conversation_id: str, new_title: str):
     logger.info(f"Updating conversation title: {conversation_id} to {new_title}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
 
     try:
         response = table.update_item(
@@ -291,9 +286,7 @@ def change_conversation_title(user_id: str, conversation_id: str, new_title: str
         )
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(
-                f"Conversation with id {conversation_id} not found"
-            )
+            raise RecordNotFoundError(f"Conversation with id {conversation_id} not found")
         else:
             raise e
 
@@ -306,7 +299,7 @@ def update_feedback(
     user_id: str, conversation_id: str, message_id: str, feedback: FeedbackModel
 ):
     logger.info(f"Updating feedback for conversation: {conversation_id}")
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     conv = find_conversation_by_id(user_id, conversation_id)
     message_map = conv.message_map
     message_map[message_id].feedback = feedback
@@ -334,7 +327,7 @@ def store_related_documents(
     conversation_id: str,
     related_documents: list[RelatedDocumentModel],
 ):
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     with table.batch_writer() as writer:
         for related_document in related_documents:
             item_params = {
@@ -355,7 +348,7 @@ def find_related_documents_by_conversation_id(
     user_id: str,
     conversation_id: str,
 ) -> list[RelatedDocumentModel]:
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     related_documents: list[RelatedDocumentModel] = []
 
     last_evaluated_key = None
@@ -363,9 +356,7 @@ def find_related_documents_by_conversation_id(
         response = table.query(
             KeyConditionExpression=(
                 Key("PK").eq(user_id)
-                & Key("SK").begins_with(
-                    f"{user_id}#RELATED_DOCUMENT#{conversation_id}#"
-                )
+                & Key("SK").begins_with(f"{user_id}#RELATED_DOCUMENT#{conversation_id}#")
             ),
             ScanIndexForward=False,
             **(
@@ -398,7 +389,7 @@ def find_related_document_by_id(
     conversation_id: str,
     source_id: str,
 ) -> RelatedDocumentModel:
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     response = table.query(
         IndexName="SKIndex",
         KeyConditionExpression=(
@@ -426,7 +417,7 @@ def find_related_document_by_id(
 
 
 def delete_related_documents(user_id: str, conversation_id: str | None = None):
-    table = _get_table_client(user_id)
+    table = get_conversation_table_client(user_id)
     sort_keys: list[str] = []
 
     last_evaluated_key = None

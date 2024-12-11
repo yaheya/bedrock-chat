@@ -2,8 +2,8 @@ from typing import Literal
 
 from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import (
+    find_owned_bots_by_user_id,
     find_private_bot_by_id,
-    find_private_bots_by_user_id,
     update_bot_visibility,
 )
 from app.routes.schemas.bot import (
@@ -26,7 +26,6 @@ from app.routes.schemas.bot import (
 from app.usecases.bot import (
     create_new_bot,
     fetch_all_bots,
-    fetch_all_bots_by_user_id,
     fetch_available_agent_tools,
     fetch_bot_summary,
     issue_presigned_url,

@@ -9,8 +9,8 @@ from app.repositories.custom_bot import (
     delete_bot_by_id,
     delete_bot_publication,
     find_all_published_bots,
+    find_owned_bots_by_user_id,
     find_private_bot_by_id,
-    find_private_bots_by_user_id,
     find_public_bots_by_ids,
     store_alias,
     store_bot,
@@ -154,7 +154,7 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.bedrock_guardrails.guardrail_version, "v1")
 
         # Assert bot is stored in user1's bot list
-        bot = find_private_bots_by_user_id("user1")
+        bot = find_owned_bots_by_user_id("user1")
         self.assertEqual(len(bot), 1)
         self.assertEqual(bot[0].id, "1")
         self.assertEqual(bot[0].title, "Test Bot")
@@ -166,7 +166,7 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot[0].is_public, False)
 
         delete_bot_by_id("user1", "1")
-        bot = find_private_bots_by_user_id("user1")
+        bot = find_owned_bots_by_user_id("user1")
         self.assertEqual(len(bot), 0)
 
     def test_update_bot_last_used_time(self):
@@ -427,7 +427,7 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
 
     def test_limit(self):
         # Only private bots
-        bots = find_private_bots_by_user_id("user1", limit=3)
+        bots = find_owned_bots_by_user_id("user1", limit=3)
         self.assertEqual(len(bots), 3)
         fetched_bot_ids = set(bot.id for bot in bots)
         expected_bot_ids = {"1", "2", "3", "4"}

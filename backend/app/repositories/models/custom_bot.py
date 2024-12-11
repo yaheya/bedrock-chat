@@ -1,8 +1,30 @@
+from typing import Literal, Self
+
+from app.agents.utils import get_tool_by_name
+from app.config import DEFAULT_GENERATION_CONFIG
+from app.config import GenerationParams as GenerationParamsDict
 from app.repositories.models.common import Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
-from app.routes.schemas.bot import type_sync_status
-from pydantic import BaseModel
+from app.routes.schemas.bot import (
+    Agent,
+    BedrockGuardrailsOutput,
+    BedrockKnowledgeBaseOutput,
+    BotInput,
+    BotMetaOutput,
+    BotModifyInput,
+    BotModifyOutput,
+    BotOutput,
+    BotSummaryOutput,
+    ConversationQuickStarter,
+    GenerationParams,
+    Knowledge,
+    type_shared_scope,
+    type_sync_status,
+)
+from app.user import User
+from app.utils import get_current_time, get_user_cognito_groups
+from pydantic import BaseModel, Field, field_validator
 
 
 class KnowledgeModel(BaseModel):
@@ -56,15 +78,30 @@ class ConversationQuickStarterModel(BaseModel):
 
 class BotModel(BaseModel):
     id: str
+    owner_id: str
     title: str
     description: str
     instruction: str
     create_time: float
+
+    # SK
     last_used_time: float
-    # This can be used as the bot is public or not. Also used for GSI PK
-    public_bot_id: str | None
-    owner_user_id: str
+    # GSI-2 PK (SharedScopeIndex)
+    shared_scope: type_shared_scope | None
+    # GSI-2 SK (SharedScopeIndex)
+    shared_status: str = Field(
+        ..., description="private, shared, or pinned@xxx (xxx is a 3-digit integer)"
+    )
+    allowed_cognito_groups: list[str]
+    allowed_cognito_users: list[str]
+    # LSI-1 SK (StarredIndex)
     is_starred: bool
+
+    # # This can be used as the bot is public or not. Also used for GSI PK
+    # public_bot_id: str | None
+    # owner_user_id: str
+    # is_starred: bool
+
     generation_params: GenerationParamsModel
     agent: AgentModel
     knowledge: KnowledgeModel
@@ -78,6 +115,22 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
+
+    @staticmethod
+    def __is_pinned_format(value: str) -> bool:
+        """Check if the value matches the 'pinned@xxx' format."""
+        if value.startswith("pinned@"):
+            parts = value.split("@")
+            return len(parts) == 2 and parts[1].isdigit() and len(parts[1]) == 3
+        return False
+
+    @field_validator("shared_status")
+    def validate_shared_status(cls, value: str) -> str:
+        if value in {"private", "shared"} or cls.__is_pinned_format(value):
+            return value
+        raise ValueError(
+            f"Invalid shared_status: {value}. Must be 'private', 'shared', or 'pinned@xxx' (xxx is a 3-digit integer)."
+        )
 
     def has_knowledge(self) -> bool:
         return (
@@ -93,12 +146,201 @@ class BotModel(BaseModel):
     def has_bedrock_knowledge_base(self) -> bool:
         return self.bedrock_knowledge_base is not None
 
+    def is_accessible_by_user(self, user: User) -> bool:
+        """Check if the bot is accessible by the user."""
+        if user.is_admin:
+            return True
+
+        if self.owner_id == user.id:
+            return True
+
+        if self.shared_scope == "all":
+            return True
+
+        if self.shared_scope == "private":
+            return False
+
+        if user.id in self.allowed_cognito_users:
+            return True
+
+        # Check if the user is in the allowed Cognito groups
+        user_groups = get_user_cognito_groups(user.id)
+        if any(group in self.allowed_cognito_groups for group in user_groups):
+            return True
+
+        return False
+
+    def is_editable_by_user(self, user: User) -> bool:
+        """Check if the bot is editable by the user."""
+        if user.is_admin:
+            return True
+
+        if self.is_owned_by_user(user):
+            return True
+
+        return False
+
+    def is_owned_by_user(self, user: User) -> bool:
+        """Check if the bot is owned by the user."""
+        return self.owner_id == user.id
+
+    @classmethod
+    def from_input(
+        cls, bot_input: BotInput, owner_id: str, knowledge: KnowledgeModel
+    ) -> Self:
+        """Create a BotModel instance. This is used when creating a new bot."""
+        current_time = get_current_time()
+
+        generation_params: GenerationParamsDict = (
+            {
+                "max_tokens": bot_input.generation_params.max_tokens,
+                "top_k": bot_input.generation_params.top_k,
+                "top_p": bot_input.generation_params.top_p,
+                "temperature": bot_input.generation_params.temperature,
+                "stop_sequences": bot_input.generation_params.stop_sequences,
+            }
+            if bot_input.generation_params
+            else DEFAULT_GENERATION_CONFIG
+        )
+
+        agent = (
+            AgentModel(
+                tools=[
+                    AgentToolModel(name=t.name, description=t.description)
+                    for t in [
+                        get_tool_by_name(tool_name) for tool_name in bot_input.agent.tools
+                    ]
+                ]
+            )
+            if bot_input.agent
+            else AgentModel(tools=[])
+        )
+
+        sync_status: type_sync_status = (
+            "QUEUED"
+            if bot_input.has_knowledge or bot_input.has_guardrails
+            else "SUCCEEDED"
+        )
+
+        return cls(
+            id=bot_input.id,
+            owner_id=owner_id,
+            title=bot_input.title,
+            description=bot_input.description or "",
+            instruction=bot_input.instruction,
+            create_time=current_time,
+            last_used_time=current_time,
+            shared_scope=None,
+            shared_status="private",
+            allowed_cognito_groups=[],
+            allowed_cognito_users=[],
+            is_starred=False,
+            generation_params=GenerationParamsModel(**generation_params),
+            agent=agent,
+            knowledge=knowledge,
+            sync_status=sync_status,
+            sync_status_reason="",
+            sync_last_exec_id="",
+            published_api_stack_name=None,
+            published_api_datetime=None,
+            published_api_codebuild_id=None,
+            display_retrieved_chunks=bot_input.display_retrieved_chunks,
+            conversation_quick_starters=(
+                []
+                if bot_input.conversation_quick_starters is None
+                else [
+                    ConversationQuickStarterModel(
+                        title=starter.title,
+                        example=starter.example,
+                    )
+                    for starter in bot_input.conversation_quick_starters
+                ]
+            ),
+            bedrock_knowledge_base=(
+                BedrockKnowledgeBaseModel(
+                    **(bot_input.bedrock_knowledge_base.model_dump())
+                )
+                if bot_input.bedrock_knowledge_base
+                else None
+            ),
+            bedrock_guardrails=(
+                BedrockGuardrailsModel(**(bot_input.bedrock_guardrails.model_dump()))
+                if bot_input.bedrock_guardrails
+                else None
+            ),
+        )
+
+    def to_output(self) -> BotOutput:
+        return BotOutput(
+            id=self.id,
+            title=self.title,
+            description=self.description,
+            instruction=self.instruction,
+            create_time=self.create_time,
+            last_used_time=self.last_used_time,
+            is_public=self.shared_scope == "all",
+            is_starred=self.is_starred,
+            owned=True,
+            generation_params=GenerationParams.model_validate(self.generation_params),
+            agent=Agent.model_validate(self.agent),
+            knowledge=Knowledge.model_validate(self.knowledge),
+            sync_status=self.sync_status,
+            sync_status_reason=self.sync_status_reason,
+            sync_last_exec_id=self.sync_last_exec_id,
+            display_retrieved_chunks=self.display_retrieved_chunks,
+            conversation_quick_starters=[
+                ConversationQuickStarter.model_validate(starter)
+                for starter in self.conversation_quick_starters
+            ],
+            bedrock_knowledge_base=(
+                BedrockKnowledgeBaseOutput.model_validate(self.bedrock_knowledge_base)
+                if self.bedrock_knowledge_base
+                else None
+            ),
+            bedrock_guardrails=(
+                BedrockGuardrailsOutput.model_validate(self.bedrock_guardrails)
+                if self.bedrock_guardrails
+                else None
+            ),
+        )
+
+    def to_summary_output(self, user: User) -> BotSummaryOutput:
+        return BotSummaryOutput(
+            id=self.id,
+            title=self.title,
+            description=self.description,
+            create_time=self.create_time,
+            last_used_time=self.last_used_time,
+            is_starred=self.is_starred,
+            has_agent=self.is_agent_enabled(),
+            owned=self.is_owned_by_user(user),
+            sync_status=self.sync_status,
+            has_knowledge=self.has_knowledge(),
+            conversation_quick_starters=[
+                ConversationQuickStarter(
+                    title=starter.title,
+                    example=starter.example,
+                )
+                for starter in self.conversation_quick_starters
+            ],
+            shared_scope=self.shared_scope,
+            shared_status=self.shared_status,
+        )
+
 
 class BotAliasModel(BaseModel):
-    id: str
+    # TODO: N+1だと不要なものを洗い出す
+    # 必須なもの: original_bot_id (N+1取得時), is_origin_accessible
+    # Original削除された際にタイトルなどが必要なため、以下は必要
+    # title, description
+    # その他必要なもの
+    # create_time, last_used_time, is_starred, sync_status, has_knowledge, has_agent, conversation_quick_starters
+    original_bot_id: str = Field(..., description="Original Bot ID")
     title: str
     description: str
-    original_bot_id: str
+
+    is_origin_accessible: bool
+
     create_time: float
     last_used_time: float
     is_starred: bool
@@ -107,25 +349,113 @@ class BotAliasModel(BaseModel):
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
 
+    @classmethod
+    def from_bot(cls, bot: BotModel) -> Self:
+        return cls(
+            original_bot_id=bot.id,
+            title=bot.title,
+            description=bot.description,
+            is_origin_accessible=True,
+            create_time=bot.create_time,
+            last_used_time=bot.last_used_time,
+            is_starred=bot.is_starred,
+            sync_status=bot.sync_status,
+            has_knowledge=bot.has_knowledge(),
+            has_agent=bot.is_agent_enabled(),
+            conversation_quick_starters=bot.conversation_quick_starters,
+        )
+
 
 class BotMeta(BaseModel):
-    id: str
+    id: str = Field(..., description="Bot ID")
     title: str
     description: str
     create_time: float
     last_used_time: float
     is_starred: bool
-    is_public: bool
-    # Whether the bot is owned by the user
-    owned: bool
-    # Whether the bot is available or not.
-    # This can be `False` if the bot is not owned by the user and original bot is removed.
-    available: bool
     sync_status: type_sync_status
     has_bedrock_knowledge_base: bool
+    # Whether the bot is owned by the user
+    owned: bool
+
+    shared_scope: type_shared_scope | None
+    shared_status: str = Field(
+        ..., description="private, shared, or pinned@xxx (xxx is a 3-digit integer)"
+    )
+
+    # Whether the bot is available or not.
+    # This can be `False` if the bot is not owned by the user and original bot is removed or not permitted to use.
+    is_origin_accessible: bool
+
+    # is_public: bool
+    # # Whether the bot is available or not.
+    # # This can be `False` if the bot is not owned by the user and original bot is removed.
+    # available: bool
+
+    @classmethod
+    def from_dynamo_item(
+        cls, item: dict, owned: bool, is_origin_accessible: bool
+    ) -> Self:
+        if is_origin_accessible:
+            assert (
+                item["ItemType"].find("BOT") != -1
+            ), f"Invalid ItemType: {item['ItemType']}"
+            return cls(
+                id=item["BotId"],
+                title=item["Title"],
+                description=item["Description"],
+                create_time=float(item["CreateTime"]),
+                last_used_time=float(item["LastUsedTime"]),
+                is_starred=item["IsStarred"],
+                sync_status=item["SyncStatus"],
+                has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
+                owned=owned,
+                is_origin_accessible=is_origin_accessible,
+                shared_scope=item["SharedScope"],
+                shared_status=item["SharedStatus"],
+            )
+        else:
+            assert (
+                item["ItemType"].find("ALIAS") != -1
+            ), f"Invalid ItemType: {item['ItemType']}"
+            return cls(
+                id=item["OriginalBotId"],
+                title=item["Title"],
+                description=item["Description"],
+                create_time=float(item["CreateTime"]),
+                last_used_time=float(item["LastUsedTime"]),
+                is_starred=item["IsStarred"],
+                sync_status=item["SyncStatus"],
+                has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
+                owned=owned,
+                is_origin_accessible=is_origin_accessible,
+                shared_scope=None,
+                shared_status="private",
+            )
+
+    def to_output(self) -> BotMetaOutput:
+        return BotMetaOutput(
+            id=self.id,
+            title=self.title,
+            description=self.description,
+            create_time=self.create_time,
+            last_used_time=self.last_used_time,
+            is_starred=self.is_starred,
+            owned=self.owned,
+            available=self.is_origin_accessible,
+            sync_status=self.sync_status,
+            shared_scope=self.shared_scope,
+            shared_status=self.shared_status,
+        )
 
 
-class BotMetaWithStackInfo(BotMeta):
+class BotMetaWithStackInfo(BaseModel):
+    id: str = Field(..., description="Bot ID")
+    title: str
+    description: str
+    create_time: float
+    last_used_time: float
+    sync_status: type_sync_status
     owner_user_id: str
     published_api_stack_name: str | None
     published_api_datetime: int | None

@@ -6,26 +6,22 @@ from app.agents.utils import get_available_tools, get_tool_by_name
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
-from app.repositories.common import (
-    RecordNotFoundError,
-    _get_table_client,
-    decompose_bot_alias_id,
-    decompose_bot_id,
-)
+from app.repositories.common import RecordNotFoundError, get_bot_table_client
 from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
-    find_alias_by_id,
-    find_private_bot_by_id,
-    find_private_bots_by_user_id,
-    find_public_bot_by_id,
+    find_bot_by_id,
+    find_owned_bots_by_user_id,
+    find_recently_used_bots_by_user_id,
+    find_starred_bots_by_user_id,
     store_alias,
     store_bot,
+    update_alias_is_origin_accessible,
     update_alias_last_used_time,
-    update_alias_pin_status,
+    update_alias_star_status,
     update_bot,
     update_bot_last_used_time,
-    update_bot_pin_status,
+    update_bot_star_status,
 )
 from app.repositories.models.custom_bot import (
     AgentModel,
@@ -55,6 +51,7 @@ from app.routes.schemas.bot import (
 )
 from app.routes.schemas.bot_guardrails import BedrockGuardrailsOutput
 from app.routes.schemas.bot_kb import BedrockKnowledgeBaseOutput
+from app.user import User
 from app.utils import (
     compose_upload_document_s3_path,
     compose_upload_temp_s3_path,
@@ -66,7 +63,6 @@ from app.utils import (
     move_file_in_s3,
 )
 from boto3.dynamodb.conditions import Attr, Key
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 
@@ -96,26 +92,12 @@ def _update_s3_documents_by_diff(
         delete_file_from_s3(DOCUMENT_BUCKET, document_path)
 
 
-def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
+def create_new_bot(user: User, bot_input: BotInput) -> BotOutput:
     """Create a new bot.
-    Bot is created as private and not pinned.
+    Bot is created as private.
     """
-    current_time = get_current_time()
-    has_knowledge = bot_input.knowledge and (
-        len(bot_input.knowledge.source_urls) > 0
-        or len(bot_input.knowledge.sitemap_urls) > 0
-        or len(bot_input.knowledge.filenames) > 0
-        or len(bot_input.knowledge.s3_urls) > 0
-    )
 
-    has_guardrails = (
-        bot_input.bedrock_guardrails
-        and bot_input.bedrock_guardrails.is_guardrail_enabled == True
-    )
-    sync_status: type_sync_status = (
-        "QUEUED" if has_knowledge or has_guardrails else "SUCCEEDED"
-    )
-
+    # Create initial knowledge
     source_urls = []
     sitemap_urls = []
     filenames = []
@@ -127,146 +109,35 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
 
         # Commit changes to S3
         _update_s3_documents_by_diff(
-            user_id, bot_input.id, bot_input.knowledge.filenames, []
+            user.id, bot_input.id, bot_input.knowledge.filenames, []
         )
         # Delete files from upload temp directory
         delete_files_with_prefix_from_s3(
-            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(user_id, bot_input.id)
+            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(user.id, bot_input.id)
         )
         filenames = bot_input.knowledge.filenames
 
-    generation_params: GenerationParamsDict = (
-        {
-            "max_tokens": bot_input.generation_params.max_tokens,
-            "top_k": bot_input.generation_params.top_k,
-            "top_p": bot_input.generation_params.top_p,
-            "temperature": bot_input.generation_params.temperature,
-            "stop_sequences": bot_input.generation_params.stop_sequences,
-        }
-        if bot_input.generation_params
-        else DEFAULT_GENERATION_CONFIG
+    knowledge = KnowledgeModel(
+        source_urls=source_urls,
+        sitemap_urls=sitemap_urls,
+        filenames=filenames,
+        s3_urls=s3_urls,
     )
 
-    agent = (
-        AgentModel(
-            tools=[
-                AgentToolModel(name=t.name, description=t.description)
-                for t in [
-                    get_tool_by_name(tool_name) for tool_name in bot_input.agent.tools
-                ]
-            ]
-        )
-        if bot_input.agent
-        else AgentModel(tools=[])
-    )
+    new_bot = BotModel.from_input(bot_input, owner_id=user.id, knowledge=knowledge)
+    store_bot(new_bot)
 
-    store_bot(
-        user_id,
-        BotModel(
-            id=bot_input.id,
-            title=bot_input.title,
-            description=bot_input.description if bot_input.description else "",
-            instruction=bot_input.instruction,
-            create_time=current_time,
-            last_used_time=current_time,
-            public_bot_id=None,
-            is_starred=False,
-            owner_user_id=user_id,  # Owner is the creator
-            generation_params=GenerationParamsModel(**generation_params),
-            agent=agent,
-            knowledge=KnowledgeModel(
-                source_urls=source_urls,
-                sitemap_urls=sitemap_urls,
-                filenames=filenames,
-                s3_urls=s3_urls,
-            ),
-            sync_status=sync_status,
-            sync_status_reason="",
-            sync_last_exec_id="",
-            published_api_stack_name=None,
-            published_api_datetime=None,
-            published_api_codebuild_id=None,
-            display_retrieved_chunks=bot_input.display_retrieved_chunks,
-            conversation_quick_starters=(
-                []
-                if bot_input.conversation_quick_starters is None
-                else [
-                    ConversationQuickStarterModel(
-                        title=starter.title,
-                        example=starter.example,
-                    )
-                    for starter in bot_input.conversation_quick_starters
-                ]
-            ),
-            bedrock_knowledge_base=(
-                BedrockKnowledgeBaseModel(
-                    **(bot_input.bedrock_knowledge_base.model_dump())
-                )
-                if bot_input.bedrock_knowledge_base
-                else None
-            ),
-            bedrock_guardrails=(
-                BedrockGuardrailsModel(**(bot_input.bedrock_guardrails.model_dump()))
-                if bot_input.bedrock_guardrails
-                else None
-            ),
-        ),
-    )
-    return BotOutput(
-        id=bot_input.id,
-        title=bot_input.title,
-        instruction=bot_input.instruction,
-        description=bot_input.description if bot_input.description else "",
-        create_time=current_time,
-        last_used_time=current_time,
-        is_public=False,
-        is_starred=False,
-        owned=True,
-        generation_params=GenerationParams(**generation_params),
-        agent=Agent(
-            tools=[
-                AgentTool(name=tool.name, description=tool.description)
-                for tool in agent.tools
-            ]
-        ),
-        knowledge=Knowledge(
-            source_urls=source_urls,
-            sitemap_urls=sitemap_urls,
-            filenames=filenames,
-            s3_urls=s3_urls,
-        ),
-        sync_status=sync_status,
-        sync_status_reason="",
-        sync_last_exec_id="",
-        display_retrieved_chunks=bot_input.display_retrieved_chunks,
-        conversation_quick_starters=(
-            []
-            if bot_input.conversation_quick_starters is None
-            else [
-                ConversationQuickStarter(
-                    title=starter.title,
-                    example=starter.example,
-                )
-                for starter in bot_input.conversation_quick_starters
-            ]
-        ),
-        bedrock_knowledge_base=(
-            BedrockKnowledgeBaseOutput(**(bot_input.bedrock_knowledge_base.model_dump()))
-            if bot_input.bedrock_knowledge_base
-            else None
-        ),
-        bedrock_guardrails=(
-            BedrockGuardrailsOutput(**(bot_input.bedrock_guardrails.model_dump()))
-            if bot_input.bedrock_guardrails
-            else None
-        ),
-    )
+    return new_bot.to_output()
 
 
 def modify_owned_bot(
-    user_id: str, bot_id: str, modify_input: BotModifyInput
+    user: User, bot_id: str, modify_input: BotModifyInput
 ) -> BotModifyOutput:
     """Modify owned bot."""
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_editable_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to modify bot {bot_id}")
+
     source_urls = []
     sitemap_urls = []
     filenames = []
@@ -280,7 +151,7 @@ def modify_owned_bot(
 
         # Commit changes to S3
         _update_s3_documents_by_diff(
-            user_id,
+            user.id,
             bot_id,
             modify_input.knowledge.added_filenames,
             modify_input.knowledge.deleted_filenames,
@@ -323,7 +194,6 @@ def modify_owned_bot(
     # if knowledge is not updated, skip embeding process.
     # 'sync_status = "QUEUED"' will execute embeding process and update dynamodb record.
     # 'sync_status= "SUCCEEDED"' will update only dynamodb record.
-    bot = find_private_bot_by_id(user_id, bot_id)
     sync_status = (
         "QUEUED"
         if modify_input.is_embedding_required(bot)
@@ -332,7 +202,7 @@ def modify_owned_bot(
     )
 
     update_bot(
-        user_id,
+        user.id,
         bot_id,
         title=modify_input.title,
         instruction=modify_input.instruction,
@@ -415,170 +285,77 @@ def modify_owned_bot(
     )
 
 
-def fetch_bot(user_id: str, bot_id: str) -> tuple[bool, BotModel]:
+def fetch_bot(user: User, bot_id: str) -> tuple[bool, BotModel]:
     """Fetch bot by id.
     The first element of the returned tuple is whether the bot is owned or not.
     `True` means the bot is owned by the user.
     `False` means the bot is shared by another user.
     """
     try:
-        return True, find_private_bot_by_id(user_id, bot_id)
-    except RecordNotFoundError:
-        pass  #
+        bot = find_bot_by_id(bot_id)
+    except RecordNotFoundError as e:
+        # NOTE: If the bot is not found, it must be an alias.
+        update_alias_is_origin_accessible(user.id, bot_id, False)
+        raise e
 
-    try:
-        return False, find_public_bot_by_id(bot_id)
-    except RecordNotFoundError:
-        raise RecordNotFoundError(
-            f"Bot with ID {bot_id} not found in both private (for user {user_id}) and public items."
-        )
+    if not bot.is_accessible_by_user(user):
+        # NOTE: If the bot is not accessible, it must be an alias.
+        update_alias_is_origin_accessible(user.id, bot_id, False)
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
+    owned = bot.is_owned_by_user(user)
 
-def fetch_all_bots_by_user_id(
-    user_id: str, limit: int | None = None, only_pinned: bool = False
-) -> list[BotMeta]:
-    """Find all private & shared bots of a user.
-    The order is descending by `last_used_time`.
-    """
-    if not only_pinned and not limit:
-        raise ValueError("Must specify either `limit` or `only_pinned`")
-    if limit and only_pinned:
-        raise ValueError("Cannot specify both `limit` and `only_pinned`")
-    if limit and (limit < 0 or limit > 100):
-        raise ValueError("Limit must be between 0 and 100")
+    # Note that `fetch_bot_summary` creates alias.
+    # if not owned:
+    #     # Update alias to the latest information
+    #     store_alias(user_id=user.id, alias=BotAliasModel.from_bot(bot))
 
-    table = _get_table_client(user_id)
-    logger.info(f"Finding pinned bots for user: {user_id}")
-
-    # Fetch all pinned bots
-    query_params = {
-        "IndexName": "LastBotUsedIndex",
-        "KeyConditionExpression": Key("PK").eq(user_id),
-        "ScanIndexForward": False,
-    }
-    if limit:
-        query_params["Limit"] = limit
-    if only_pinned:
-        query_params["FilterExpression"] = Attr("IsStarred").eq(True)
-
-    response = table.query(**query_params)
-
-    bots = []
-    for item in response["Items"]:
-        if "OriginalBotId" in item:
-            # Fetch original bots of alias bots
-            is_original_available = True
-            try:
-                bot = find_public_bot_by_id(item["OriginalBotId"])
-                logger.info(f"Found original bot: {bot.id}")
-                meta = BotMeta(
-                    id=bot.id,
-                    title=bot.title,
-                    create_time=float(bot.create_time),
-                    last_used_time=float(bot.last_used_time),
-                    is_starred=item["IsStarred"],
-                    owned=False,
-                    available=True,
-                    description=bot.description,
-                    is_public=True,
-                    sync_status=bot.sync_status,
-                    has_bedrock_knowledge_base=bot.has_bedrock_knowledge_base(),
-                )
-            except RecordNotFoundError:
-                # Original bot is removed
-                is_original_available = False
-                logger.info(f"Original bot {item['OriginalBotId']} has been removed")
-                meta = BotMeta(
-                    id=item["OriginalBotId"],
-                    title=item["Title"],
-                    create_time=float(item["CreateTime"]),
-                    last_used_time=float(item["LastBotUsed"]),
-                    is_starred=item["IsStarred"],
-                    owned=False,
-                    # NOTE: Original bot is removed
-                    available=False,
-                    description="This item is no longer available",
-                    is_public=False,
-                    sync_status="ORIGINAL_NOT_FOUND",
-                    has_bedrock_knowledge_base=False,
-                )
-
-            if is_original_available and (
-                bot.title != item["Title"]
-                or bot.description != item["Description"]
-                or bot.sync_status != item["SyncStatus"]
-                or bot.has_knowledge() != item["HasKnowledge"]
-                or bot.conversation_quick_starters
-                != [
-                    ConversationQuickStarter(**starter)
-                    for starter in item.get("ConversationQuickStarters", [])
-                ]
-            ):
-                # Update alias to the latest original bot
-                store_alias(
-                    user_id,
-                    BotAliasModel(
-                        id=decompose_bot_alias_id(item["SK"]),
-                        # Update title and description
-                        title=bot.title,
-                        description=bot.description,
-                        original_bot_id=item["OriginalBotId"],
-                        create_time=float(item["CreateTime"]),
-                        last_used_time=float(item["LastBotUsed"]),
-                        is_starred=item["IsStarred"],
-                        sync_status=bot.sync_status,
-                        has_knowledge=bot.has_knowledge(),
-                        has_agent=bot.is_agent_enabled(),
-                        conversation_quick_starters=bot.conversation_quick_starters,
-                    ),
-                )
-
-            bots.append(meta)
-        else:
-            # Private bots
-            bots.append(
-                BotMeta(
-                    id=decompose_bot_id(item["SK"]),
-                    title=item["Title"],
-                    create_time=float(item["CreateTime"]),
-                    last_used_time=float(item["LastBotUsed"]),
-                    is_starred=item["IsStarred"],
-                    owned=True,
-                    available=True,
-                    description=item["Description"],
-                    is_public="PublicBotId" in item,
-                    sync_status=item["SyncStatus"],
-                    has_bedrock_knowledge_base=(
-                        True if item.get("BedrockKnowledgeBase", None) else False
-                    ),
-                )
-            )
-
-    return bots
+    return owned, bot
 
 
 def fetch_all_bots(
-    user_id: str,
+    user: User,
     limit: int | None = None,
-    pinned: bool = False,
+    starred: bool = False,
     kind: Literal["private", "mixed"] = "private",
 ) -> list[BotMetaOutput]:
     """Fetch all bots.
     The order is descending by `last_used_time`.
     - If `kind` is `private`, only private bots will be returned.
-        - If `mixed` must give either `pinned` or `limit`.
-    - If `pinned` is True, only pinned bots will be returned.
+        - If `mixed` must give either `starred` or `limit`.
+    - If `starred` is True, only starred bots will be returned.
         - When kind is `private`, this will be ignored.
     - If `limit` is specified, only the first n bots will be returned.
-        - Cannot specify both `pinned` and `limit`.
+        - Cannot specify both `starred` and `limit`.
     """
+    # TODO: 複数のメソッドに分けてリプレースする。
+    # private: 自分が作成したボットの一覧
+    # mixed: 自分が作成したボットと共有されたボットの一覧
+    #   - pinned: ピン留めされたボットのみ。スターをつけたボット（とエイリアス）
+    #   - limit: 最新のn個のボットのみ。最近使った自分のボットと、共有ボットの取得に使う
+    #     NOTE: FE側で、自分のボットを含むかどうかを判断している
+    #     i.e. 「最近使用したボット」と「最近使用した公開ボット」は同時に取得
+    #     ref: useBot.tsの
+    #       recentlyUsedSharedBots: recentlyUsedBots?.filter((bot) => !bot.owned),
+
+    if not starred and not limit:
+        raise ValueError("Must specify either `limit` or `starred`")
+    if limit and starred:
+        raise ValueError("Cannot specify both `limit` and `starred`")
+    if limit and (limit < 0 or limit > 100):
+        raise ValueError("Limit must be between 0 and 100")
+
     bots = []
     if kind == "private":
-        bots = find_private_bots_by_user_id(user_id, limit=limit)
+        # Fetch only private owned bots by user
+        bots = find_owned_bots_by_user_id(user.id, limit=limit)
     elif kind == "mixed":
-        bots = fetch_all_bots_by_user_id(user_id, limit=limit, only_pinned=pinned)
-    else:
-        raise ValueError(f"Invalid kind: {kind}")
+        if starred:
+            # Fetch starred bots
+            bots = find_starred_bots_by_user_id(user.id, limit=limit)
+        else:
+            # Fetch recently used bots
+            bots = find_recently_used_bots_by_user_id(user.id, limit=limit)
 
     bot_metas = []
     for bot in bots:
@@ -587,24 +364,19 @@ def fetch_all_bots(
             # If the bot does not have bedrock knowledge base,
             # it is not shown in the list.
             continue
-        bot_metas.append(
-            BotMetaOutput(
-                id=bot.id,
-                title=bot.title,
-                create_time=bot.create_time,
-                last_used_time=bot.last_used_time,
-                is_starred=bot.is_starred,
-                owned=bot.owned,
-                available=bot.available,
-                description=bot.description,
-                is_public=bot.is_public,
-                sync_status=bot.sync_status,
-            )
-        )
+        bot_metas.append(bot.to_output())
     return bot_metas
 
 
-def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
+def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_accessible_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+
+    if not bot.is_owned_by_user(user):
+        # NOTE: At the first time using shared bot, alias is not created yet.
+        store_alias(user_id=user.id, alias=BotAliasModel.from_bot(bot))
+
     try:
         bot = find_private_bot_by_id(user_id, bot_id)
         return BotSummaryOutput(
@@ -713,20 +485,20 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
         )
 
 
-def modify_pin_status(user_id: str, bot_id: str, pinned: bool):
+def modify_pin_status(user: User, bot_id: str, pinned: bool):
     """Modify bot pin status."""
     try:
-        return update_bot_pin_status(user_id, bot_id, pinned)
+        return update_bot_star_status(user.id, bot_id, pinned)
     except RecordNotFoundError:
         pass
 
     try:
-        return update_alias_pin_status(user_id, bot_id, pinned)
+        return update_alias_star_status(user.id, bot_id, pinned)
     except RecordNotFoundError:
         raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
 
 
-def remove_bot_by_id(user_id: str, bot_id: str):
+def remove_bot_by_id(user: User, bot_id: str):
     """Remove bot by id."""
     try:
         return delete_bot_by_id(user_id, bot_id)
@@ -739,7 +511,7 @@ def remove_bot_by_id(user_id: str, bot_id: str):
         raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
 
 
-def modify_bot_last_used_time(user_id: str, bot_id: str):
+def modify_bot_last_used_time(user: User, bot_id: str):
     """Modify bot last used time."""
     try:
         return update_bot_last_used_time(user_id, bot_id)
@@ -752,9 +524,7 @@ def modify_bot_last_used_time(user_id: str, bot_id: str):
         raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
 
 
-def issue_presigned_url(
-    user_id: str, bot_id: str, filename: str, content_type: str
-) -> str:
+def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: str) -> str:
     response = generate_presigned_url(
         DOCUMENT_BUCKET,
         compose_upload_temp_s3_path(user_id, bot_id, filename),
@@ -765,7 +535,7 @@ def issue_presigned_url(
     return response
 
 
-def remove_uploaded_file(user_id: str, bot_id: str, filename: str):
+def remove_uploaded_file(user: User, bot_id: str, filename: str):
     delete_file_from_s3(
         DOCUMENT_BUCKET, compose_upload_temp_s3_path(user_id, bot_id, filename)
     )

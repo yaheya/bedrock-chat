@@ -3,7 +3,7 @@ import logging
 import os
 
 import boto3
-from app.repositories.common import _get_table_client
+from app.repositories.common import get_bot_table_client
 from app.repositories.custom_bot import (
     compose_bot_id,
     decompose_bot_id,
@@ -29,7 +29,7 @@ def update_sync_status(
     sync_status_reason: str,
     last_exec_id: str,
 ):
-    table = _get_table_client(user_id)
+    table = get_bot_table_client()
     table.update_item(
         Key={"PK": user_id, "SK": compose_bot_id(user_id, bot_id)},
         UpdateExpression="SET SyncStatus = :sync_status, SyncStatusReason = :sync_status_reason, LastExecId = :last_exec_id",
@@ -97,9 +97,7 @@ def handler(event, context):
             f"Updating sync status for bot {bot_id} of user {user_id} to {sync_status} with reason: {sync_status_reason}"
         )
 
-        update_sync_status(
-            user_id, bot_id, sync_status, sync_status_reason, last_exec_id
-        )
+        update_sync_status(user_id, bot_id, sync_status, sync_status_reason, last_exec_id)
 
         return {
             "statusCode": 200,

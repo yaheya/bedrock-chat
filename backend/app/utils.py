@@ -16,6 +16,7 @@ BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
 PUBLISH_API_CODEBUILD_PROJECT_NAME = os.environ.get(
     "PUBLISH_API_CODEBUILD_PROJECT_NAME", ""
 )
+USER_POOL_ID = os.environ.get("USER_POOL_ID", "")
 
 
 def snake_to_camel(snake_str):
@@ -164,3 +165,19 @@ def start_codebuild_project(environment_variables: dict) -> str:
         environmentVariablesOverride=environment_variables_override,
     )
     return response["build"]["id"]
+
+
+def get_user_cognito_groups(user_id: str, user_pool_id: str = USER_POOL_ID) -> list[str]:
+    """Retrieve the groups that a Cognito user belongs to."""
+    client = boto3.client("cognito-idp")
+
+    try:
+        response = client.admin_list_groups_for_user(
+            UserPoolId=user_pool_id, Username=user_id
+        )
+        groups = [group["GroupName"] for group in response.get("Groups", [])]
+        return groups
+
+    except ClientError as e:
+        print(f"Error retrieving groups for user {user_id}: {e}")
+        return []

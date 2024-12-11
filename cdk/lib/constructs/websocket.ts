@@ -77,6 +77,13 @@ export class WebSocket extends Construct {
         resources: ["*"],
       })
     );
+    handlerRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["cognito-idp:AdminListGroupsForUser"],
+        resources: [props.auth.userPool.userPoolArn],
+      })
+    );
     largePayloadSupportBucket.grantRead(handlerRole);
     props.websocketSessionTable.grantReadWriteData(handlerRole);
     props.largeMessageBucket.grantReadWrite(handlerRole);

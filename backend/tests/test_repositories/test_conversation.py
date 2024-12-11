@@ -19,7 +19,7 @@ from app.repositories.conversation import (
 )
 from app.repositories.custom_bot import (
     delete_bot_by_id,
-    find_private_bots_by_user_id,
+    find_owned_bots_by_user_id,
     store_bot,
 )
 from app.repositories.models.conversation import (
@@ -82,7 +82,7 @@ from botocore.exceptions import ClientError
 
 #     def test_find_conversation_by_user_id(self):
 #         # Create table client for user1
-#         table = _get_table_client("user1")
+#         table = get_bot_table_client("user1")
 
 #         table.query(
 #             KeyConditionExpression=Key("PK").eq(
@@ -100,7 +100,7 @@ from botocore.exceptions import ClientError
 
 #     def test_find_conversation_by_id(self):
 #         # Create table client for user1
-#         table = _get_table_client("user1")
+#         table = get_bot_table_client("user1")
 
 #         table.query(
 #             IndexName="SKIndex",
@@ -506,7 +506,7 @@ class TestConversationBotRepository(unittest.TestCase):
         self.assertEqual(len(conversations), 2)
 
     def test_only_bot_is_fetched(self):
-        bots = find_private_bots_by_user_id("user")
+        bots = find_owned_bots_by_user_id("user")
         self.assertEqual(len(bots), 2)
 
     def tearDown(self) -> None:
