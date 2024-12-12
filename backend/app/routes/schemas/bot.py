@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Type, get_args
 
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
@@ -11,7 +11,8 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseInput,
     BedrockKnowledgeBaseOutput,
 )
-from pydantic import Field, root_validator, validator
+from app.routes.schemas.conversation import type_model_name
+from pydantic import Field, create_model, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -26,6 +27,26 @@ type_sync_status = Literal[
     "FAILED",
     "ORIGINAL_NOT_FOUND",
 ]
+
+
+def _create_model_activate_input(model_names: List[str]) -> Type[BaseSchema]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ActiveModelsInput", **fields, __base__=BaseSchema)
+
+
+ActiveModelsInput = _create_model_activate_input(list(get_args(type_model_name)))
+
+
+def create_model_activate_output(model_names: List[str]) -> Type[BaseSchema]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ActiveModelsOutput", **fields, __base__=BaseSchema)
+
+
+ActiveModelsOutput = create_model_activate_output(list(get_args(type_model_name)))
 
 
 class GenerationParams(BaseSchema):
@@ -102,6 +123,7 @@ class BotInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
+    active_models: ActiveModelsInput  # type: ignore
 
 
 class BotModifyInput(BaseSchema):
@@ -115,6 +137,7 @@ class BotModifyInput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter] | None
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
+    active_models: ActiveModelsInput  # type: ignore
 
     def _has_update_files(self) -> bool:
         return self.knowledge is not None and (
@@ -228,6 +251,7 @@ class BotModifyOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
+    active_models: ActiveModelsOutput  # type: ignore
 
 
 class BotOutput(BaseSchema):
@@ -251,6 +275,7 @@ class BotOutput(BaseSchema):
     conversation_quick_starters: list[ConversationQuickStarter]
     bedrock_knowledge_base: BedrockKnowledgeBaseOutput | None
     bedrock_guardrails: BedrockGuardrailsOutput | None
+    active_models: ActiveModelsOutput  # type: ignore
 
 
 class BotMetaOutput(BaseSchema):
@@ -281,6 +306,7 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
+    active_models: ActiveModelsOutput  # type: ignore
 
 
 class BotSwitchVisibilityInput(BaseSchema):

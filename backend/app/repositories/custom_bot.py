@@ -21,6 +21,7 @@ from app.repositories.common import (
     decompose_bot_id,
 )
 from app.repositories.models.custom_bot import (
+    ActiveModelsModel,
     AgentModel,
     BotAliasModel,
     BotMeta,
@@ -88,6 +89,7 @@ def store_bot(user_id: str, custom_bot: BotModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
+        "ActiveModels": custom_bot.active_models.model_dump(),  # type: ignore[attr-defined]
     }
     if custom_bot.bedrock_knowledge_base:
         item["BedrockKnowledgeBase"] = custom_bot.bedrock_knowledge_base.model_dump()
@@ -110,6 +112,7 @@ def update_bot(
     sync_status: type_sync_status,
     sync_status_reason: str,
     display_retrieved_chunks: bool,
+    active_models: ActiveModelsModel,  # type: ignore
     conversation_quick_starters: list[ConversationQuickStarterModel],
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None = None,
     bedrock_guardrails: BedrockGuardrailsModel | None = None,
@@ -130,7 +133,8 @@ def update_bot(
         "SyncStatusReason = :sync_status_reason, "
         "GenerationParams = :generation_params, "
         "DisplayRetrievedChunks = :display_retrieved_chunks, "
-        "ConversationQuickStarters = :conversation_quick_starters"
+        "ConversationQuickStarters = :conversation_quick_starters, "
+        "ActiveModels = :active_models"
     )
 
     expression_attribute_values = {
@@ -146,6 +150,7 @@ def update_bot(
         ":conversation_quick_starters": [
             starter.model_dump() for starter in conversation_quick_starters
         ],
+        ":active_models": active_models.model_dump(),  # type: ignore[attr-defined]
     }
     if bedrock_knowledge_base:
         update_expression += ", BedrockKnowledgeBase = :bedrock_knowledge_base"
@@ -195,6 +200,7 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "ConversationQuickStarters": [
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
+        "ActiveModels": alias.active_models.model_dump(),  # type: ignore[attr-defined]
     }
 
     response = table.put_item(Item=item)
@@ -484,6 +490,7 @@ def find_private_bot_by_id(user_id: str, bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
+        active_models=ActiveModelsModel.model_validate(item.get("ActiveModels", {})),
     )
 
     logger.info(f"Found bot: {bot}")
@@ -502,6 +509,7 @@ def find_public_bot_by_id(bot_id: str) -> BotModel:
         raise RecordNotFoundError(f"Public bot with id {bot_id} not found")
 
     item = response["Items"][0]
+
     bot = BotModel(
         id=decompose_bot_id(item["SK"]),
         title=item["Title"],
@@ -560,6 +568,7 @@ def find_public_bot_by_id(bot_id: str) -> BotModel:
             if "GuardrailsParams" in item
             else None
         ),
+        active_models=ActiveModelsModel.model_validate(item.get("ActiveModels")),
     )
     logger.info(f"Found public bot: {bot}")
     return bot
@@ -589,6 +598,7 @@ def find_alias_by_id(user_id: str, alias_id: str) -> BotAliasModel:
         has_knowledge=item["HasKnowledge"],
         has_agent=item.get("HasAgent", False),
         conversation_quick_starters=item.get("ConversationQuickStarters", []),
+        active_models=ActiveModelsModel.model_validate(item.get("ActiveModels")),
     )
 
     logger.info(f"Found alias: {bot}")

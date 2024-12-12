@@ -1,9 +1,10 @@
 import base64
 from decimal import Decimal
+from typing import Annotated, Any, Dict, List, Type, get_args
 
+from pydantic import BaseModel, ConfigDict
 from pydantic.functional_serializers import PlainSerializer
 from pydantic.functional_validators import PlainValidator
-from typing import Annotated, Any
 
 # Declare customized float type
 Float = Annotated[
@@ -35,3 +36,7 @@ Base64EncodedBytes = Annotated[
         return_type=str,
     ),
 ]
+
+
+class DynamicBaseModel(BaseModel):
+    model_config = ConfigDict(extra="allow")

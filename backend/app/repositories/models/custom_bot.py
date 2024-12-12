@@ -1,8 +1,23 @@
-from app.repositories.models.common import Float
+from typing import Any, Dict, List, Literal, Type, get_args
+
+from app.repositories.models.common import DynamicBaseModel, Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import type_sync_status
-from pydantic import BaseModel
+from app.routes.schemas.conversation import type_model_name
+from pydantic import BaseModel, ConfigDict, create_model
+
+
+def _create_model_activate_model(model_names: List[str]) -> Type[DynamicBaseModel]:
+    fields: Dict[str, Any] = {
+        name.replace("-", "_").replace(".", "_"): (bool, True) for name in model_names
+    }
+    return create_model("ActiveModelsModel", __base__=DynamicBaseModel, **fields)
+
+
+ActiveModelsModel: Type[BaseModel] = _create_model_activate_model(
+    list(get_args(type_model_name))
+)
 
 
 class KnowledgeModel(BaseModel):
@@ -78,6 +93,7 @@ class BotModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
+    active_models: ActiveModelsModel  # type: ignore
 
     def has_knowledge(self) -> bool:
         return (
@@ -91,7 +107,10 @@ class BotModel(BaseModel):
         return len(self.agent.tools) > 0
 
     def has_bedrock_knowledge_base(self) -> bool:
-        return self.bedrock_knowledge_base is not None
+        return (
+            self.bedrock_knowledge_base is not None
+            and self.bedrock_knowledge_base.knowledge_base_id is not None
+        )
 
 
 class BotAliasModel(BaseModel):
@@ -106,6 +125,7 @@ class BotAliasModel(BaseModel):
     has_knowledge: bool
     has_agent: bool
     conversation_quick_starters: list[ConversationQuickStarterModel]
+    active_models: ActiveModelsModel  # type: ignore
 
 
 class BotMeta(BaseModel):

@@ -1,13 +1,9 @@
-from typing import Literal, Annotated
+from typing import Annotated, Literal
 
-from app.routes.schemas.base import BaseSchema
 from app.repositories.models.common import Base64EncodedBytes
-from pydantic import Field, Discriminator, JsonValue, root_validator
-
-from mypy_boto3_bedrock_runtime.literals import (
-    DocumentFormatType,
-    ImageFormatType,
-)
+from app.routes.schemas.base import BaseSchema
+from mypy_boto3_bedrock_runtime.literals import DocumentFormatType, ImageFormatType
+from pydantic import Discriminator, Field, JsonValue, root_validator
 
 type_model_name = Literal[
     "claude-instant-v1",
