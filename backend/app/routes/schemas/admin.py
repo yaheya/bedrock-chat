@@ -1,3 +1,5 @@
+from typing import Literal
+
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot import Knowledge, type_sync_status
 from pydantic import Field
@@ -46,3 +48,15 @@ class PublicBotOutput(BaseSchema):
     sync_status: type_sync_status
     sync_status_reason: str
     sync_last_exec_id: str
+
+
+class PushBotInputPinned(BaseSchema):
+    to_pinned: Literal[True]
+    order: int
+
+
+class PushBotInputUnpinned(BaseSchema):
+    to_pinned: Literal[False]
+
+
+PushBotInput = PushBotInputPinned | PushBotInputUnpinned

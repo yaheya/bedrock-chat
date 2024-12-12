@@ -12,8 +12,6 @@ from app.routes.schemas.bot import (
     BedrockKnowledgeBaseOutput,
     BotInput,
     BotMetaOutput,
-    BotModifyInput,
-    BotModifyOutput,
     BotOutput,
     BotSummaryOutput,
     ConversationQuickStarter,
@@ -87,10 +85,12 @@ class BotModel(BaseModel):
     # SK
     last_used_time: float
     # GSI-2 PK (SharedScopeIndex)
-    shared_scope: type_shared_scope | None
+    shared_scope: type_shared_scope = Field(
+        ..., description="`partial` or `all` or None. None means the bot is not shared."
+    )
     # GSI-2 SK (SharedScopeIndex)
     shared_status: str = Field(
-        ..., description="private, shared, or pinned@xxx (xxx is a 3-digit integer)"
+        ..., description="`private`, `shared`, or `pinned@xxx` (xxx is a 3-digit integer)"
     )
     allowed_cognito_groups: list[str]
     allowed_cognito_users: list[str]
@@ -147,31 +147,25 @@ class BotModel(BaseModel):
         return self.bedrock_knowledge_base is not None
 
     def is_accessible_by_user(self, user: User) -> bool:
-        """Check if the bot is accessible by the user."""
-        if user.is_admin:
-            return True
-
-        if self.owner_id == user.id:
-            return True
-
-        if self.shared_scope == "all":
+        """Check if the bot is accessible by the user. This is used for reading the bot."""
+        if user.is_admin or self.owner_id == user.id:
             return True
 
         if self.shared_scope == "private":
             return False
+
+        if self.shared_scope == "all":
+            return True
 
         if user.id in self.allowed_cognito_users:
             return True
 
         # Check if the user is in the allowed Cognito groups
         user_groups = get_user_cognito_groups(user.id)
-        if any(group in self.allowed_cognito_groups for group in user_groups):
-            return True
-
-        return False
+        return any(group in self.allowed_cognito_groups for group in user_groups)
 
     def is_editable_by_user(self, user: User) -> bool:
-        """Check if the bot is editable by the user."""
+        """Check if the bot is editable by the user. This is used for updating and deleting the bot."""
         if user.is_admin:
             return True
 
@@ -350,15 +344,17 @@ class BotAliasModel(BaseModel):
     conversation_quick_starters: list[ConversationQuickStarterModel]
 
     @classmethod
-    def from_bot(cls, bot: BotModel) -> Self:
+    def from_bot_for_initial_alias(cls, bot: BotModel) -> Self:
+        """Create a BotAliasModel instance. This is used when creating a new alias."""
+        current_time = get_current_time()
         return cls(
             original_bot_id=bot.id,
             title=bot.title,
             description=bot.description,
             is_origin_accessible=True,
-            create_time=bot.create_time,
-            last_used_time=bot.last_used_time,
-            is_starred=bot.is_starred,
+            create_time=current_time,
+            last_used_time=current_time,
+            is_starred=False,
             sync_status=bot.sync_status,
             has_knowledge=bot.has_knowledge(),
             has_agent=bot.is_agent_enabled(),
@@ -378,7 +374,7 @@ class BotMeta(BaseModel):
     # Whether the bot is owned by the user
     owned: bool
 
-    shared_scope: type_shared_scope | None
+    shared_scope: type_shared_scope
     shared_status: str = Field(
         ..., description="private, shared, or pinned@xxx (xxx is a 3-digit integer)"
     )

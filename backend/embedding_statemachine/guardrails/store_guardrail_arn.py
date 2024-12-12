@@ -3,7 +3,8 @@ import logging
 import os
 from typing import TypedDict
 
-from app.repositories.custom_bot import decompose_bot_id, update_guardrails_params
+from app.repositories.common import decompose_sk
+from app.repositories.custom_bot import update_guardrails_params
 from retry import retry
 
 logger = logging.getLogger()
@@ -27,6 +28,6 @@ def handler(event, context):
     guardrail_version = stack_output[0]["GuardrailVersion"]
 
     user_id = pk
-    bot_id = decompose_bot_id(sk)
+    bot_id = decompose_sk(sk)
 
     update_guardrails_params(user_id, bot_id, guardrail_arn, guardrail_version)

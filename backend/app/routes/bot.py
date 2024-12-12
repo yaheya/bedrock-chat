@@ -2,9 +2,9 @@ from typing import Literal
 
 from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import (
+    find_bot_by_id,
     find_owned_bots_by_user_id,
-    find_private_bot_by_id,
-    update_bot_visibility,
+    update_bot_shared_status,
 )
 from app.routes.schemas.bot import (
     Agent,
@@ -15,8 +15,8 @@ from app.routes.schemas.bot import (
     BotMetaOutput,
     BotModifyInput,
     BotOutput,
-    BotPinnedInput,
     BotPresignedUrlOutput,
+    BotStarredInput,
     BotSummaryOutput,
     BotSwitchVisibilityInput,
     ConversationQuickStarter,
@@ -29,8 +29,9 @@ from app.usecases.bot import (
     fetch_available_agent_tools,
     fetch_bot_summary,
     issue_presigned_url,
+    modify_bot_visibility,
     modify_owned_bot,
-    modify_pin_status,
+    modify_star_status,
     remove_bot_by_id,
     remove_uploaded_file,
 )
@@ -49,29 +50,31 @@ def post_bot(
     """Create new private owned bot."""
     current_user: User = request.state.current_user
 
-    return create_new_bot(current_user.id, bot_input)
+    return create_new_bot(current_user, bot_input)
 
 
 @router.patch("/bot/{bot_id}")
 def patch_bot(request: Request, bot_id: str, modify_input: BotModifyInput):
     """Modify owned bot title, instruction and description."""
-    return modify_owned_bot(request.state.current_user.id, bot_id, modify_input)
-
-
-@router.patch("/bot/{bot_id}/pinned")
-def patch_bot_pin_status(request: Request, bot_id: str, pinned_input: BotPinnedInput):
-    """Modify owned bot pin status."""
     current_user: User = request.state.current_user
-    return modify_pin_status(current_user.id, bot_id, pinned=pinned_input.pinned)
+
+    return modify_owned_bot(current_user, bot_id, modify_input)
+
+
+@router.patch("/bot/{bot_id}/starred")
+def patch_bot_star_status(request: Request, bot_id: str, starred_input: BotStarredInput):
+    """Modify owned bot star status."""
+    current_user: User = request.state.current_user
+    return modify_star_status(current_user, bot_id, starred=starred_input.starred)
 
 
 @router.patch("/bot/{bot_id}/visibility")
-def patch_bot_visibility(
+def patch_bot_shared_status(
     request: Request, bot_id: str, visibility_input: BotSwitchVisibilityInput
 ):
     """Switch bot visibility"""
     current_user: User = request.state.current_user
-    update_bot_visibility(current_user.id, bot_id, visibility_input.to_public)
+    modify_bot_visibility(current_user, bot_id, visibility_input)
 
 
 @router.get("/bot", response_model=list[BotMetaOutput])
@@ -91,7 +94,7 @@ def get_all_bots(
     """
     current_user: User = request.state.current_user
 
-    bots = fetch_all_bots(current_user.id, limit, pinned, kind)
+    bots = fetch_all_bots(current_user, limit, pinned, kind)
     return bots
 
 
@@ -100,7 +103,10 @@ def get_private_bot(request: Request, bot_id: str):
     """Get private bot by id."""
     current_user: User = request.state.current_user
 
-    bot = find_private_bot_by_id(current_user.id, bot_id)
+    bot = find_bot_by_id(bot_id)
+    if bot.owner_id != current_user.id:
+        raise PermissionError("The bot is not owned by the user.")
+
     output = BotOutput(
         id=bot.id,
         title=bot.title,

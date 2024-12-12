@@ -130,11 +130,11 @@ export type UpdateBotResponse = {
   bedrockKnowledgeBase: BedrockKnowledgeBase;
 };
 
-export type UpdateBotPinnedRequest = {
-  pinned: boolean;
+export type UpdateBotStarredRequest = {
+  starred: boolean;
 };
 
-export type UpdateBotPinnedResponse = null;
+export type UpdateBotStarredResponse = null;
 
 export type UpdateBotVisibilityRequest = {
   toPublic: boolean;

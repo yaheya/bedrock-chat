@@ -19,7 +19,7 @@ from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
     store_bot,
-    update_bot_visibility,
+    update_bot_shared_status,
 )
 from app.repositories.models.conversation import (
     ConversationModel,
@@ -641,7 +641,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
         )
         store_bot(self.first_user_id, private_bot)
         store_bot(self.second_user_id, public_bot)
-        update_bot_visibility(self.second_user_id, self.first_public_bot_id, True)
+        update_bot_shared_status(self.second_user_id, self.first_public_bot_id, True)
 
     def tearDown(self) -> None:
         delete_bot_by_id(self.first_user_id, self.first_private_bot_id)

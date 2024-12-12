@@ -68,7 +68,12 @@ def store_bot(custom_bot: BotModel):
         "Instruction": custom_bot.instruction,
         "CreateTime": decimal(custom_bot.create_time),
         "BotId": custom_bot.id,
-        "SharedScope": custom_bot.shared_scope,
+        "SharedScope": (
+            # Set None for private shared_scope to use sparse index
+            custom_bot.shared_scope
+            if custom_bot.shared_scope is not "private"
+            else None
+        ),
         "SharedStatus": custom_bot.shared_status,
         "AllowedCognitoGroups": custom_bot.allowed_cognito_groups,
         "AllowedCognitoUsers": custom_bot.allowed_cognito_users,
@@ -117,7 +122,7 @@ def update_bot(
     bedrock_guardrails: BedrockGuardrailsModel | None = None,
 ):
     """Update bot title, description, and instruction.
-    NOTE: Use `update_bot_visibility` to update visibility.
+    NOTE: Use `update_bot_shared_status` to update visibility.
     """
     table = get_bot_table_client()
     logger.info(f"Updating bot: {bot_id}")
@@ -336,7 +341,12 @@ def update_guardrails_params(
 
 
 def update_bot_shared_status(
-    owner_id: str, bot_id: str, shared_scope: type_shared_scope | None, shared_status: str
+    owner_id: str,
+    bot_id: str,
+    shared_scope: type_shared_scope,
+    shared_status: str,
+    allowed_user_ids: list[str],
+    allowed_group_ids: list[str],
 ):
     """Update shared status for bot."""
     table = get_bot_table_client()
@@ -345,10 +355,13 @@ def update_bot_shared_status(
     try:
         response = table.update_item(
             Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
-            UpdateExpression="SET SharedScope = :shared_scope, SharedStatus = :shared_status",
+            UpdateExpression="SET SharedScope = :shared_scope, SharedStatus = :shared_status, AllowedCognitoUsers = :allowed_user_ids, AllowedCognitoGroups = :allowed_group_ids",
             ExpressionAttributeValues={
-                ":shared_scope": shared_scope,
+                # Set None for private shared_scope to use sparse index
+                ":shared_scope": shared_scope if shared_scope != "private" else None,
                 ":shared_status": shared_status,
+                ":allowed_user_ids": allowed_user_ids,
+                ":allowed_group_ids": allowed_group_ids,
             },
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
             ReturnValues="ALL_NEW",
@@ -488,7 +501,8 @@ def __find_bots_with_condition(
                             BotMeta.from_dynamo_item(
                                 original_bot,
                                 owned=False,
-                                is_origin_accessible=original_bot["SharedScope"] == "all",
+                                is_origin_accessible=original_bot["SharedStatus"]
+                                != "private",
                             )
                         )
                     else:
@@ -569,7 +583,8 @@ def find_bot_by_id(bot_id: str) -> BotModel:
         instruction=item["Instruction"],
         create_time=float(item["CreateTime"]),
         last_used_time=float(item["LastUsedTime"]),
-        shared_scope=item.get("SharedScope", None),
+        # Note: SharedScope is set to None for private shared_scope to use sparse index
+        shared_scope=item.get("SharedScope", "private"),
         shared_status=item["SharedStatus"],
         allowed_cognito_groups=item.get("AllowedCognitoGroups", []),
         allowed_cognito_users=item.get("AllowedCognitoUsers", []),
@@ -618,186 +633,20 @@ def find_bot_by_id(bot_id: str) -> BotModel:
     return bot
 
 
-# TODO: delete
-# def find_private_bot_by_id(user_id: str, bot_id: str) -> BotModel:
-#     """Find private bot."""
-#     table = get_bot_table_client()
-#     logger.info(f"Finding bot with id: {bot_id}")
-#     response = table.query(
-#         IndexName="SKIndex",
-#         KeyConditionExpression=Key("SK").eq(compose_bot_id(user_id, bot_id)),
-#     )
-#     if len(response["Items"]) == 0:
-#         raise RecordNotFoundError(f"Bot with id {bot_id} not found")
-#     item = response["Items"][0]
+def alias_exists(user_id: str, bot_id: str) -> bool:
+    """Check if alias bot exists by id."""
+    table = get_bot_table_client()
+    logger.info(f"Checking if alias bot exists with id: {bot_id} for user: {user_id}")
 
-#     if "OriginalBotId" in item:
-#         raise RecordNotFoundError(f"Bot with id {bot_id} is alias")
-
-#     bot = BotModel(
-#         id=decompose_bot_id(item["SK"]),
-#         title=item["Title"],
-#         description=item["Description"],
-#         instruction=item["Instruction"],
-#         create_time=float(item["CreateTime"]),
-#         last_used_time=float(item["LastUsedTime"]),
-#         is_starred=item["IsStarred"],
-#         public_bot_id=None if "PublicBotId" not in item else item["PublicBotId"],
-#         owner_user_id=user_id,
-#         generation_params=GenerationParamsModel.model_validate(
-#             item["GenerationParams"]
-#             if "GenerationParams" in item
-#             else DEFAULT_GENERATION_CONFIG
-#         ),
-#         agent=(
-#             AgentModel(**item["AgentData"])
-#             if "AgentData" in item
-#             else AgentModel(tools=[])
-#         ),
-#         knowledge=KnowledgeModel(
-#             **{**item["Knowledge"], "s3_urls": item["Knowledge"].get("s3_urls", [])}
-#         ),
-#         sync_status=item["SyncStatus"],
-#         sync_status_reason=item["SyncStatusReason"],
-#         sync_last_exec_id=item["LastExecId"],
-#         published_api_stack_name=(
-#             None
-#             if "ApiPublishmentStackName" not in item
-#             else item["ApiPublishmentStackName"]
-#         ),
-#         published_api_datetime=(
-#             None if "ApiPublishedDatetime" not in item else item["ApiPublishedDatetime"]
-#         ),
-#         published_api_codebuild_id=(
-#             None if "ApiPublishCodeBuildId" not in item else item["ApiPublishCodeBuildId"]
-#         ),
-#         display_retrieved_chunks=item.get("DisplayRetrievedChunks", False),
-#         conversation_quick_starters=item.get("ConversationQuickStarters", []),
-#         bedrock_knowledge_base=(
-#             BedrockKnowledgeBaseModel(
-#                 **{
-#                     **item["BedrockKnowledgeBase"],
-#                     "chunking_configuration": item["BedrockKnowledgeBase"].get(
-#                         "chunking_configuration", None
-#                     ),
-#                 }
-#             )
-#             if "BedrockKnowledgeBase" in item
-#             else None
-#         ),
-#         bedrock_guardrails=(
-#             BedrockGuardrailsModel(**item["GuardrailsParams"])
-#             if "GuardrailsParams" in item
-#             else None
-#         ),
-#     )
-
-#     logger.info(f"Found bot: {bot}")
-#     return bot
-
-
-# def find_public_bot_by_id(bot_id: str) -> BotModel:
-#     """Find public bot by id."""
-#     table = get_bot_table_client()  # Use public client
-#     logger.info(f"Finding public bot with id: {bot_id}")
-#     response = table.query(
-#         IndexName="PublicBotIdIndex",
-#         KeyConditionExpression=Key("PublicBotId").eq(bot_id),
-#     )
-#     if len(response["Items"]) == 0:
-#         raise RecordNotFoundError(f"Public bot with id {bot_id} not found")
-
-#     item = response["Items"][0]
-#     bot = BotModel(
-#         id=decompose_bot_id(item["SK"]),
-#         title=item["Title"],
-#         description=item["Description"],
-#         instruction=item["Instruction"],
-#         create_time=float(item["CreateTime"]),
-#         last_used_time=float(item["LastUsedTime"]),
-#         is_starred=item["IsStarred"],
-#         public_bot_id=item["PublicBotId"],
-#         owner_user_id=item["PK"],
-#         generation_params=GenerationParamsModel.model_validate(
-#             item["GenerationParams"]
-#             if "GenerationParams" in item
-#             else DEFAULT_GENERATION_CONFIG
-#         ),
-#         agent=(
-#             AgentModel(**item["AgentData"])
-#             if "AgentData" in item
-#             else AgentModel(tools=[])
-#         ),
-#         knowledge=KnowledgeModel(
-#             **{**item["Knowledge"], "s3_urls": item["Knowledge"].get("s3_urls", [])}
-#         ),
-#         sync_status=item["SyncStatus"],
-#         sync_status_reason=item["SyncStatusReason"],
-#         sync_last_exec_id=item["LastExecId"],
-#         published_api_stack_name=(
-#             None
-#             if "ApiPublishmentStackName" not in item
-#             else item["ApiPublishmentStackName"]
-#         ),
-#         published_api_datetime=(
-#             None if "ApiPublishedDatetime" not in item else item["ApiPublishedDatetime"]
-#         ),
-#         published_api_codebuild_id=(
-#             None if "ApiPublishCodeBuildId" not in item else item["ApiPublishCodeBuildId"]
-#         ),
-#         display_retrieved_chunks=item.get("DisplayRetrievedChunks", False),
-#         conversation_quick_starters=item.get("ConversationQuickStarters", []),
-#         bedrock_knowledge_base=(
-#             BedrockKnowledgeBaseModel(
-#                 **{
-#                     **item["BedrockKnowledgeBase"],
-#                     "chunking_configuration": item["BedrockKnowledgeBase"].get(
-#                         "chunking_configuration", None
-#                     ),
-#                 }
-#             )
-#             if "BedrockKnowledgeBase" in item
-#             else None
-#         ),
-#         bedrock_guardrails=(
-#             BedrockGuardrailsModel(**item["GuardrailsParams"])
-#             if "GuardrailsParams" in item
-#             else None
-#         ),
-#     )
-#     logger.info(f"Found public bot: {bot}")
-#     return bot
-
-
-# def find_alias_by_id(user_id: str, alias_id: str) -> BotAliasModel:
-#     # TODO: 削除を検討 -> prepare_conversationで、初回会話時にのチェックで使われているので必要。存在チェックだけで良い
-#     """Find alias bot by id."""
-#     table = get_bot_table_client()
-#     logger.info(f"Finding alias bot with id: {alias_id}")
-#     response = table.query(
-#         IndexName="SKIndex",
-#         KeyConditionExpression=Key("SK").eq(compose_bot_alias_id(user_id, alias_id)),
-#     )
-#     if len(response["Items"]) == 0:
-#         raise RecordNotFoundError(f"Alias bot with id {alias_id} not found")
-#     item = response["Items"][0]
-
-#     bot = BotAliasModel(
-#         id=decompose_bot_alias_id(item["SK"]),
-#         title=item["Title"],
-#         description=item["Description"],
-#         original_bot_id=item["OriginalBotId"],
-#         create_time=float(item["CreateTime"]),
-#         last_used_time=float(item["LastUsedTime"]),
-#         is_starred=item["IsStarred"],
-#         sync_status=item["SyncStatus"],
-#         has_knowledge=item["HasKnowledge"],
-#         has_agent=item.get("HasAgent", False),
-#         conversation_quick_starters=item.get("ConversationQuickStarters", []),
-#     )
-
-#     logger.info(f"Found alias: {bot}")
-#     return bot
+    try:
+        response = table.query(
+            KeyConditionExpression=Key("PK").eq(user_id)
+            & Key("SK").eq(compose_sk(bot_id, "alias"))
+        )
+        return len(response.get("Items", [])) > 0
+    except ClientError as e:
+        logger.error(f"Error while checking alias existence: {e}")
+        return False
 
 
 def update_bot_publication(

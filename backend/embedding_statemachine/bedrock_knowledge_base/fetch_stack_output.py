@@ -1,8 +1,7 @@
 import os
+
 import boto3
-from app.repositories.custom_bot import (
-    decompose_bot_id,
-)
+from app.repositories.common import decompose_sk
 
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION")
 
@@ -14,7 +13,7 @@ def handler(event, context):
     pk = event["pk"]
     sk = event["sk"]
 
-    bot_id = decompose_bot_id(sk)
+    bot_id = decompose_sk(sk)
 
     # Note: stack naming rule is defined on:
     # cdk/bin/bedrock-knowledge-base.ts

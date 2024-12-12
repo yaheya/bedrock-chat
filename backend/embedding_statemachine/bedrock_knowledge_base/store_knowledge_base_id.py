@@ -1,6 +1,7 @@
 import logging
 
-from app.repositories.custom_bot import decompose_bot_id, update_knowledge_base_id
+from app.repositories.common import decompose_sk
+from app.repositories.custom_bot import update_knowledge_base_id
 from app.routes.schemas.bot import type_sync_status
 from retry import retry
 from typing_extensions import TypedDict
@@ -24,6 +25,6 @@ def handler(event, context):
     data_source_ids = [x["DataSourceId"] for x in stack_output]
 
     user_id = pk
-    bot_id = decompose_bot_id(sk)
+    bot_id = decompose_sk(sk)
 
     update_knowledge_base_id(user_id, bot_id, kb_id, data_source_ids)

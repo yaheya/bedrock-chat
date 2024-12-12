@@ -18,7 +18,7 @@ from app.repositories.custom_bot import (
     update_bot,
     update_bot_last_used_time,
     update_bot_publication,
-    update_bot_visibility,
+    update_bot_shared_status,
     update_knowledge_base_id,
 )
 from app.repositories.models.custom_bot import (
@@ -409,8 +409,8 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
         store_bot("user1", bot4)
         store_bot("user2", public_bot1)
         store_bot("user2", public_bot2)
-        update_bot_visibility("user2", "public1", True)
-        update_bot_visibility("user2", "public2", True)
+        update_bot_shared_status("user2", "public1", True)
+        update_bot_shared_status("user2", "public2", True)
         store_alias("user1", alias1)
         store_alias("user1", alias2)
         update_bot_publication("user2", "public1", "api1", "build1")
@@ -473,7 +473,7 @@ class TestUpdateBotVisibility(unittest.TestCase):
         store_bot("user1", bot1)
         store_bot("user1", bot2)
         store_bot("user2", public1)
-        update_bot_visibility("user2", "public1", True)
+        update_bot_shared_status("user2", "public1", True)
         store_alias("user1", alias1)
 
     def tearDown(self) -> None:
@@ -482,7 +482,7 @@ class TestUpdateBotVisibility(unittest.TestCase):
         delete_bot_by_id("user2", "public1")
         delete_alias_by_id("user1", "4")
 
-    def test_update_bot_visibility(self):
+    def test_update_bot_shared_status(self):
         # Change original tilte
         update_bot(
             "user2",
@@ -515,7 +515,7 @@ class TestUpdateBotVisibility(unittest.TestCase):
         self.assertEqual(bots[2].available, True)
 
         # Make private
-        update_bot_visibility("user2", "public1", False)
+        update_bot_shared_status("user2", "public1", False)
         bots = fetch_all_bots_by_user_id("user1", limit=3)
         self.assertEqual(len(bots), 3)
         self.assertEqual(bots[0].id, "1")

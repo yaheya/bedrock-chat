@@ -11,7 +11,7 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseInput,
     BedrockKnowledgeBaseOutput,
 )
-from pydantic import Field, root_validator, validator
+from pydantic import Field, field_validator, root_validator, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -27,7 +27,7 @@ type_sync_status = Literal[
     "ORIGINAL_NOT_FOUND",
 ]
 
-type_shared_scope = Literal["partial", "all"]
+type_shared_scope = Literal["partial", "all", "private"]
 
 
 class GenerationParams(BaseSchema):
@@ -284,7 +284,7 @@ class BotMetaOutput(BaseSchema):
     # This can be `False` if the bot is not owned by the user and original bot is removed.
     available: bool
     sync_status: type_sync_status
-    shared_scope: type_shared_scope | None
+    shared_scope: type_shared_scope
     shared_status: str = Field(
         ...,
         description="Shared status of the bot. Possible values: `private`, `shared` and `pinned@xxx",
@@ -303,19 +303,40 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
-    shared_scope: type_shared_scope | None
+    shared_scope: type_shared_scope
     shared_status: str = Field(
         ...,
         description="Shared status of the bot. Possible values: `private`, `shared` and `pinned@xxx",
     )
 
 
-class BotSwitchVisibilityInput(BaseSchema):
-    to_public: bool
+# class BotSwitchVisibilityInput(BaseSchema):
+#     to_public: bool
 
 
-class BotPinnedInput(BaseSchema):
-    pinned: bool
+class PrivateVisibilityInput(BaseSchema):
+    target_shared_scope: Literal["private"]
+
+
+class PartialVisibilityInput(BaseSchema):
+    target_shared_scope: Literal["partial"]
+    target_allowed_user_ids: list[str]
+    target_allowed_group_ids: list[str]
+
+
+class AllVisibilityInput(BaseSchema):
+    target_shared_scope: Literal["all"]
+    target_allowed_user_ids: list[str]
+    target_allowed_group_ids: list[str]
+
+
+BotSwitchVisibilityInput = (
+    PrivateVisibilityInput | PartialVisibilityInput | AllVisibilityInput
+)
+
+
+class BotStarredInput(BaseSchema):
+    starred: bool
 
 
 class BotPresignedUrlOutput(BaseSchema):

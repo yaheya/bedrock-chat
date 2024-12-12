@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Literal
+from typing import Literal, TypeGuard
 
 from app.agents.utils import get_available_tools, get_tool_by_name
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
@@ -8,6 +8,7 @@ from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
 from app.repositories.common import RecordNotFoundError, get_bot_table_client
 from app.repositories.custom_bot import (
+    alias_exists,
     delete_alias_by_id,
     delete_bot_by_id,
     find_bot_by_id,
@@ -21,13 +22,13 @@ from app.repositories.custom_bot import (
     update_alias_star_status,
     update_bot,
     update_bot_last_used_time,
+    update_bot_shared_status,
     update_bot_star_status,
 )
 from app.repositories.models.custom_bot import (
     AgentModel,
     AgentToolModel,
     BotAliasModel,
-    BotMeta,
     BotModel,
     ConversationQuickStarterModel,
     GenerationParamsModel,
@@ -35,18 +36,28 @@ from app.repositories.models.custom_bot import (
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
+from app.routes.schemas.admin import (
+    PushBotInput,
+    PushBotInputPinned,
+    PushBotInputUnpinned,
+)
 from app.routes.schemas.bot import (
     Agent,
     AgentTool,
+    AllVisibilityInput,
     BotInput,
     BotMetaOutput,
     BotModifyInput,
     BotModifyOutput,
     BotOutput,
     BotSummaryOutput,
+    BotSwitchVisibilityInput,
     ConversationQuickStarter,
     GenerationParams,
     Knowledge,
+    PartialVisibilityInput,
+    PrivateVisibilityInput,
+    type_shared_scope,
     type_sync_status,
 )
 from app.routes.schemas.bot_guardrails import BedrockGuardrailsOutput
@@ -59,10 +70,8 @@ from app.utils import (
     delete_file_from_s3,
     delete_files_with_prefix_from_s3,
     generate_presigned_url,
-    get_current_time,
     move_file_in_s3,
 )
-from boto3.dynamodb.conditions import Attr, Key
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +143,9 @@ def modify_owned_bot(
     user: User, bot_id: str, modify_input: BotModifyInput
 ) -> BotModifyOutput:
     """Modify owned bot."""
+    # TODO: refactor
     bot = find_bot_by_id(bot_id)
+
     if not bot.is_editable_by_user(user):
         raise PermissionError(f"User {user.id} is not authorized to modify bot {bot_id}")
 
@@ -306,6 +317,7 @@ def fetch_bot(user: User, bot_id: str) -> tuple[bool, BotModel]:
     owned = bot.is_owned_by_user(user)
 
     # Note that `fetch_bot_summary` creates alias.
+    # TODO: 検証後、削除
     # if not owned:
     #     # Update alias to the latest information
     #     store_alias(user_id=user.id, alias=BotAliasModel.from_bot(bot))
@@ -373,161 +385,146 @@ def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
     if not bot.is_accessible_by_user(user):
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
-    if not bot.is_owned_by_user(user):
+    if not bot.is_owned_by_user(user) and not alias_exists(user.id, bot_id):
         # NOTE: At the first time using shared bot, alias is not created yet.
-        store_alias(user_id=user.id, alias=BotAliasModel.from_bot(bot))
+        store_alias(user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot))
 
-    try:
-        bot = find_private_bot_by_id(user_id, bot_id)
-        return BotSummaryOutput(
-            id=bot_id,
-            title=bot.title,
-            description=bot.description,
-            create_time=bot.create_time,
-            last_used_time=bot.last_used_time,
-            is_starred=bot.is_starred,
-            is_public=True if bot.public_bot_id else False,
-            has_agent=bot.is_agent_enabled(),
-            owned=True,
-            sync_status=bot.sync_status,
-            has_knowledge=bot.has_knowledge(),
-            conversation_quick_starters=[
-                ConversationQuickStarter(
-                    title=starter.title,
-                    example=starter.example,
-                )
-                for starter in bot.conversation_quick_starters
-            ],
-        )
-
-    except RecordNotFoundError:
-        pass
-
-    try:
-        alias = find_alias_by_id(user_id, bot_id)
-        return BotSummaryOutput(
-            id=alias.id,
-            title=alias.title,
-            description=alias.description,
-            create_time=alias.create_time,
-            last_used_time=alias.last_used_time,
-            is_starred=alias.is_starred,
-            is_public=True,
-            has_agent=alias.has_agent,
-            owned=False,
-            sync_status=alias.sync_status,
-            has_knowledge=alias.has_knowledge,
-            conversation_quick_starters=(
-                []
-                if alias.conversation_quick_starters is None
-                else [
-                    ConversationQuickStarter(
-                        title=starter.title,
-                        example=starter.example,
-                    )
-                    for starter in alias.conversation_quick_starters
-                ]
-            ),
-        )
-    except RecordNotFoundError:
-        pass
-
-    try:
-        # NOTE: At the first time using shared bot, alias is not created yet.
-        bot = find_public_bot_by_id(bot_id)
-        current_time = get_current_time()
-        # Store alias when opened shared bot page
-        store_alias(
-            user_id,
-            BotAliasModel(
-                id=bot.id,
-                title=bot.title,
-                description=bot.description,
-                original_bot_id=bot_id,
-                create_time=current_time,
-                last_used_time=current_time,
-                is_starred=False,
-                sync_status=bot.sync_status,
-                has_knowledge=bot.has_knowledge(),
-                has_agent=bot.is_agent_enabled(),
-                conversation_quick_starters=[
-                    ConversationQuickStarterModel(
-                        title=starter.title,
-                        example=starter.example,
-                    )
-                    for starter in bot.conversation_quick_starters
-                ],
-            ),
-        )
-        return BotSummaryOutput(
-            id=bot_id,
-            title=bot.title,
-            description=bot.description,
-            create_time=bot.create_time,
-            last_used_time=bot.last_used_time,
-            is_starred=False,  # NOTE: Shared bot is not pinned by default.
-            is_public=True,
-            has_agent=bot.is_agent_enabled(),
-            owned=False,
-            sync_status=bot.sync_status,
-            has_knowledge=bot.has_knowledge(),
-            conversation_quick_starters=[
-                ConversationQuickStarter(
-                    title=starter.title,
-                    example=starter.example,
-                )
-                for starter in bot.conversation_quick_starters
-            ],
-        )
-    except RecordNotFoundError:
-        raise RecordNotFoundError(
-            f"Bot with ID {bot_id} not found in both private (for user {user_id}) and alias, shared items."
-        )
+    return bot.to_summary_output(user)
 
 
-def modify_pin_status(user: User, bot_id: str, pinned: bool):
+def modify_star_status(user: User, bot_id: str, starred: bool):
     """Modify bot pin status."""
-    try:
-        return update_bot_star_status(user.id, bot_id, pinned)
-    except RecordNotFoundError:
-        pass
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_accessible_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
-    try:
-        return update_alias_star_status(user.id, bot_id, pinned)
-    except RecordNotFoundError:
-        raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
+    if bot.is_owned_by_user(user):
+        return update_bot_star_status(user.id, bot_id, starred)
+    else:
+        return update_alias_star_status(user.id, bot_id, starred)
 
 
 def remove_bot_by_id(user: User, bot_id: str):
     """Remove bot by id."""
-    try:
-        return delete_bot_by_id(user_id, bot_id)
-    except RecordNotFoundError:
-        pass
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_accessible_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
-    try:
-        return delete_alias_by_id(user_id, bot_id)
-    except RecordNotFoundError:
-        raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
+    if bot.is_editable_by_user(user):
+        owner_id = bot.owner_id
+        delete_bot_by_id(owner_id, bot_id)
+    else:
+        delete_alias_by_id(user.id, bot_id)
 
 
-def modify_bot_last_used_time(user: User, bot_id: str):
+def modify_bot_visibility(
+    user: User, bot_id: str, visibility_input: BotSwitchVisibilityInput
+):
+    """Modify bot visibility."""
+
+    def _is_private_visibility_input(
+        input: BotSwitchVisibilityInput,
+    ) -> TypeGuard[PrivateVisibilityInput]:
+        return input.target_shared_scope == "private"
+
+    def _is_partial_visibility_input(
+        input: BotSwitchVisibilityInput,
+    ) -> TypeGuard[PartialVisibilityInput]:
+        return input.target_shared_scope == "partial"
+
+    def _is_all_visibility_input(
+        input: BotSwitchVisibilityInput,
+    ) -> TypeGuard[AllVisibilityInput]:
+        return input.target_shared_scope == "all"
+
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_editable_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to edit bot {bot_id}")
+
+    # Current scope and target scope
+    current_scope_priority = {"all": 3, "partial": 2, "private": 1}
+    target_shared_scope: type_shared_scope = visibility_input.target_shared_scope
+    target_shared_status = "private"
+
+    # Check if the request narrows the scope and the bot is pinned
+    if (
+        bot.shared_status.startswith("pinned@")
+        and current_scope_priority[bot.shared_scope]
+        > current_scope_priority[target_shared_scope]
+    ):
+        raise ValueError(
+            f"Bot {bot_id} is pinned by an administrator and cannot have its scope narrowed from "
+            f"'{bot.shared_scope}' to '{target_shared_scope}'."
+        )
+
+    # Process based on the target scope
+    if _is_private_visibility_input(visibility_input):
+        target_allowed_user_ids = []
+        target_allowed_group_ids = []
+    elif _is_partial_visibility_input(visibility_input) or _is_all_visibility_input(
+        visibility_input
+    ):
+        target_allowed_user_ids = visibility_input.target_allowed_user_ids
+        target_allowed_group_ids = visibility_input.target_allowed_group_ids
+
+        if bot.shared_status != "private":
+            # If the bot is shared, keep the shared status.
+            target_shared_status = bot.shared_status
+        else:
+            # If the bot is private, it will be shared.
+            target_shared_status = "shared"
+    else:
+        raise ValueError("Invalid visibility input")
+
+    update_bot_shared_status(
+        user.id,
+        bot_id,
+        target_shared_scope,
+        target_shared_status,
+        target_allowed_user_ids,
+        target_allowed_group_ids,
+    )
+
+
+def modify_pinning_status(bot_id: str, push_input: PushBotInput):
+    """Modify bot pin status."""
+    bot = find_bot_by_id(bot_id)
+
+    def _is_push_bot_input_pinned(
+        input: PushBotInput,
+    ) -> TypeGuard[PushBotInputPinned]:
+        return input.to_pinned
+
+    if bot.shared_scope == "private":
+        raise ValueError(f"Bot {bot_id} is private bot. Cannot pin/unpin.")
+
+    if _is_push_bot_input_pinned(push_input):
+        shared_status = f"pinned@{push_input.order}"
+    else:
+        shared_status = "shared"
+
+    update_bot_shared_status(
+        bot.owner_id,
+        bot_id,
+        bot.shared_scope,  # Keep the current shared scope
+        shared_status,
+        bot.allowed_cognito_users,
+        bot.allowed_cognito_groups,
+    )
+
+
+def modify_bot_last_used_time(user: User, bot: BotModel):
     """Modify bot last used time."""
-    try:
-        return update_bot_last_used_time(user_id, bot_id)
-    except RecordNotFoundError:
-        pass
-
-    try:
-        return update_alias_last_used_time(user_id, bot_id)
-    except RecordNotFoundError:
-        raise RecordNotFoundError(f"Bot {bot_id} is neither owned nor alias.")
+    if bot.is_owned_by_user(user):
+        return update_bot_last_used_time(user.id, bot.id)
+    else:
+        return update_alias_last_used_time(user.id, bot.id)
 
 
 def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: str) -> str:
     response = generate_presigned_url(
         DOCUMENT_BUCKET,
-        compose_upload_temp_s3_path(user_id, bot_id, filename),
+        compose_upload_temp_s3_path(user.id, bot_id, filename),
         content_type=content_type,
         expiration=3600,
         client_method="put_object",
@@ -537,7 +534,7 @@ def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: st
 
 def remove_uploaded_file(user: User, bot_id: str, filename: str):
     delete_file_from_s3(
-        DOCUMENT_BUCKET, compose_upload_temp_s3_path(user_id, bot_id, filename)
+        DOCUMENT_BUCKET, compose_upload_temp_s3_path(user.id, bot_id, filename)
     )
     return
 

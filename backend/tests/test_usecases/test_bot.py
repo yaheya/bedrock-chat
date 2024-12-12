@@ -3,14 +3,6 @@ import sys
 sys.path.insert(0, ".")
 import unittest
 
-from pydantic import BaseModel
-
-from tests.test_usecases.utils.bot_factory import (
-    create_test_bot_alias,
-    create_test_private_bot,
-    create_test_public_bot,
-)
-
 from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
@@ -19,10 +11,15 @@ from app.repositories.custom_bot import (
     update_alias_last_used_time,
     update_bot_last_used_time,
     update_bot_publication,
-    update_bot_visibility,
+    update_bot_shared_status,
 )
-
 from app.usecases.bot import fetch_all_bots_by_user_id, issue_presigned_url
+from pydantic import BaseModel
+from tests.test_usecases.utils.bot_factory import (
+    create_test_bot_alias,
+    create_test_private_bot,
+    create_test_public_bot,
+)
 
 
 class TestIssuePresignedUrl(unittest.TestCase):
@@ -75,8 +72,8 @@ class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
         store_bot(self.first_user_id, bot4)
         store_bot(self.second_user_id, public_bot1)
         store_bot(self.second_user_id, public_bot2)
-        update_bot_visibility(self.second_user_id, self.first_public_bot_id, True)
-        update_bot_visibility(self.second_user_id, self.second_public_bot_id, True)
+        update_bot_shared_status(self.second_user_id, self.first_public_bot_id, True)
+        update_bot_shared_status(self.second_user_id, self.second_public_bot_id, True)
         store_alias(self.first_user_id, alias1)
         store_alias(self.first_user_id, alias2)
         update_bot_publication(

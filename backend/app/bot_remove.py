@@ -8,7 +8,7 @@ from app.repositories.api_publication import (
     find_stack_by_bot_id,
     find_usage_plan_by_id,
 )
-from app.repositories.common import RecordNotFoundError, decompose_bot_id
+from app.repositories.common import RecordNotFoundError, decompose_sk
 
 DOCUMENT_BUCKET = os.environ.get("DOCUMENT_BUCKET", "documents")
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
@@ -71,7 +71,7 @@ def handler(event, context):
         return
 
     user_id = pk
-    bot_id = decompose_bot_id(sk)
+    bot_id = decompose_sk(sk)
 
     delete_from_s3(user_id, bot_id)
     delete_custom_bot_stack_by_bot_id(bot_id)

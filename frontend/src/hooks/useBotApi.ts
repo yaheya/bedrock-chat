@@ -7,8 +7,8 @@ import {
   GetPresignedUrlResponse,
   RegisterBotRequest,
   RegisterBotResponse,
-  UpdateBotPinnedRequest,
-  UpdateBotPinnedResponse,
+  UpdateBotStarredRequest,
+  UpdateBotStarredResponse,
   UpdateBotRequest,
   UpdateBotResponse,
   UpdateBotVisibilityRequest,
@@ -56,8 +56,11 @@ const useBotApi = () => {
     updateBot: (botId: string, params: UpdateBotRequest) => {
       return http.patch<UpdateBotResponse>(`bot/${botId}`, params);
     },
-    updateBotPinned: (botId: string, params: UpdateBotPinnedRequest) => {
-      return http.patch<UpdateBotPinnedResponse>(`bot/${botId}/pinned`, params);
+    updateBotStarred: (botId: string, params: UpdateBotStarredRequest) => {
+      return http.patch<UpdateBotStarredResponse>(
+        `bot/${botId}/starred`,
+        params
+      );
     },
     updateBotVisibility: (
       botId: string,

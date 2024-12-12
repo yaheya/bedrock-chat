@@ -15,7 +15,7 @@ from app.repositories.conversation import (
     store_conversation,
     store_related_documents,
 )
-from app.repositories.custom_bot import find_alias_by_id, store_alias
+from app.repositories.custom_bot import alias_exists, store_alias
 from app.repositories.models.conversation import (
     ConversationModel,
     MessageModel,
@@ -126,38 +126,13 @@ def prepare_conversation(
             if not owned:
                 try:
                     # Check alias is already created
-                    find_alias_by_id(user_id, chat_input.bot_id)
+                    alias_exists(user_id, chat_input.bot_id)
                 except RecordNotFoundError:
                     logger.info(
                         "Bot is not owned by the user. Creating alias to shared bot."
                     )
                     # Create alias item
-                    store_alias(
-                        user_id,
-                        BotAliasModel(
-                            id=bot.id,
-                            title=bot.title,
-                            description=bot.description,
-                            original_bot_id=chat_input.bot_id,
-                            create_time=current_time,
-                            last_used_time=current_time,
-                            is_starred=False,
-                            sync_status=bot.sync_status,
-                            has_knowledge=bot.has_knowledge(),
-                            has_agent=bot.is_agent_enabled(),
-                            conversation_quick_starters=(
-                                []
-                                if bot.conversation_quick_starters is None
-                                else [
-                                    ConversationQuickStarterModel(
-                                        title=starter.title,
-                                        example=starter.example,
-                                    )
-                                    for starter in bot.conversation_quick_starters
-                                ]
-                            ),
-                        ),
-                    )
+                    store_alias(user_id, BotAliasModel.from_bot_for_initial_alias(bot))
 
         # Create new conversation
         conversation = ConversationModel(

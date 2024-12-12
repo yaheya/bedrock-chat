@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.dependencies import check_admin
-from app.repositories.custom_bot import find_all_published_bots, find_public_bot_by_id
+from app.repositories.custom_bot import find_all_published_bots, find_bot_by_id
 from app.repositories.usage_analysis import (
     find_bots_sorted_by_price,
     find_users_sorted_by_price,
@@ -10,10 +10,12 @@ from app.routes.schemas.admin import (
     PublicBotOutput,
     PublishedBotOutput,
     PublishedBotOutputsWithNextToken,
+    PushBotInput,
     UsagePerBotOutput,
     UsagePerUserOutput,
 )
 from app.routes.schemas.bot import Knowledge
+from app.usecases.bot import modify_pinning_status
 from app.user import User
 from fastapi import APIRouter, Depends, Request
 
@@ -105,7 +107,7 @@ async def get_users(
 @router.get("/admin/bot/public/{bot_id}", response_model=PublicBotOutput)
 def get_public_bot(request: Request, bot_id: str, admin_check=Depends(check_admin)):
     """Get public (shared) bot by id."""
-    bot = find_public_bot_by_id(bot_id)
+    bot = find_bot_by_id(bot_id)  # Note that permission check is done in `check_admin`.
     output = PublicBotOutput(
         id=bot.id,
         title=bot.title,
@@ -113,7 +115,7 @@ def get_public_bot(request: Request, bot_id: str, admin_check=Depends(check_admi
         description=bot.description,
         create_time=bot.create_time,
         last_used_time=bot.last_used_time,
-        owner_user_id=bot.owner_user_id,
+        owner_user_id=bot.owner_id,
         knowledge=Knowledge(
             source_urls=bot.knowledge.source_urls,
             sitemap_urls=bot.knowledge.sitemap_urls,
@@ -125,3 +127,14 @@ def get_public_bot(request: Request, bot_id: str, admin_check=Depends(check_admi
         sync_last_exec_id=bot.sync_last_exec_id,
     )
     return output
+
+
+@router.get("/admin/bot/{bot_id}/pushed")
+def pin_bot(
+    request: Request,
+    bot_id: str,
+    push_input: PushBotInput,
+    admin_check=Depends(check_admin),
+):
+    """Push / Un-push the bot."""
+    modify_pinning_status(bot_id, push_input)
