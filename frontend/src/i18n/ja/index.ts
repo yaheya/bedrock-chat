@@ -48,12 +48,14 @@ const translation = {
       },
       'mistral-7b-instruct': {
         label: 'Mistral 7B',
+        description: '自然なコーディング機能で英語のテキスト生成タスクをサポートします'
       },
       'mixtral-8x7b-instruct': {
         label: 'Mistral-8x7B',
+        description: 'Mixtral-8x7BはMistral AIによって開発された基盤モデルで、英語、フランス語、ドイツ語、イタリア語、スペイン語のテキストをサポートし、コード生成機能を備えています。'
       },
       'mistral-large': {
-        label: 'Mistral Large',
+        label: '実質的な推論機能を必要とする複雑なタスクや、合成テキスト生成およびコード生成などの高度に専門化されたタスクに最適です',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',

@@ -156,6 +156,7 @@ const BotKbEditPage: React.FC = () => {
   const activeModelsOptions: {
     key: Model;
     label: string;
+    description: string;
   }[] = (() => {
     const getMistralModels = () =>
       AVAILABLE_MODEL_KEYS.filter(
@@ -163,6 +164,7 @@ const BotKbEditPage: React.FC = () => {
       ).map((key) => ({
         key: key as Model,
         label: t(`model.${key}.label`) as string,
+        description: t(`model.${key}.description`) as string,
       }));
 
     const getClaudeAndNovaModels = () => {
@@ -171,6 +173,7 @@ const BotKbEditPage: React.FC = () => {
       ).map((key) => ({
         key: key as Model,
         label: t(`model.${key}.label`) as string,
+        description: t(`model.${key}.description`) as string,
       }));
     };
 
@@ -2395,7 +2398,7 @@ const BotKbEditPage: React.FC = () => {
 
                 <div className="mt-4">
                   <div className="mt-2 space-y-2">
-                    {activeModelsOptions.map(({ key, label }) => (
+                    {activeModelsOptions.map(({ key, label, description }) => (
                       <div key={key} className="flex items-start">
                         <Toggle
                           value={
