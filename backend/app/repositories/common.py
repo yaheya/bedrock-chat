@@ -85,7 +85,7 @@ def decompose_sk(sk: str):
 #     return pk.split("#")[-1]
 
 
-def _get_aws_resource(service_name, table_name: str, user_id=None):
+def _get_aws_resource(service_name, table_name: str, user_id: str | None = None):
     """Get AWS resource with optional row-level access control for DynamoDB.
     Ref: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_dynamodb_items.html
     """
@@ -126,7 +126,7 @@ def _get_aws_resource(service_name, table_name: str, user_id=None):
         ]
     }
     if user_id:
-        policy_document["Statement"][0]["Condition"] = {
+        policy_document["Statement"][0]["Condition"] = {  # type: ignore[assignment]
             # Allow access to items with the same partition key as the user id
             "ForAllValues:StringLike": {"dynamodb:LeadingKeys": [f"{user_id}*"]}
         }

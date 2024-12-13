@@ -3,8 +3,8 @@ from app.repositories.conversation import (
     delete_conversation_by_id,
     delete_conversation_by_user_id,
     find_conversation_by_user_id,
-    find_related_documents_by_conversation_id,
     find_related_document_by_id,
+    find_related_documents_by_conversation_id,
     update_feedback,
 )
 from app.repositories.models.conversation import FeedbackModel
@@ -42,7 +42,7 @@ def post_message(request: Request, chat_input: ChatInput):
     """Send chat message"""
     current_user: User = request.state.current_user
 
-    conversation, message = chat(user_id=current_user.id, chat_input=chat_input)
+    conversation, message = chat(user=current_user, chat_input=chat_input)
     output = chat_output_from_message(conversation=conversation, message=message)
     return output
 
@@ -135,9 +135,7 @@ def patch_conversation_title(
     """Update conversation title"""
     current_user: User = request.state.current_user
 
-    change_conversation_title(
-        current_user.id, conversation_id, new_title_input.new_title
-    )
+    change_conversation_title(current_user.id, conversation_id, new_title_input.new_title)
 
 
 @router.get(

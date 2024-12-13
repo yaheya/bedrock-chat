@@ -148,7 +148,7 @@ class BotModel(BaseModel):
 
     def is_accessible_by_user(self, user: User) -> bool:
         """Check if the bot is accessible by the user. This is used for reading the bot."""
-        if user.is_admin or self.owner_id == user.id:
+        if user.is_admin() or self.owner_id == user.id:
             return True
 
         if self.shared_scope == "private":
@@ -166,7 +166,7 @@ class BotModel(BaseModel):
 
     def is_editable_by_user(self, user: User) -> bool:
         """Check if the bot is editable by the user. This is used for updating and deleting the bot."""
-        if user.is_admin:
+        if user.is_admin():
             return True
 
         if self.is_owned_by_user(user):
@@ -212,7 +212,7 @@ class BotModel(BaseModel):
 
         sync_status: type_sync_status = (
             "QUEUED"
-            if bot_input.has_knowledge or bot_input.has_guardrails
+            if bot_input.has_knowledge() or bot_input.has_guardrails()
             else "SUCCEEDED"
         )
 
@@ -224,7 +224,7 @@ class BotModel(BaseModel):
             instruction=bot_input.instruction,
             create_time=current_time,
             last_used_time=current_time,
-            shared_scope=None,
+            shared_scope="private",
             shared_status="private",
             allowed_cognito_groups=[],
             allowed_cognito_users=[],
@@ -425,7 +425,7 @@ class BotMeta(BaseModel):
                 has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
                 owned=owned,
                 is_origin_accessible=is_origin_accessible,
-                shared_scope=None,
+                shared_scope="private",
                 shared_status="private",
             )
 

@@ -33,9 +33,7 @@ def post_message(request: Request, message_input: ChatInputWithoutBotId):
 
     # Extract bot_id from `current_user.id`
     # NOTE: user_id naming rule is implemented on `add_current_user_to_request` method
-    bot_id = (
-        current_user.id.split("#")[1] if "#" in current_user.id else current_user.id
-    )
+    bot_id = current_user.id.split("#")[1] if "#" in current_user.id else current_user.id
 
     # Generate conversation id if not provided
     conversation_id = (

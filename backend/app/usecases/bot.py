@@ -169,7 +169,7 @@ def modify_owned_bot(
         )
         # Delete files from upload temp directory
         delete_files_with_prefix_from_s3(
-            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(user_id, bot_id)
+            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(bot.owner_id, bot_id)
         )
 
         filenames = (
@@ -407,7 +407,7 @@ def modify_star_status(user: User, bot_id: str, starred: bool):
 def remove_bot_by_id(user: User, bot_id: str):
     """Remove bot by id."""
     bot = find_bot_by_id(bot_id)
-    if not bot.is_accessible_by_user(user):
+    if not bot.is_editable_by_user(user):
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     if bot.is_editable_by_user(user):

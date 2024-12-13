@@ -409,7 +409,7 @@ def find_owned_bots_by_user_id(user_id: str, limit: int | None = None) -> list[B
         "ScanIndexForward": False,
     }
 
-    bots = []
+    bots: list[BotMeta] = []
     query_count = 0
     MAX_QUERY_COUNT = 5
 

@@ -184,7 +184,7 @@ def remove_bot_publication(user: User, bot_id: str):
     try:
         stack = find_stack_by_bot_id(bot_id)
     except RecordNotFoundError:
-        delete_bot_publication(bot.owner_user_id, bot_id)
+        delete_bot_publication(bot.owner_id, bot_id)
         return
 
     if stack.stack_status == "CREATE_COMPLETED":
@@ -196,7 +196,7 @@ def remove_bot_publication(user: User, bot_id: str):
     delete_stack_by_bot_id(bot_id)
 
     # Delete bot attribute
-    delete_bot_publication(bot.owner_user_id, bot_id)
+    delete_bot_publication(bot.owner_id, bot_id)
     return
 
 
