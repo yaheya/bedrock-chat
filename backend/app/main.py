@@ -103,11 +103,8 @@ def add_current_user_to_request(request: Request, call_next: ASGIApp):
                 )
                 request.state.current_user = get_current_user(token)
         else:
-            request.state.current_user = User(
-                id=f"PUBLISHED_API#{PUBLISHED_API_ID}",
-                name=PUBLISHED_API_ID,  # type: ignore
-                groups=[],
-            )
+            assert PUBLISHED_API_ID is not None, "PUBLISHED_API_ID is not set."
+            request.state.current_user = User.from_published_api_id(PUBLISHED_API_ID)
     else:
         authorization = request.headers.get("Authorization")
         if authorization:
@@ -115,9 +112,7 @@ def add_current_user_to_request(request: Request, call_next: ASGIApp):
             token = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token_str)
             request.state.current_user = get_current_user(token)
         else:
-            request.state.current_user = User(
-                id="test_user", name="test_user", groups=[]
-            )
+            request.state.current_user = User(id="test_user", name="test_user", groups=[])
 
     response = call_next(request)  # type: ignore
     return response

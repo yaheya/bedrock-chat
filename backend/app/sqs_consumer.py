@@ -1,9 +1,8 @@
 import json
 
-from app.routes.schemas.conversation import (
-    ChatInput,
-)
+from app.routes.schemas.conversation import ChatInput
 from app.usecases.chat import chat, chat_output_from_message
+from app.user import User
 
 
 def handler(event, context):
@@ -13,9 +12,12 @@ def handler(event, context):
     for record in event["Records"]:
         message_body = json.loads(record["body"])
         chat_input = ChatInput(**message_body)
-        user_id = f"PUBLISHED_API#{chat_input.bot_id}"
 
-        conversation, message = chat(user_id=user_id, chat_input=chat_input)
+        assert chat_input.bot_id is not None, "bot_id is required for published api"
+
+        user = User.from_published_api_id(chat_input.bot_id)
+
+        conversation, message = chat(user=user, chat_input=chat_input)
         chat_result = chat_output_from_message(
             conversation=conversation,
             message=message,

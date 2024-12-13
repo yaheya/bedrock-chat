@@ -9,16 +9,13 @@ from threading import Thread
 from typing import BinaryIO, Literal, TypedDict
 
 import boto3
+from app.agents.tools.agent_tool import ToolRunResult
 from app.auth import verify_token
-from app.agents.tools.agent_tool import (
-    ToolRunResult,
-)
 from app.repositories.conversation import RecordNotFoundError
 from app.routes.schemas.conversation import ChatInput
 from app.stream import OnStopInput, OnThinking
-from app.usecases.chat import (
-    chat,
-)
+from app.usecases.chat import chat
+from app.user import User
 from boto3.dynamodb.conditions import Attr, Key
 
 WEBSOCKET_SESSION_TABLE_NAME = os.environ["WEBSOCKET_SESSION_TABLE_NAME"]
@@ -162,7 +159,7 @@ class NotificationSender:
 
 
 def process_chat_input(
-    user_id: str,
+    user: User,
     chat_input: ChatInput,
     notificator: NotificationSender,
 ) -> dict:
@@ -171,7 +168,7 @@ def process_chat_input(
 
     try:
         chat(
-            user_id=user_id,
+            user=user,
             chat_input=chat_input,
             on_stream=lambda token: notificator.on_stream(
                 token=token,
@@ -246,6 +243,7 @@ def handler(event, context):
     expire = int(now.timestamp()) + 60 * 2  # 2 minute from now
     body = json.loads(event["body"])
     step = body.get("step")
+    token = body.get("token")
 
     notification_thread = Thread(
         target=lambda: notificator.run(),
@@ -264,7 +262,6 @@ def handler(event, context):
         # 5. Client sends `END` message to the WebSocket API.
         # 6. This handler receives the `END` message, concatenates the parts and sends the message to Bedrock.
         if step == "START":
-            token = body["token"]
             try:
                 # Verify JWT token
                 decoded = verify_token(token)
@@ -294,6 +291,9 @@ def handler(event, context):
             )
             return {"statusCode": 200, "body": "Session started."}
         elif step == "END":
+            decoded = verify_token(token)
+            user = User.from_decoded_token(decoded)
+
             # Retrieve user id
             response = table.query(
                 KeyConditionExpression=Key("ConnectionId").eq(connection_id),
@@ -333,7 +333,7 @@ def handler(event, context):
             # Process the concatenated full message
             chat_input = ChatInput(**json.loads(full_message))
             return process_chat_input(
-                user_id=user_id,
+                user=user,
                 chat_input=chat_input,
                 notificator=notificator,
             )

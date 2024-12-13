@@ -41,6 +41,7 @@ from app.routes.schemas.conversation import (
 )
 from app.stream import ConverseApiStreamHandler, OnStopInput, OnThinking
 from app.usecases.bot import fetch_bot, modify_bot_last_used_time
+from app.user import User
 from app.utils import get_current_time
 from app.vector_search import (
     SearchResult,
@@ -55,7 +56,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def prepare_conversation(
-    user_id: str,
+    user: User,
     chat_input: ChatInput,
 ) -> tuple[str, ConversationModel, BotModel | None]:
     current_time = get_current_time()
@@ -63,7 +64,7 @@ def prepare_conversation(
 
     try:
         # Fetch existing conversation
-        conversation = find_conversation_by_id(user_id, chat_input.conversation_id)
+        conversation = find_conversation_by_id(user.id, chat_input.conversation_id)
         logger.info(f"Found conversation: {conversation}")
         parent_id = chat_input.message.parent_message_id
         if chat_input.message.parent_message_id == "system" and chat_input.bot_id:
@@ -73,7 +74,7 @@ def prepare_conversation(
             parent_id = conversation.last_message_id
         if chat_input.bot_id:
             logger.info("Bot id is provided. Fetching bot.")
-            owned, bot = fetch_bot(user_id, chat_input.bot_id)
+            owned, bot = fetch_bot(user, chat_input.bot_id)
     except RecordNotFoundError:
         # The case for new conversation. Note that editing first user message is not considered as new conversation.
         logger.info(
@@ -104,7 +105,7 @@ def prepare_conversation(
             logger.info("Bot id is provided. Fetching bot.")
             parent_id = "instruction"
             # Fetch bot and append instruction
-            owned, bot = fetch_bot(user_id, chat_input.bot_id)
+            owned, bot = fetch_bot(user, chat_input.bot_id)
             initial_message_map["instruction"] = MessageModel(
                 role="instruction",
                 content=[
@@ -126,13 +127,13 @@ def prepare_conversation(
             if not owned:
                 try:
                     # Check alias is already created
-                    alias_exists(user_id, chat_input.bot_id)
+                    alias_exists(user.id, chat_input.bot_id)
                 except RecordNotFoundError:
                     logger.info(
                         "Bot is not owned by the user. Creating alias to shared bot."
                     )
                     # Create alias item
-                    store_alias(user_id, BotAliasModel.from_bot_for_initial_alias(bot))
+                    store_alias(user.id, BotAliasModel.from_bot_for_initial_alias(bot))
 
         # Create new conversation
         conversation = ConversationModel(
@@ -200,14 +201,14 @@ def trace_to_root(
 
 
 def chat(
-    user_id: str,
+    user: User,
     chat_input: ChatInput,
     on_stream: Callable[[str], None] | None = None,
     on_stop: Callable[[OnStopInput], None] | None = None,
     on_thinking: Callable[[OnThinking], None] | None = None,
     on_tool_result: Callable[[ToolRunResult], None] | None = None,
 ) -> tuple[ConversationModel, MessageModel]:
-    user_msg_id, conversation, bot = prepare_conversation(user_id, chat_input)
+    user_msg_id, conversation, bot = prepare_conversation(user, chat_input)
 
     tools = (
         {t.name: get_tool_by_name(t.name) for t in bot.agent.tools}
@@ -428,9 +429,9 @@ def chat(
         thinking_log.append(tool_result_message)
 
     # Store conversation before finish streaming so that front-end can avoid 404 issue
-    store_conversation(user_id, conversation)
+    store_conversation(user.id, conversation)
     store_related_documents(
-        user_id=user_id,
+        user_id=user.id,
         conversation_id=conversation.id,
         related_documents=related_documents,
     )
@@ -439,10 +440,10 @@ def chat(
         on_stop(result)
 
     # Update bot last used time
-    if chat_input.bot_id:
-        logger.info("Bot id is provided. Updating bot last used time.")
+    if bot:
+        logger.info("Bot is provided. Updating bot last used time.")
         # Update bot last used time
-        modify_bot_last_used_time(user_id, chat_input.bot_id)
+        modify_bot_last_used_time(user, bot)
 
     return conversation, message
 
