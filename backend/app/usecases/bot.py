@@ -133,7 +133,7 @@ def create_new_bot(user: User, bot_input: BotInput) -> BotOutput:
         s3_urls=s3_urls,
     )
 
-    new_bot = BotModel.from_input(bot_input, owner_id=user.id, knowledge=knowledge)
+    new_bot = BotModel.from_input(bot_input, owner_user_id=user.id, knowledge=knowledge)
     store_bot(new_bot)
 
     return new_bot.to_output()
@@ -169,7 +169,7 @@ def modify_owned_bot(
         )
         # Delete files from upload temp directory
         delete_files_with_prefix_from_s3(
-            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(bot.owner_id, bot_id)
+            DOCUMENT_BUCKET, compose_upload_temp_s3_prefix(bot.owner_user_id, bot_id)
         )
 
         filenames = (
@@ -411,8 +411,8 @@ def remove_bot_by_id(user: User, bot_id: str):
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     if bot.is_editable_by_user(user):
-        owner_id = bot.owner_id
-        delete_bot_by_id(owner_id, bot_id)
+        owner_user_id = bot.owner_user_id
+        delete_bot_by_id(owner_user_id, bot_id)
     else:
         delete_alias_by_id(user.id, bot_id)
 
@@ -504,7 +504,7 @@ def modify_pinning_status(bot_id: str, push_input: PushBotInput):
         shared_status = "shared"
 
     update_bot_shared_status(
-        bot.owner_id,
+        bot.owner_user_id,
         bot_id,
         bot.shared_scope,  # Keep the current shared scope
         shared_status,

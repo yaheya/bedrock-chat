@@ -60,9 +60,9 @@ def store_bot(custom_bot: BotModel):
     logger.info(f"Storing bot: {custom_bot}")
 
     item = {
-        "PK": custom_bot.owner_id,
+        "PK": custom_bot.owner_user_id,
         "SK": compose_sk(custom_bot.id, "bot"),
-        "ItemType": compose_item_type(custom_bot.owner_id, "bot"),
+        "ItemType": compose_item_type(custom_bot.owner_user_id, "bot"),
         "Title": custom_bot.title,
         "Description": custom_bot.description,
         "Instruction": custom_bot.instruction,
@@ -106,7 +106,7 @@ def store_bot(custom_bot: BotModel):
 
 
 def update_bot(
-    owner_id: str,
+    owner_user_id: str,
     bot_id: str,
     title: str,
     description: str,
@@ -168,7 +168,7 @@ def update_bot(
 
     try:
         response = table.update_item(
-            Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
             UpdateExpression=update_expression,
             ExpressionAttributeValues=expression_attribute_values,
             ReturnValues="ALL_NEW",
@@ -341,7 +341,7 @@ def update_guardrails_params(
 
 
 def update_bot_shared_status(
-    owner_id: str,
+    owner_user_id: str,
     bot_id: str,
     shared_scope: type_shared_scope,
     shared_status: str,
@@ -354,7 +354,7 @@ def update_bot_shared_status(
 
     try:
         response = table.update_item(
-            Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
             UpdateExpression="SET SharedScope = :shared_scope, SharedStatus = :shared_status, AllowedCognitoUsers = :allowed_user_ids, AllowedCognitoGroups = :allowed_group_ids",
             ExpressionAttributeValues={
                 # Set None for private shared_scope to use sparse index
@@ -577,7 +577,7 @@ def find_bot_by_id(bot_id: str) -> BotModel:
 
     bot = BotModel(
         id=item["BotId"],
-        owner_id=item["PK"],
+        owner_user_id=item["PK"],
         title=item["Title"],
         description=item["Description"],
         instruction=item["Instruction"],
@@ -650,14 +650,14 @@ def alias_exists(user_id: str, bot_id: str) -> bool:
 
 
 def update_bot_publication(
-    owner_id: str, bot_id: str, published_api_id: str, build_id: str
+    owner_user_id: str, bot_id: str, published_api_id: str, build_id: str
 ):
     table = get_bot_table_client()
     current_time = get_current_time()  # epoch time (int) を取得
     logger.info(f"Updating bot publication: {bot_id}")
     try:
         response = table.update_item(
-            Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
             UpdateExpression="SET ApiPublishmentStackName = :val, ApiPublishedDatetime = :time, ApiPublishCodeBuildId = :build_id",
             # NOTE: Stack naming rule: ApiPublishmentStack{published_api_id}.
             # See bedrock-chat-stack.ts > `ApiPublishmentStack`
@@ -677,12 +677,12 @@ def update_bot_publication(
     return response
 
 
-def delete_bot_publication(owner_id: str, bot_id: str):
+def delete_bot_publication(owner_user_id: str, bot_id: str):
     table = get_bot_table_client()
     logger.info(f"Deleting bot publication: {bot_id}")
     try:
         response = table.update_item(
-            Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
             UpdateExpression="REMOVE ApiPublishmentStackName, ApiPublishedDatetime, ApiPublishCodeBuildId",
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
         )
@@ -695,13 +695,13 @@ def delete_bot_publication(owner_id: str, bot_id: str):
     return response
 
 
-def delete_bot_by_id(owner_id: str, bot_id: str):
+def delete_bot_by_id(owner_user_id: str, bot_id: str):
     table = get_bot_table_client()
     logger.info(f"Deleting bot with id: {bot_id}")
 
     try:
         response = table.delete_item(
-            Key={"PK": owner_id, "SK": compose_sk(bot_id, "bot")},
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
         )
     except ClientError as e:

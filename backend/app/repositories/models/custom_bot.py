@@ -1,6 +1,5 @@
 from typing import Literal, Self
 
-from app.agents.utils import get_tool_by_name
 from app.config import DEFAULT_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
 from app.repositories.models.common import Float
@@ -22,7 +21,7 @@ from app.routes.schemas.bot import (
 )
 from app.user import User
 from app.utils import get_current_time, get_user_cognito_groups
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class KnowledgeModel(BaseModel):
@@ -76,7 +75,7 @@ class ConversationQuickStarterModel(BaseModel):
 
 class BotModel(BaseModel):
     id: str
-    owner_id: str
+    owner_user_id: str
     title: str
     description: str
     instruction: str
@@ -133,6 +132,34 @@ class BotModel(BaseModel):
             f"Invalid shared_status: {value}. Must be 'private', 'shared', or 'pinned@xxx' (xxx is a 3-digit integer)."
         )
 
+    @field_validator("shared_scope")
+    def validate_shared_scope(
+        cls, value: type_shared_scope, info: ValidationInfo
+    ) -> type_shared_scope:
+        if value == "private":
+            if info.data.get("shared_status") != "unshared":
+                raise ValueError(
+                    "shared_status must be 'unshared' when shared_scope is 'private'."
+                )
+            if info.data.get("allowed_cognito_groups") or info.data.get(
+                "allowed_cognito_users"
+            ):
+                raise ValueError(
+                    "allowed_cognito_groups and allowed_cognito_users must be empty when shared_scope is 'private'."
+                )
+        return value
+
+    @field_validator("published_api_stack_name")
+    def validate_published_api_stack_name(
+        cls, value: str | None, info: ValidationInfo
+    ) -> str | None:
+        if value is not None:
+            if info.data.get("shared_scope") != "all":
+                raise ValueError(
+                    "published_api_stack_name must be None when shared_scope is not 'all'."
+                )
+        return value
+
     def has_knowledge(self) -> bool:
         return (
             len(self.knowledge.source_urls) > 0
@@ -149,7 +176,7 @@ class BotModel(BaseModel):
 
     def is_accessible_by_user(self, user: User) -> bool:
         """Check if the bot is accessible by the user. This is used for reading the bot."""
-        if user.is_admin() or self.owner_id == user.id:
+        if user.is_admin() or self.owner_user_id == user.id:
             return True
 
         if self.shared_scope == "private":
@@ -177,13 +204,15 @@ class BotModel(BaseModel):
 
     def is_owned_by_user(self, user: User) -> bool:
         """Check if the bot is owned by the user."""
-        return self.owner_id == user.id
+        return self.owner_user_id == user.id
 
     @classmethod
     def from_input(
-        cls, bot_input: BotInput, owner_id: str, knowledge: KnowledgeModel
+        cls, bot_input: BotInput, owner_user_id: str, knowledge: KnowledgeModel
     ) -> Self:
         """Create a BotModel instance. This is used when creating a new bot."""
+        from app.agents.utils import get_tool_by_name
+
         current_time = get_current_time()
 
         generation_params: GenerationParamsDict = (
@@ -219,7 +248,7 @@ class BotModel(BaseModel):
 
         return cls(
             id=bot_input.id,
-            owner_id=owner_id,
+            owner_user_id=owner_user_id,
             title=bot_input.title,
             description=bot_input.description or "",
             instruction=bot_input.instruction,

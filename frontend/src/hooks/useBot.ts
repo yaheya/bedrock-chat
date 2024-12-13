@@ -146,7 +146,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
 
       return api
         .updateBotStarred(botId, {
-          pinned: isStarred,
+          starred: isStarred,
         })
         .finally(() => {
           mutateMyBots();
@@ -182,7 +182,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       );
       return api
         .updateBotStarred(botId, {
-          pinned: isStarred,
+          starred: isStarred,
         })
         .finally(() => {
           mutateRecentlyUsedBots();
