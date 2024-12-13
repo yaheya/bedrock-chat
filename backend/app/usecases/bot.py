@@ -444,7 +444,7 @@ def modify_bot_visibility(
     # Current scope and target scope
     current_scope_priority = {"all": 3, "partial": 2, "private": 1}
     target_shared_scope: type_shared_scope = visibility_input.target_shared_scope
-    target_shared_status = "private"
+    target_shared_status = "unshared"
 
     # Check if the request narrows the scope and the bot is pinned
     if (
@@ -467,7 +467,7 @@ def modify_bot_visibility(
         target_allowed_user_ids = visibility_input.target_allowed_user_ids
         target_allowed_group_ids = visibility_input.target_allowed_group_ids
 
-        if bot.shared_status != "private":
+        if bot.shared_status != "unshared":
             # If the bot is shared, keep the shared status.
             target_shared_status = bot.shared_status
         else:

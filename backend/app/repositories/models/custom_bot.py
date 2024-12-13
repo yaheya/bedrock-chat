@@ -90,7 +90,8 @@ class BotModel(BaseModel):
     )
     # GSI-2 SK (SharedScopeIndex)
     shared_status: str = Field(
-        ..., description="`private`, `shared`, or `pinned@xxx` (xxx is a 3-digit integer)"
+        ...,
+        description="`unshared`, `shared`, or `pinned@xxx` (xxx is a 3-digit integer)",
     )
     allowed_cognito_groups: list[str]
     allowed_cognito_users: list[str]
@@ -225,7 +226,7 @@ class BotModel(BaseModel):
             create_time=current_time,
             last_used_time=current_time,
             shared_scope="private",
-            shared_status="private",
+            shared_status="unshared",
             allowed_cognito_groups=[],
             allowed_cognito_users=[],
             is_starred=False,
@@ -426,7 +427,7 @@ class BotMeta(BaseModel):
                 owned=owned,
                 is_origin_accessible=is_origin_accessible,
                 shared_scope="private",
-                shared_status="private",
+                shared_status="unshared",
             )
 
     def to_output(self) -> BotMetaOutput:
