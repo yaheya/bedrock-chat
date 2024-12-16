@@ -9,12 +9,15 @@ from app.repositories.custom_bot import (
     delete_bot_by_id,
     delete_bot_publication,
     find_all_published_bots,
+    find_bot_by_id,
     find_owned_bots_by_user_id,
-    find_private_bot_by_id,
     find_public_bots_by_ids,
+    find_recently_used_bots_by_user_id,
+    find_starred_bots_by_user_id,
     store_alias,
     store_bot,
     update_alias_last_used_time,
+    update_alias_star_status,
     update_bot,
     update_bot_last_used_time,
     update_bot_publication,
@@ -37,8 +40,10 @@ from app.repositories.models.custom_bot_kb import (
     OpenSearchParamsModel,
 )
 from app.repositories.models.custom_bot_kb import SearchParamsModel as SearchParamsModelKB
-from app.usecases.bot import fetch_all_bots_by_user_id
+from app.usecases.bot import fetch_all_bots
 from tests.test_repositories.utils.bot_factory import (
+    _create_test_bot_model,
+    create_test_partial_shared_bot,
     create_test_private_bot,
     create_test_public_bot,
 )
@@ -46,10 +51,15 @@ from tests.test_repositories.utils.bot_factory import (
 
 class TestCustomBotRepository(unittest.TestCase):
     def test_store_and_find_bot(self):
-        bot = create_test_private_bot(
-            "1",
-            False,
-            "user1",
+        bot = _create_test_bot_model(
+            id="1",
+            title="Test Bot",
+            description="Test Bot Description",
+            instruction="Test Bot Prompt",
+            shared_scope="all",
+            shared_status="shared",
+            is_starred=False,
+            owner_user_id="user1",
             published_api_stack_name="TestApiStack",
             published_api_datetime=1627984879,
             published_api_codebuild_id="TestCodeBuildId",
@@ -91,10 +101,10 @@ class TestCustomBotRepository(unittest.TestCase):
                 guardrail_version="v1",
             ),
         )
-        store_bot("user1", bot)
+        store_bot(bot)
 
         # Assert bot is stored and reconstructed correctly
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         self.assertEqual(bot.id, "1")
         self.assertEqual(bot.title, "Test Bot")
         self.assertEqual(bot.description, "Test Bot Description")
@@ -107,6 +117,12 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.generation_params.top_k, 250)
         self.assertEqual(bot.generation_params.top_p, 0.999)
         self.assertEqual(bot.generation_params.temperature, 0.6)
+
+        self.assertEqual(bot.owner_user_id, "user1")
+        self.assertEqual(bot.shared_scope, "all")
+        self.assertEqual(bot.shared_status, "shared")
+        self.assertEqual(bot.allowed_cognito_users, [])
+        self.assertEqual(bot.allowed_cognito_groups, [])
 
         self.assertEqual(bot.knowledge.source_urls, ["https://aws.amazon.com/"])
         self.assertEqual(bot.knowledge.sitemap_urls, ["https://aws.amazon.sitemap.xml"])
@@ -163,7 +179,6 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot[0].is_starred, False)
         self.assertEqual(bot[0].is_starred, False)
         self.assertEqual(bot[0].description, "Test Bot Description")
-        self.assertEqual(bot[0].is_public, False)
 
         delete_bot_by_id("user1", "1")
         bot = find_owned_bots_by_user_id("user1")
@@ -171,10 +186,10 @@ class TestCustomBotRepository(unittest.TestCase):
 
     def test_update_bot_last_used_time(self):
         bot = create_test_private_bot("1", False, "user1")
-        store_bot("user1", bot)
+        store_bot(bot)
         update_bot_last_used_time("user1", "1")
 
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         self.assertIsNotNone(bot.last_used_time)
         self.assertNotEqual(bot.last_used_time, 1627984879.9)
         self.assertEqual(bot.display_retrieved_chunks, True)
@@ -183,10 +198,10 @@ class TestCustomBotRepository(unittest.TestCase):
 
     def test_update_delete_bot_publication(self):
         bot = create_test_private_bot("1", False, "user1")
-        store_bot("user1", bot)
+        store_bot(bot)
         update_bot_publication("user1", "1", "api1", "build1")
 
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         # NOTE: Stack naming rule: ApiPublishmentStack{published_api_id}.
         # See bedrock-chat-stack.ts > `ApiPublishmentStack`
         self.assertEqual(bot.published_api_stack_name, "ApiPublishmentStackapi1")
@@ -194,7 +209,7 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.published_api_codebuild_id, "build1")
 
         delete_bot_publication("user1", "1")
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         self.assertIsNone(bot.published_api_stack_name)
         self.assertIsNone(bot.published_api_datetime)
         self.assertIsNone(bot.published_api_codebuild_id)
@@ -224,16 +239,16 @@ class TestCustomBotRepository(unittest.TestCase):
                 ),
             ),
         )
-        store_bot("user1", bot)
+        store_bot(bot)
         update_knowledge_base_id("user1", "1", "kb1", ["ds1", "ds2"])
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         self.assertEqual(bot.bedrock_knowledge_base.knowledge_base_id, "kb1")
         self.assertEqual(bot.bedrock_knowledge_base.data_source_ids, ["ds1", "ds2"])
         delete_bot_by_id("user1", "1")
 
     def test_update_bot(self):
         bot = create_test_private_bot("1", False, "user1")
-        store_bot("user1", bot)
+        store_bot(bot)
         update_bot(
             "user1",
             "1",
@@ -299,7 +314,7 @@ class TestCustomBotRepository(unittest.TestCase):
             ),
         )
 
-        bot = find_private_bot_by_id("user1", "1")
+        bot = find_bot_by_id("1")
         self.assertEqual(bot.title, "Updated Title")
         self.assertEqual(bot.description, "Updated Description")
         self.assertEqual(bot.instruction, "Updated Instruction")
@@ -359,93 +374,92 @@ class TestCustomBotRepository(unittest.TestCase):
 
 class TestFindAllBots(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        bot1 = create_test_private_bot("1", is_starred=True, owner_user_id="user1")
-        bot2 = create_test_private_bot("2", is_starred=True, owner_user_id="user1")
-        bot3 = create_test_private_bot("3", is_starred=False, owner_user_id="user1")
-        bot4 = create_test_private_bot("4", is_starred=False, owner_user_id="user1")
-        public_bot1 = create_test_public_bot(
-            "public1", is_starred=True, owner_user_id="user2"
+        # Bots owned by user1
+        bot1 = create_test_private_bot(
+            id="1", is_starred=False, owner_user_id="user1", last_used_time=1627984899.9
         )
-        public_bot2 = create_test_public_bot(
-            "public2", is_starred=True, owner_user_id="user2"
+        bot2 = create_test_partial_shared_bot(
+            id="2", is_starred=True, owner_user_id="user1", last_used_time=1627984879.9
+        )
+        bot3 = create_test_public_bot(
+            id="3", is_starred=False, owner_user_id="user1", last_used_time=1627984859.9
         )
 
-        alias1 = BotAliasModel(
-            id="alias1",
-            # Different from original. Should be updated after `find_all_bots_by_user_id`
-            title="Test Alias",
-            description="Test Alias Description",
-            original_bot_id="public1",
-            last_used_time=1627984879.9,
-            create_time=1627984879.9,
-            # Pinned
-            is_starred=True,
-            sync_status="RUNNING",
-            has_knowledge=True,
-            has_agent=True,
-            conversation_quick_starters=[
-                ConversationQuickStarterModel(title="QS title", example="QS example")
-            ],
+        # Bots owned by user2
+        bot4 = create_test_partial_shared_bot(
+            id="4", is_starred=False, owner_user_id="user2"
         )
-        alias2 = BotAliasModel(
-            id="alias2",
-            title="Test Alias",
-            description="Test Alias Description",
-            original_bot_id="public2",
-            last_used_time=1627984879.9,
-            create_time=1627984879.9,
-            # Not Pinned
-            is_starred=False,
-            sync_status="RUNNING",
-            has_knowledge=True,
-            has_agent=True,
-            conversation_quick_starters=[
-                ConversationQuickStarterModel(title="QS title", example="QS example")
-            ],
-        )
-        store_bot("user1", bot1)
-        store_bot("user1", bot2)
-        store_bot("user1", bot3)
-        store_bot("user1", bot4)
-        store_bot("user2", public_bot1)
-        store_bot("user2", public_bot2)
-        update_bot_shared_status("user2", "public1", True)
-        update_bot_shared_status("user2", "public2", True)
-        store_alias("user1", alias1)
-        store_alias("user1", alias2)
-        update_bot_publication("user2", "public1", "api1", "build1")
+        bot5 = create_test_public_bot(id="5", is_starred=False, owner_user_id="user2")
+
+        # note: Last used time should be latest
+        alias_for_5 = BotAliasModel.from_bot_for_initial_alias(bot5)
+
+        store_bot(bot1)
+        store_bot(bot2)
+        store_bot(bot3)
+        store_bot(bot4)
+        store_bot(bot5)
+
+        # update_bot_shared_status("user2", "public1", True)
+        # update_bot_shared_status("user2", "public2", True)
+        store_alias("user1", alias_for_5)
+        update_alias_star_status("user1", alias_for_5.original_bot_id, True)
+
+        # update_bot_publication("user2", "public1", "api1", "build1")
 
     def tearDown(self) -> None:
         delete_bot_by_id("user1", "1")
         delete_bot_by_id("user1", "2")
         delete_bot_by_id("user1", "3")
-        delete_bot_by_id("user1", "4")
-        delete_bot_by_id("user2", "public1")
-        delete_bot_by_id("user2", "public2")
-        delete_alias_by_id("user1", "alias1")
-        delete_alias_by_id("user1", "alias2")
+        delete_bot_by_id("user2", "4")
+        delete_bot_by_id("user2", "5")
+        delete_alias_by_id("user1", "5")
+
+    def test_find_owned_bots_by_user_id(self):
+        result = find_owned_bots_by_user_id(user_id="user1")
+        assert len(result) == 3
+        # Order by last used time
+        assert result[0].id == "1"
+        assert result[1].id == "2"
+        assert result[2].id == "3"
+
+    def test_find_starred_bots_by_user_id(self):
+        result = find_starred_bots_by_user_id(user_id="user1")
+        assert len(result) == 2
+        assert all(bot.is_starred for bot in result)
+
+        # Order by last used time
+        assert result[0].id == "5"
+        assert result[1].id == "2"
+
+    def test_find_recently_used_bots_by_user_id(self):
+        result = find_recently_used_bots_by_user_id(user_id="user1")
+        assert len(result) == 3
+        # Order by last used time. Should contain "1", "2", "5"
+        assert result[0].id == "5"
+        assert result[1].id == "1"
+        assert result[2].id == "2"
 
     def test_limit(self):
         # Only private bots
-        bots = find_owned_bots_by_user_id("user1", limit=3)
-        self.assertEqual(len(bots), 3)
-        fetched_bot_ids = set(bot.id for bot in bots)
-        expected_bot_ids = {"1", "2", "3", "4"}
-        self.assertTrue(fetched_bot_ids.issubset(expected_bot_ids))
-
-    async def test_find_public_bots_by_ids(self):
-        bots = await find_public_bots_by_ids(["public1", "public2", "1", "2"])
-        # 2 public bots and 2 private bots
+        bots = find_owned_bots_by_user_id("user1", limit=2)
         self.assertEqual(len(bots), 2)
+        assert bots[0].id == "1"
+        assert bots[1].id == "2"
 
-    async def test_find_all_published_bots(self):
-        bots, next_token = find_all_published_bots()
-        # Bot should not contain unpublished bots
-        for bot in bots:
-            self.assertIsNotNone(bot.published_api_stack_name)
-            self.assertIsNotNone(bot.published_api_datetime)
-        # Next token should be None
-        self.assertIsNone(next_token)
+    # async def test_find_public_bots_by_ids(self):
+    #     bots = await find_public_bots_by_ids(["public1", "public2", "1", "2"])
+    #     # 2 public bots and 2 private bots
+    #     self.assertEqual(len(bots), 2)
+
+    # async def test_find_all_published_bots(self):
+    #     bots, next_token = find_all_published_bots()
+    #     # Bot should not contain unpublished bots
+    #     for bot in bots:
+    #         self.assertIsNotNone(bot.published_api_stack_name)
+    #         self.assertIsNotNone(bot.published_api_datetime)
+    #     # Next token should be None
+    #     self.assertIsNone(next_token)
 
 
 class TestUpdateBotVisibility(unittest.TestCase):

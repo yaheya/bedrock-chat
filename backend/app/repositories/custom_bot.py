@@ -14,6 +14,7 @@ from app.repositories.common import (
     compose_item_type,
     compose_sk,
     get_bot_table_client,
+    get_dynamodb_client,
 )
 from app.repositories.models.custom_bot import (
     AgentModel,
@@ -68,12 +69,6 @@ def store_bot(custom_bot: BotModel):
         "Instruction": custom_bot.instruction,
         "CreateTime": decimal(custom_bot.create_time),
         "BotId": custom_bot.id,
-        "SharedScope": (
-            # Set None for private shared_scope to use sparse index
-            custom_bot.shared_scope
-            if custom_bot.shared_scope is not "private"
-            else None
-        ),
         "SharedStatus": custom_bot.shared_status,
         "AllowedCognitoGroups": custom_bot.allowed_cognito_groups,
         "AllowedCognitoUsers": custom_bot.allowed_cognito_users,
@@ -93,6 +88,9 @@ def store_bot(custom_bot: BotModel):
         ],
     }
 
+    if custom_bot.shared_scope != "private":
+        # To use sparse index, set `SharedScope` attribute only when it's not private
+        item["SharedScope"] = custom_bot.shared_scope
     if custom_bot.is_starred:
         # To use sparse index, set `IsStarred` attribute only when it's starred
         item["IsStarred"] = "TRUE"
@@ -191,10 +189,10 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "PK": user_id,
         "SK": compose_sk(alias.original_bot_id, "alias"),
         "ItemType": compose_item_type(user_id, "alias"),
+        "OriginalBotId": alias.original_bot_id,
         "IsOriginAccessible": alias.is_origin_accessible,
         "CreateTime": decimal(alias.create_time),
         "LastUsedTime": decimal(alias.last_used_time),
-        "IsStarred": alias.is_starred,
         "Title": alias.title,
         "Description": alias.description,
         "SyncStatus": alias.sync_status,
@@ -204,6 +202,10 @@ def store_alias(user_id: str, alias: BotAliasModel):
             starter.model_dump() for starter in alias.conversation_quick_starters
         ],
     }
+
+    if alias.is_starred:
+        # To use sparse index, set `IsStarred` attribute only when it's starred
+        item["IsStarred"] = alias.is_starred
 
     response = table.put_item(Item=item)
     return response
@@ -251,19 +253,29 @@ def update_bot_star_status(user_id: str, bot_id: str, starred: bool):
     """Update starred status for bot."""
     table = get_bot_table_client()
     logger.info(f"Updating starred status for bot: {bot_id}")
-    val = "TRUE" if starred else None
+
+    if starred:
+        update_expression = "SET IsStarred = :val"
+        expression_attribute_values = {":val": "TRUE"}
+    else:
+        update_expression = "REMOVE IsStarred"
+        expression_attribute_values = {}
+
     try:
         response = table.update_item(
             Key={"PK": user_id, "SK": compose_sk(bot_id, "bot")},
-            UpdateExpression="SET IsStarred = :val",
-            ExpressionAttributeValues={":val": val},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values if starred else None,
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+            ReturnValues="ALL_NEW",
         )
+        logger.info(f"Updated starred status for bot: {bot_id} successfully")
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             raise RecordNotFoundError(f"Bot with id {bot_id} not found")
         else:
             raise e
+
     return response
 
 
@@ -271,18 +283,29 @@ def update_alias_star_status(user_id: str, alias_id: str, starred: bool):
     """Update starred status for alias."""
     table = get_bot_table_client()
     logger.info(f"Updating starred status for alias: {alias_id}")
+
+    if starred:
+        update_expression = "SET IsStarred = :val"
+        expression_attribute_values = {":val": "TRUE"}
+    else:
+        update_expression = "REMOVE IsStarred"
+        expression_attribute_values = {}
+
     try:
         response = table.update_item(
             Key={"PK": user_id, "SK": compose_sk(alias_id, "alias")},
-            UpdateExpression="SET IsStarred = :val",
-            ExpressionAttributeValues={":val": starred},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values if starred else None,
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+            ReturnValues="ALL_NEW",
         )
+        logger.info(f"Updated starred status for alias: {alias_id} successfully")
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             raise RecordNotFoundError(f"Alias with id {alias_id} not found")
         else:
             raise e
+
     return response
 
 
@@ -352,17 +375,24 @@ def update_bot_shared_status(
     table = get_bot_table_client()
     logger.info(f"Updating shared status for bot: {bot_id}")
 
+    update_expression = "SET SharedStatus = :shared_status, AllowedCognitoUsers = :allowed_user_ids, AllowedCognitoGroups = :allowed_group_ids"
+    expression_attribute_values = {
+        ":shared_status": shared_status,
+        ":allowed_user_ids": allowed_user_ids,
+        ":allowed_group_ids": allowed_group_ids,
+    }
+
+    if shared_scope != "private":
+        update_expression += ", SharedScope = :shared_scope"
+        expression_attribute_values[":shared_scope"] = shared_scope
+    else:
+        update_expression += " REMOVE SharedScope"
+
     try:
         response = table.update_item(
             Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
-            UpdateExpression="SET SharedScope = :shared_scope, SharedStatus = :shared_status, AllowedCognitoUsers = :allowed_user_ids, AllowedCognitoGroups = :allowed_group_ids",
-            ExpressionAttributeValues={
-                # Set None for private shared_scope to use sparse index
-                ":shared_scope": shared_scope if shared_scope != "private" else None,
-                ":shared_status": shared_status,
-                ":allowed_user_ids": allowed_user_ids,
-                ":allowed_group_ids": allowed_group_ids,
-            },
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values,
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
             ReturnValues="ALL_NEW",
         )
@@ -446,9 +476,12 @@ def __find_bots_with_condition(
     1. Query bots with the given query parameters.
     2. Separate bots and aliases.
     3. Process direct bot items.
-    4. Process aliases. batch get their original bots using dynamo batch get item.
+    4. Process aliases. Batch get their original bots using DynamoDB client.
     5. If original bot is not found, create a BotMeta object with `is_origin_accessible=False`.
     """
+    client = get_dynamodb_client(
+        table_type="bot"
+    )  # Use DynamoDB client for batch_get_item
     table = get_bot_table_client()
     bots = []
     query_count = 0
@@ -461,7 +494,7 @@ def __find_bots_with_condition(
         bot_items = []
         alias_items = []
         for item in response["Items"]:
-            if item["ItemType"].find("BOT") != -1:  # Bot
+            if "BOT" in item["ItemType"]:  # Direct bot
                 bot_items.append(item)
             else:  # Alias
                 alias_items.append(item)
@@ -472,25 +505,25 @@ def __find_bots_with_condition(
                 BotMeta.from_dynamo_item(item, owned=True, is_origin_accessible=True)
             )
 
-        # Process aliases. batch get their original bots
+        # Process aliases and batch get original bots
         if alias_items:
             original_bot_ids = [item["OriginalBotId"] for item in alias_items]
 
             for i in range(0, len(original_bot_ids), TRANSACTION_BATCH_READ_SIZE):
                 batch_ids = original_bot_ids[i : i + TRANSACTION_BATCH_READ_SIZE]
-                original_bots_response = table.batch_get_item(
-                    RequestItems={
-                        table.table_name: {
-                            "Keys": [{"BotId": bot_id} for bot_id in batch_ids],
-                            "IndexName": "BotIdIndex",
-                        }
+                request_items = {
+                    table.table_name: {
+                        "Keys": [{"BotId": {"S": bot_id}} for bot_id in batch_ids]
                     }
-                )
+                }
+                original_bots_response = client.batch_get_item(RequestItems=request_items)
 
                 # Create a map of original bot details
                 original_bot_map = {
-                    item["BotId"]: item
-                    for item in original_bots_response["Responses"][table.table_name]
+                    item["BotId"]["S"]: item
+                    for item in original_bots_response.get("Responses", {}).get(
+                        table.table_name, []
+                    )
                 }
 
                 # Create BotMeta objects for aliases
@@ -501,7 +534,9 @@ def __find_bots_with_condition(
                             BotMeta.from_dynamo_item(
                                 original_bot,
                                 owned=False,
-                                is_origin_accessible=original_bot["SharedStatus"]
+                                is_origin_accessible=original_bot.get(
+                                    "SharedStatus", {}
+                                ).get("S", "")
                                 != "private",
                             )
                         )
@@ -588,7 +623,8 @@ def find_bot_by_id(bot_id: str) -> BotModel:
         shared_status=item["SharedStatus"],
         allowed_cognito_groups=item.get("AllowedCognitoGroups", []),
         allowed_cognito_users=item.get("AllowedCognitoUsers", []),
-        is_starred=item["IsStarred"],
+        # Note: IsStarred is set to False for non-starred bots to use sparse index
+        is_starred=item.get("IsStarred", False),
         generation_params=GenerationParamsModel.model_validate(
             item["GenerationParams"]
             if "GenerationParams" in item

@@ -146,7 +146,7 @@ def _get_aws_resource(service_name, table_name: str, user_id: str | None = None)
     return session.resource(service_name, region_name=REGION)
 
 
-def _get_dynamodb_client(user_id=None, table_type: type_table = "conversation"):
+def get_dynamodb_client(user_id=None, table_type: type_table = "conversation"):
     """Get a DynamoDB client, optionally with row-level access control."""
     return _get_aws_resource(
         "dynamodb", user_id=user_id, table_name=_table_name_map[table_type]

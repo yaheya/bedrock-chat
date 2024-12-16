@@ -21,7 +21,7 @@ from app.routes.schemas.bot import (
 )
 from app.user import User
 from app.utils import get_current_time, get_user_cognito_groups
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 
 class KnowledgeModel(BaseModel):
@@ -126,39 +126,79 @@ class BotModel(BaseModel):
 
     @field_validator("shared_status")
     def validate_shared_status(cls, value: str) -> str:
-        if value in {"private", "shared"} or cls.__is_pinned_format(value):
+        if value in {"unshared", "shared"} or cls.__is_pinned_format(value):
             return value
         raise ValueError(
-            f"Invalid shared_status: {value}. Must be 'private', 'shared', or 'pinned@xxx' (xxx is a 3-digit integer)."
+            f"Invalid shared_status: {value}. Must be 'unshared', 'shared', or 'pinned@xxx' (xxx is a 3-digit integer)."
         )
 
-    @field_validator("shared_scope")
-    def validate_shared_scope(
-        cls, value: type_shared_scope, info: ValidationInfo
-    ) -> type_shared_scope:
-        if value == "private":
-            if info.data.get("shared_status") != "unshared":
+    @model_validator(mode="after")
+    def validate_shared_scope(self) -> Self:
+        if self.shared_scope == "private":
+            if self.shared_status != "unshared":
                 raise ValueError(
                     "shared_status must be 'unshared' when shared_scope is 'private'."
                 )
-            if info.data.get("allowed_cognito_groups") or info.data.get(
-                "allowed_cognito_users"
-            ):
+            if self.allowed_cognito_groups or self.allowed_cognito_users:
                 raise ValueError(
                     "allowed_cognito_groups and allowed_cognito_users must be empty when shared_scope is 'private'."
                 )
-        return value
-
-    @field_validator("published_api_stack_name")
-    def validate_published_api_stack_name(
-        cls, value: str | None, info: ValidationInfo
-    ) -> str | None:
-        if value is not None:
-            if info.data.get("shared_scope") != "all":
+        elif self.shared_scope == "partial":
+            if self.shared_status == "unshared":
                 raise ValueError(
-                    "published_api_stack_name must be None when shared_scope is not 'all'."
+                    "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'partial'."
                 )
-        return value
+            if not self.allowed_cognito_groups and not self.allowed_cognito_users:
+                raise ValueError(
+                    "allowed_cognito_groups or allowed_cognito_users must be set when shared_scope is 'partial'."
+                )
+        elif self.shared_scope == "all":
+            if self.shared_status == "unshared":
+                raise ValueError(
+                    "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'all'."
+                )
+        return self
+
+        # TODO
+        # if value == "private":
+        #     if info.data.get("shared_status") != "unshared":
+        #         raise ValueError(
+        #             "shared_status must be 'unshared' when shared_scope is 'private'."
+        #         )
+        #     if info.data.get("allowed_cognito_groups") or info.data.get(
+        #         "allowed_cognito_users"
+        #     ):
+        #         raise ValueError(
+        #             "allowed_cognito_groups and allowed_cognito_users must be empty when shared_scope is 'private'."
+        #         )
+        # elif value == "partial":
+        #     if info.data.get("shared_status") == "unshared":
+        #         raise ValueError(
+        #             "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'partial'."
+        #         )
+        #     if not info.data.get("allowed_cognito_groups") and not info.data.get(
+        #         "allowed_cognito_users"
+        #     ):
+        #         raise ValueError(
+        #             "allowed_cognito_groups or allowed_cognito_users must be set when shared_scope is 'partial'."
+        #         )
+        # elif value == "all":
+        #     if info.data.get("shared_status") == "unshared":
+        #         raise ValueError(
+        #             "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'all'."
+        #         )
+        # return value
+
+    # @field_validator("published_api_stack_name", mode="after")
+    # def validate_published_api_stack_name(
+    #     cls, value: str | None, info: ValidationInfo
+    # ) -> str | None:
+    #     if value is not None:
+    #         if info.data.get("shared_scope") != "all":
+    #             raise ValueError(
+    #                 "published_api_stack_name must be None when shared_scope is not 'all'."
+    #             )
+    #     return value
 
     def has_knowledge(self) -> bool:
         return (
@@ -432,12 +472,12 @@ class BotMeta(BaseModel):
                 description=item["Description"],
                 create_time=float(item["CreateTime"]),
                 last_used_time=float(item["LastUsedTime"]),
-                is_starred=item["IsStarred"],
+                is_starred=item.get("IsStarred", False),
                 sync_status=item["SyncStatus"],
                 has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
                 owned=owned,
                 is_origin_accessible=is_origin_accessible,
-                shared_scope=item["SharedScope"],
+                shared_scope=item.get("SharedScope", "private"),
                 shared_status=item["SharedStatus"],
             )
         else:
@@ -450,7 +490,7 @@ class BotMeta(BaseModel):
                 description=item["Description"],
                 create_time=float(item["CreateTime"]),
                 last_used_time=float(item["LastUsedTime"]),
-                is_starred=item["IsStarred"],
+                is_starred=item.get("IsStarred", False),
                 sync_status=item["SyncStatus"],
                 has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
                 owned=owned,
