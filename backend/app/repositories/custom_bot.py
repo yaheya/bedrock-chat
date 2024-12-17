@@ -190,6 +190,7 @@ def store_alias(user_id: str, alias: BotAliasModel):
         "SK": compose_sk(alias.original_bot_id, "alias"),
         "ItemType": compose_item_type(user_id, "alias"),
         "OriginalBotId": alias.original_bot_id,
+        "OwnerUserId": alias.owner_user_id,
         "IsOriginAccessible": alias.is_origin_accessible,
         "CreateTime": decimal(alias.create_time),
         "LastUsedTime": decimal(alias.last_used_time),
@@ -511,16 +512,20 @@ def __find_bots_with_condition(
 
             for i in range(0, len(original_bot_ids), TRANSACTION_BATCH_READ_SIZE):
                 batch_ids = original_bot_ids[i : i + TRANSACTION_BATCH_READ_SIZE]
+                batch_aliases = alias_items[i : i + TRANSACTION_BATCH_READ_SIZE]
                 request_items = {
                     table.table_name: {
-                        "Keys": [{"BotId": {"S": bot_id}} for bot_id in batch_ids]
+                        "Keys": [
+                            {"PK": alias["OwnerUserId"], "SK": compose_sk(bot_id, "bot")}
+                            for alias, bot_id in zip(batch_aliases, batch_ids)
+                        ]
                     }
                 }
                 original_bots_response = client.batch_get_item(RequestItems=request_items)
 
                 # Create a map of original bot details
                 original_bot_map = {
-                    item["BotId"]["S"]: item
+                    item.get("BotId"): item
                     for item in original_bots_response.get("Responses", {}).get(
                         table.table_name, []
                     )
@@ -534,9 +539,8 @@ def __find_bots_with_condition(
                             BotMeta.from_dynamo_item(
                                 original_bot,
                                 owned=False,
-                                is_origin_accessible=original_bot.get(
-                                    "SharedStatus", {}
-                                ).get("S", "")
+                                # Note: does not care permission control here
+                                is_origin_accessible=original_bot["SharedStatus"]
                                 != "private",
                             )
                         )
@@ -591,6 +595,9 @@ def find_recently_used_bots_by_user_id(
     }
 
     bots = __find_bots_with_condition(query_params)
+
+    # Sort bots by last used time
+    bots.sort(key=lambda x: x.last_used_time, reverse=True)
     if limit:
         bots = bots[:limit]
 
@@ -667,6 +674,27 @@ def find_bot_by_id(bot_id: str) -> BotModel:
 
     logger.info(f"Found bot: {bot}")
     return bot
+
+
+def find_pinned_public_bots() -> list[BotMeta]:
+    """Find all pinned bots."""
+    table = get_bot_table_client()
+    logger.info("Finding pinned bots")
+
+    response = table.query(
+        IndexName="SharedScopeIndex",
+        KeyConditionExpression=Key("SharedScope").eq("all")
+        & Key("SharedStatus").begins_with("pinned"),
+    )
+
+    bots = [
+        # Note: pinned bot should not be editable directly, so `owned=False`
+        BotMeta.from_dynamo_item(item, owned=False, is_origin_accessible=True)
+        for item in response["Items"]
+    ]
+
+    logger.info(f"Found all pinned {len(bots)} bots.")
+    return bots
 
 
 def alias_exists(user_id: str, bot_id: str) -> bool:

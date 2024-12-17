@@ -99,7 +99,6 @@ class BotModel(BaseModel):
 
     # # This can be used as the bot is public or not. Also used for GSI PK
     # public_bot_id: str | None
-    # owner_user_id: str
     # is_starred: bool
 
     generation_params: GenerationParamsModel
@@ -400,6 +399,7 @@ class BotAliasModel(BaseModel):
     # その他必要なもの
     # create_time, last_used_time, is_starred, sync_status, has_knowledge, has_agent, conversation_quick_starters
     original_bot_id: str = Field(..., description="Original Bot ID")
+    owner_user_id: str = Field(..., description="Owner User ID")
     title: str
     description: str
 
@@ -419,6 +419,7 @@ class BotAliasModel(BaseModel):
         current_time = get_current_time()
         return cls(
             original_bot_id=bot.id,
+            owner_user_id=bot.owner_user_id,
             title=bot.title,
             description=bot.description,
             is_origin_accessible=True,

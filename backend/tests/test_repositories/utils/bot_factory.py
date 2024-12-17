@@ -114,7 +114,9 @@ def create_test_public_bot(id, is_starred, owner_user_id, **kwargs):
     )
 
 
-def create_test_partial_shared_bot(id, is_starred, owner_user_id, **kwargs):
+def create_test_partial_shared_bot(
+    id, is_starred, owner_user_id, allowed_cognito_users, **kwargs
+):
     return _create_test_bot_model(
         id=id,
         title="Test Partial Shared Bot",
@@ -122,7 +124,7 @@ def create_test_partial_shared_bot(id, is_starred, owner_user_id, **kwargs):
         instruction=kwargs.get("instruction", "Test Partial Shared Bot Prompt"),
         shared_scope="partial",
         shared_status="shared",
-        allowed_cognito_users=["user1"],
+        allowed_cognito_users=allowed_cognito_users,
         is_starred=is_starred,
         owner_user_id=owner_user_id,
         **kwargs,
@@ -154,5 +156,23 @@ def create_test_pinned_partial_share_bot(id, is_starred, owner_user_id, **kwargs
         allowed_cognito_users=["user1"],
         is_starred=is_starred,
         owner_user_id=owner_user_id,
+        **kwargs,
+    )
+
+
+def create_test_published_bot(id, owner_user_id, **kwargs):
+    return _create_test_bot_model(
+        id=id,
+        title="Test Published Bot",
+        description="Test Published Bot Description",
+        instruction=kwargs.get("instruction", "Test Published Bot Prompt"),
+        shared_scope="all",
+        shared_status="shared",
+        is_starred=False,
+        owner_user_id=owner_user_id,
+        sync_status="SUCCESS",
+        published_api_stack_name="test-stack",
+        published_api_datetime=1627984879.9,
+        published_api_codebuild_id="test-codebuild-id",
         **kwargs,
     )
