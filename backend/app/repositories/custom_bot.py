@@ -231,20 +231,20 @@ def update_bot_last_used_time(user_id: str, bot_id: str):
     return response
 
 
-def update_alias_last_used_time(user_id: str, alias_id: str):
+def update_alias_last_used_time(user_id: str, original_bot_id: str):
     """Update last used time for alias."""
     table = get_bot_table_client()
-    logger.info(f"Updating last used time for alias: {alias_id}")
+    logger.info(f"Updating last used time for alias: {original_bot_id}")
     try:
         response = table.update_item(
-            Key={"PK": user_id, "SK": compose_sk(alias_id, "alias")},
+            Key={"PK": user_id, "SK": compose_sk(original_bot_id, "alias")},
             UpdateExpression="SET LastUsedTime = :val",
             ExpressionAttributeValues={":val": decimal(get_current_time())},
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
         )
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(f"Alias with id {alias_id} not found")
+            raise RecordNotFoundError(f"Alias with id {original_bot_id} not found")
         else:
             raise e
     return response
@@ -255,58 +255,52 @@ def update_bot_star_status(user_id: str, bot_id: str, starred: bool):
     table = get_bot_table_client()
     logger.info(f"Updating starred status for bot: {bot_id}")
 
-    if starred:
-        update_expression = "SET IsStarred = :val"
-        expression_attribute_values = {":val": "TRUE"}
-    else:
-        update_expression = "REMOVE IsStarred"
-        expression_attribute_values = {}
+    key = {"PK": user_id, "SK": compose_sk(bot_id, "bot")}
 
-    try:
+    if starred:
         response = table.update_item(
-            Key={"PK": user_id, "SK": compose_sk(bot_id, "bot")},
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues=expression_attribute_values if starred else None,
+            Key=key,
+            UpdateExpression="SET IsStarred = :val",
+            ExpressionAttributeValues={":val": "TRUE"},
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
             ReturnValues="ALL_NEW",
         )
-        logger.info(f"Updated starred status for bot: {bot_id} successfully")
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(f"Bot with id {bot_id} not found")
-        else:
-            raise e
+    else:
+        response = table.update_item(
+            Key=key,
+            UpdateExpression="REMOVE IsStarred",
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+            ReturnValues="ALL_NEW",
+        )
 
+    logger.info(f"Updated starred status for bot: {bot_id} successfully")
     return response
 
 
-def update_alias_star_status(user_id: str, alias_id: str, starred: bool):
+def update_alias_star_status(user_id: str, original_bot_id: str, starred: bool):
     """Update starred status for alias."""
     table = get_bot_table_client()
-    logger.info(f"Updating starred status for alias: {alias_id}")
+    logger.info(f"Updating starred status for bot: {original_bot_id}")
+
+    key = {"PK": user_id, "SK": compose_sk(original_bot_id, "alias")}
 
     if starred:
-        update_expression = "SET IsStarred = :val"
-        expression_attribute_values = {":val": "TRUE"}
-    else:
-        update_expression = "REMOVE IsStarred"
-        expression_attribute_values = {}
-
-    try:
         response = table.update_item(
-            Key={"PK": user_id, "SK": compose_sk(alias_id, "alias")},
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues=expression_attribute_values if starred else None,
+            Key=key,
+            UpdateExpression="SET IsStarred = :val",
+            ExpressionAttributeValues={":val": "TRUE"},
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
             ReturnValues="ALL_NEW",
         )
-        logger.info(f"Updated starred status for alias: {alias_id} successfully")
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(f"Alias with id {alias_id} not found")
-        else:
-            raise e
+    else:
+        response = table.update_item(
+            Key=key,
+            UpdateExpression="REMOVE IsStarred",
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+            ReturnValues="ALL_NEW",
+        )
 
+    logger.info(f"Updated starred status for bot: {original_bot_id} successfully")
     return response
 
 
@@ -407,21 +401,21 @@ def update_bot_shared_status(
 
 
 def update_alias_is_origin_accessible(
-    user_id: str, alias_id: str, is_origin_accessible: bool
+    user_id: str, original_bot_id: str, is_origin_accessible: bool
 ):
     """Update is_origin_accessible for alias."""
     table = get_bot_table_client()
-    logger.info(f"Updating is_origin_accessible for alias: {alias_id}")
+    logger.info(f"Updating is_origin_accessible for alias: {original_bot_id}")
     try:
         response = table.update_item(
-            Key={"PK": user_id, "SK": compose_sk(alias_id, "alias")},
+            Key={"PK": user_id, "SK": compose_sk(original_bot_id, "alias")},
             UpdateExpression="SET IsOriginAccessible = :val",
             ExpressionAttributeValues={":val": is_origin_accessible},
             ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
         )
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            raise RecordNotFoundError(f"Alias with id {alias_id} not found")
+            raise RecordNotFoundError(f"Alias with id {original_bot_id} not found")
         else:
             raise e
     return response
@@ -542,13 +536,17 @@ def __find_bots_with_condition(
                                 # Note: does not care permission control here
                                 is_origin_accessible=original_bot["SharedStatus"]
                                 != "private",
+                                is_starred=alias.get("IsStarred", False),
                             )
                         )
                     else:
                         # If original bot is not found, create a BotMeta object with `is_origin_accessible=False`
                         bots.append(
                             BotMeta.from_dynamo_item(
-                                alias, owned=False, is_origin_accessible=False
+                                alias,
+                                owned=False,
+                                is_origin_accessible=False,
+                                is_starred=alias.get("IsStarred", False),
                             )
                         )
 
@@ -793,44 +791,6 @@ def delete_alias_by_id(user_id: str, bot_id: str):
             raise e
 
     return response
-
-
-async def find_public_bots_by_ids(bot_ids: list[str]) -> list[BotMetaWithStackInfo]:
-    """Find all public bots by ids. This method is intended for administrator use."""
-    table = get_bot_table_client()
-    loop = asyncio.get_running_loop()
-
-    def query_dynamodb(table, bot_id):
-        response = table.query(
-            IndexName="BotIdIndex",
-            KeyConditionExpression=Key("BotId").eq(bot_id),
-        )
-        return response["Items"]
-
-    tasks = [
-        loop.run_in_executor(None, partial(query_dynamodb, table, bot_id))
-        for bot_id in bot_ids
-    ]
-    results = await asyncio.gather(*tasks)
-
-    bots = []
-    for items in results:
-        for item in items:
-            bots.append(
-                BotMetaWithStackInfo(
-                    id=item["BotId"],
-                    title=item["Title"],
-                    description=item["Description"],
-                    create_time=float(item["CreateTime"]),
-                    last_used_time=float(item["LastUsedTime"]),
-                    sync_status=item["SyncStatus"],
-                    owner_user_id=item["PK"],
-                    published_api_stack_name=item.get("ApiPublishmentStackName", None),
-                    published_api_datetime=item.get("ApiPublishedDatetime", None),
-                )
-            )
-
-    return bots
 
 
 def find_all_published_bots(

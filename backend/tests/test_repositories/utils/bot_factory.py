@@ -168,11 +168,10 @@ def create_test_published_bot(id, owner_user_id, **kwargs):
         instruction=kwargs.get("instruction", "Test Published Bot Prompt"),
         shared_scope="all",
         shared_status="shared",
-        is_starred=False,
         owner_user_id=owner_user_id,
-        sync_status="SUCCESS",
+        sync_status="SUCCEEDED",
         published_api_stack_name="test-stack",
-        published_api_datetime=1627984879.9,
+        published_api_datetime=1627984879,
         published_api_codebuild_id="test-codebuild-id",
         **kwargs,
     )

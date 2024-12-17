@@ -1,4 +1,4 @@
-from typing import Literal, Self
+from typing import Self
 
 from app.config import DEFAULT_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
@@ -79,10 +79,10 @@ class BotModel(BaseModel):
     title: str
     description: str
     instruction: str
-    create_time: float
+    create_time: Float
 
     # SK
-    last_used_time: float
+    last_used_time: Float
     # GSI-2 PK (SharedScopeIndex)
     shared_scope: type_shared_scope = Field(
         ..., description="`partial` or `all` or None. None means the bot is not shared."
@@ -158,46 +158,16 @@ class BotModel(BaseModel):
                 )
         return self
 
-        # TODO
-        # if value == "private":
-        #     if info.data.get("shared_status") != "unshared":
-        #         raise ValueError(
-        #             "shared_status must be 'unshared' when shared_scope is 'private'."
-        #         )
-        #     if info.data.get("allowed_cognito_groups") or info.data.get(
-        #         "allowed_cognito_users"
-        #     ):
-        #         raise ValueError(
-        #             "allowed_cognito_groups and allowed_cognito_users must be empty when shared_scope is 'private'."
-        #         )
-        # elif value == "partial":
-        #     if info.data.get("shared_status") == "unshared":
-        #         raise ValueError(
-        #             "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'partial'."
-        #         )
-        #     if not info.data.get("allowed_cognito_groups") and not info.data.get(
-        #         "allowed_cognito_users"
-        #     ):
-        #         raise ValueError(
-        #             "allowed_cognito_groups or allowed_cognito_users must be set when shared_scope is 'partial'."
-        #         )
-        # elif value == "all":
-        #     if info.data.get("shared_status") == "unshared":
-        #         raise ValueError(
-        #             "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'all'."
-        #         )
-        # return value
-
-    # @field_validator("published_api_stack_name", mode="after")
-    # def validate_published_api_stack_name(
-    #     cls, value: str | None, info: ValidationInfo
-    # ) -> str | None:
-    #     if value is not None:
-    #         if info.data.get("shared_scope") != "all":
-    #             raise ValueError(
-    #                 "published_api_stack_name must be None when shared_scope is not 'all'."
-    #             )
-    #     return value
+    @field_validator("published_api_stack_name", mode="after")
+    def validate_published_api_stack_name(
+        cls, value: str | None, info: ValidationInfo
+    ) -> str | None:
+        if value is not None:
+            if info.data.get("shared_scope") != "all":
+                raise ValueError(
+                    "published_api_stack_name must be None when shared_scope is not 'all'."
+                )
+        return value
 
     def has_knowledge(self) -> bool:
         return (
@@ -405,8 +375,8 @@ class BotAliasModel(BaseModel):
 
     is_origin_accessible: bool
 
-    create_time: float
-    last_used_time: float
+    create_time: Float
+    last_used_time: Float
     is_starred: bool
     sync_status: type_sync_status
     has_knowledge: bool
@@ -437,8 +407,8 @@ class BotMeta(BaseModel):
     id: str = Field(..., description="Bot ID")
     title: str
     description: str
-    create_time: float
-    last_used_time: float
+    create_time: Float
+    last_used_time: Float
     is_starred: bool
     sync_status: type_sync_status
     has_bedrock_knowledge_base: bool
@@ -461,8 +431,16 @@ class BotMeta(BaseModel):
 
     @classmethod
     def from_dynamo_item(
-        cls, item: dict, owned: bool, is_origin_accessible: bool
+        cls,
+        item: dict,
+        owned: bool,
+        is_origin_accessible: bool,
+        is_starred: bool | None = None,
     ) -> Self:
+        _is_starred: bool = (
+            is_starred if is_starred is not None else item.get("IsStarred", False)
+        )
+
         if is_origin_accessible:
             assert (
                 item["ItemType"].find("BOT") != -1
@@ -471,9 +449,9 @@ class BotMeta(BaseModel):
                 id=item["BotId"],
                 title=item["Title"],
                 description=item["Description"],
-                create_time=float(item["CreateTime"]),
-                last_used_time=float(item["LastUsedTime"]),
-                is_starred=item.get("IsStarred", False),
+                create_time=item["CreateTime"],
+                last_used_time=item["LastUsedTime"],
+                is_starred=_is_starred,
                 sync_status=item["SyncStatus"],
                 has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
                 owned=owned,
@@ -489,9 +467,9 @@ class BotMeta(BaseModel):
                 id=item["OriginalBotId"],
                 title=item["Title"],
                 description=item["Description"],
-                create_time=float(item["CreateTime"]),
-                last_used_time=float(item["LastUsedTime"]),
-                is_starred=item.get("IsStarred", False),
+                create_time=item["CreateTime"],
+                last_used_time=item["LastUsedTime"],
+                is_starred=_is_starred,
                 sync_status=item["SyncStatus"],
                 has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
                 owned=owned,
@@ -520,8 +498,8 @@ class BotMetaWithStackInfo(BaseModel):
     id: str = Field(..., description="Bot ID")
     title: str
     description: str
-    create_time: float
-    last_used_time: float
+    create_time: Float
+    last_used_time: Float
     sync_status: type_sync_status
     owner_user_id: str
     published_api_stack_name: str | None
