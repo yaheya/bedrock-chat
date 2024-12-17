@@ -14,6 +14,7 @@ import nb from './nb';
 import th from './th';
 import id from './id';
 import ms from './ms';
+import vi from './vi';
 
 export const LANGUAGES: {
   value: string;
@@ -71,6 +72,10 @@ export const LANGUAGES: {
     value: 'ms',
     label: 'Bahasa Melayu',
   },
+  {
+    value: 'vi',
+    label: 'Tiếng Việt',
+  },
 ];
 
 const resources = {
@@ -87,6 +92,7 @@ const resources = {
   th,
   id,
   ms,
+  vi,
 };
 
 // Settings i18n
