@@ -5,12 +5,11 @@ from app.repositories.models.conversation import (
     TextToolResultModel,
     JsonToolResultModel,
     RelatedDocumentModel,
-    ToolResultContentModel,
-    ToolResultContentModelBody,
 )
 from app.repositories.models.custom_bot import BotModel
 from app.routes.schemas.conversation import type_model_name
 from pydantic import BaseModel, JsonValue
+from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
 from mypy_boto3_bedrock_runtime.type_defs import (
     ToolSpecificationTypeDef,
 )
@@ -27,26 +26,20 @@ class ToolRunResult(TypedDict):
     related_documents: list[RelatedDocumentModel]
 
 
-def run_result_to_tool_result_content_model(
-    run_result: ToolRunResult, display_citation: bool
-) -> ToolResultContentModel:
-    return ToolResultContentModel(
-        content_type="toolResult",
-        body=ToolResultContentModelBody(
-            tool_use_id=run_result["tool_use_id"],
-            content=[
-                related_document.to_tool_result_model(
-                    display_citation=display_citation,
-                )
-                for related_document in run_result["related_documents"]
-            ],
-            status=run_result["status"],
-        ),
-    )
-
-
 class InvalidToolError(Exception):
     pass
+
+
+class RemoveTitle(GenerateJsonSchema):
+    """Custom JSON schema generator that doesn't output `title`s for types and parameters."""
+
+    def field_title_should_be_set(self, schema) -> bool:
+        return False
+
+    def generate(self, schema, mode="validation") -> JsonSchemaValue:
+        value = super().generate(schema, mode)
+        del value["title"]
+        return value
 
 
 class AgentTool(Generic[T]):
@@ -59,19 +52,16 @@ class AgentTool(Generic[T]):
             [T, BotModel | None, type_model_name | None],
             ToolFunctionResult | list[ToolFunctionResult],
         ],
-        bot: BotModel | None = None,
-        model: type_model_name | None = None,
     ):
         self.name = name
         self.description = description
         self.args_schema = args_schema
         self.function = function
-        self.bot = bot
-        self.model: type_model_name | None = model
 
     def _generate_input_schema(self) -> dict[str, Any]:
         """Converts the Pydantic model to a JSON schema."""
-        return self.args_schema.model_json_schema()
+        # Specify a custom generator `RemoveTitle` because some foundation models do not work properly if there are unnecessary titles.
+        return self.args_schema.model_json_schema(schema_generator=RemoveTitle)
 
     def to_converse_spec(self) -> ToolSpecificationTypeDef:
         return ToolSpecificationTypeDef(
@@ -80,10 +70,16 @@ class AgentTool(Generic[T]):
             inputSchema={"json": self._generate_input_schema()},
         )
 
-    def run(self, tool_use_id: str, input: dict[str, JsonValue]) -> ToolRunResult:
+    def run(
+        self,
+        tool_use_id: str,
+        input: dict[str, JsonValue],
+        model: type_model_name,
+        bot: BotModel | None = None,
+    ) -> ToolRunResult:
         try:
             arg = self.args_schema.model_validate(input)
-            res = self.function(arg, self.bot, self.model)
+            res = self.function(arg, bot, model)
             if isinstance(res, list):
                 related_documents = [
                     _function_result_to_related_document(
