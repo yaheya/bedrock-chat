@@ -386,7 +386,7 @@ def fetch_all_bots(
 
 
 def fetch_all_pinned_bots(user: User) -> list[BotMetaOutput]:
-    """Fetch all pinned bots."""
+    """Fetch all pinned bots. Currently, only public pinned bots are supported."""
     bots = find_pinned_public_bots()
     bot_metas = []
     for bot in bots:

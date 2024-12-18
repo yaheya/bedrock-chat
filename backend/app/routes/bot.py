@@ -16,6 +16,7 @@ from app.routes.schemas.bot import (
 from app.usecases.bot import (
     create_new_bot,
     fetch_all_bots,
+    fetch_all_pinned_bots,
     fetch_available_agent_tools,
     fetch_bot_summary,
     issue_presigned_url,
@@ -85,6 +86,15 @@ def get_all_bots(
     current_user: User = request.state.current_user
 
     bots = fetch_all_bots(current_user, limit, pinned, kind)
+    return bots
+
+
+@router.get("/bot/pinned", response_model=list[BotMetaOutput])
+def get_all_pinned_bots(request: Request):
+    """Get all pinned bots. Currently, only pinned public bots are supported."""
+    current_user: User = request.state.current_user
+
+    bots = fetch_all_pinned_bots(current_user)
     return bots
 
 

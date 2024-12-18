@@ -5,13 +5,12 @@ import re
 import time
 from datetime import date, timedelta
 from functools import partial
-from boto3.dynamodb.conditions import Attr, 
+from typing import Any
+
 import boto3
-from app.repositories.custom_bot import find_public_bots_by_ids
-from app.repositories.models.usage_analysis import UsagePerBot, UsagePerUser
 from app.repositories.common import get_bot_table_client
 from app.repositories.models.custom_bot import BotMetaWithStackInfo
-from typing import Any
+from app.repositories.models.usage_analysis import UsagePerBot, UsagePerUser
 
 REGION = os.environ.get("REGION", "us-east-1")
 USAGE_ANALYSIS_DATABASE = os.environ.get(
@@ -61,6 +60,7 @@ async def _find_cognito_users_by_ids(user_ids: list[str]) -> list[dict]:
     results = await asyncio.gather(*tasks)
     return [result for result in results if result is not None]
 
+
 async def _query_bot_by_id(bot_id: str) -> list[dict]:
     """Query DynamoDB to find a public bot by bot_id."""
     table = get_bot_table_client()
@@ -70,12 +70,14 @@ async def _query_bot_by_id(bot_id: str) -> list[dict]:
     )
     return response["Items"]
 
+
 async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInfo]:
     """Find bot metadata by a list of bot ids and return a dict keyed by bot_id."""
     loop = asyncio.get_running_loop()
 
     tasks = [
-        loop.run_in_executor(None, partial(_query_bot_by_id, bot_id)) for bot_id in bot_ids
+        loop.run_in_executor(None, partial(_query_bot_by_id, bot_id))
+        for bot_id in bot_ids
     ]
     results: list[Any] = await asyncio.gather(*tasks)
 
@@ -96,6 +98,7 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
             bots_dict[item["BotId"]] = bot_obj
 
     return bots_dict
+
 
 async def run_athena_query(
     query: str,
