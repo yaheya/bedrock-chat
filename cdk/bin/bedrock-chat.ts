@@ -6,6 +6,7 @@ import { BedrockRegionResourcesStack } from "../lib/bedrock-region-resources";
 import { FrontendWafStack } from "../lib/frontend-waf-stack";
 import { TIdentityProvider } from "../lib/utils/identity-provider";
 import { LogRetentionChecker } from "../rules/log-retention-checker";
+import { Language } from "../lib/constructs/bot-store";
 
 const app = new cdk.App();
 
@@ -43,7 +44,13 @@ const USE_STAND_BY_REPLICAS: boolean =
 const ENABLE_BEDROCK_CROSS_REGION_INFERENCE: boolean = app.node.tryGetContext(
   "enableBedrockCrossRegionInference"
 );
-const ENABLE_LAMBDA_SNAPSTART: boolean = app.node.tryGetContext("enableLambdaSnapStart");
+const ENABLE_LAMBDA_SNAPSTART: boolean = app.node.tryGetContext(
+  "enableLambdaSnapStart"
+);
+const ENABLE_BOT_STORE: boolean = app.node.tryGetContext("enableBotStore");
+const BOT_STORE_LANGUAGE: string = app.node.tryGetContext(
+  "botStoreLanguage"
+) as Language;
 
 // WAF for frontend
 // 2023/9: Currently, the WAF for CloudFront needs to be created in the North America region (us-east-1), so the stacks are separated
@@ -96,6 +103,8 @@ const chat = new BedrockChatStack(app, `BedrockChatStack`, {
   useStandbyReplicas: USE_STAND_BY_REPLICAS,
   enableBedrockCrossRegionInference: ENABLE_BEDROCK_CROSS_REGION_INFERENCE,
   enableLambdaSnapStart: ENABLE_LAMBDA_SNAPSTART,
+  enableBotStore: ENABLE_BOT_STORE,
+  botStoreLanguage: BOT_STORE_LANGUAGE,
 });
 chat.addDependency(waf);
 chat.addDependency(bedrockRegionResources);

@@ -70,6 +70,8 @@
     ],
     "enableRagReplicas": true,
     "enableBedrockCrossRegionInference": true,
-    "enableLambdaSnapStart": true
+    "enableLambdaSnapStart": true,
+    "enableBotStore": true,
+    "botStoreLanguage": "en"
   }
 }

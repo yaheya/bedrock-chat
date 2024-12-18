@@ -23,6 +23,7 @@ import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 import { BedrockCustomBotCodebuild } from "./constructs/bedrock-custom-bot-codebuild";
+import { BotStore, Language } from "./constructs/bot-store";
 
 export interface BedrockChatStackProps extends StackProps {
   readonly bedrockRegion: string;
@@ -40,6 +41,8 @@ export interface BedrockChatStackProps extends StackProps {
   readonly useStandbyReplicas: boolean;
   readonly enableBedrockCrossRegionInference: boolean;
   readonly enableLambdaSnapStart: boolean;
+  readonly enableBotStore: boolean;
+  readonly botStoreLanguage: Language;
 }
 
 export class BedrockChatStack extends cdk.Stack {
@@ -222,6 +225,15 @@ export class BedrockChatStack extends cdk.Stack {
         allowedIpV6AddressRanges: props.publishedApiAllowedIpV6AddressRanges,
       }
     );
+
+    // Custom Bot Store
+    if (props.enableBotStore) {
+      const botStore = new BotStore(this, "BotStore", {
+        botTable: database.botTable,
+        useStandbyReplicas: props.useStandbyReplicas,
+        language: props.botStoreLanguage,
+      });
+    }
 
     new CfnOutput(this, "DocumentBucketName", {
       value: props.documentBucket.bucketName,
