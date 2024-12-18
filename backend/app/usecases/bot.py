@@ -428,6 +428,10 @@ def modify_star_status(user: User, bot_id: str, starred: bool):
 def remove_bot_by_id(user: User, bot_id: str):
     """Remove bot by id."""
     bot = find_bot_by_id(bot_id)
+    if bot.is_pinned():
+        raise ValueError(
+            f"Bot {bot_id} is pinned by an administrator and cannot be deleted."
+        )
     if not bot.is_editable_by_user(user):
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 

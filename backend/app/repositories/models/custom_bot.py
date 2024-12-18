@@ -183,6 +183,9 @@ class BotModel(BaseModel):
     def has_bedrock_knowledge_base(self) -> bool:
         return self.bedrock_knowledge_base is not None
 
+    def is_pinned(self) -> bool:
+        return self.shared_status.startswith("pinned@")
+
     def is_accessible_by_user(self, user: User) -> bool:
         """Check if the bot is accessible by the user. This is used for reading the bot."""
         if user.is_admin() or self.owner_user_id == user.id:

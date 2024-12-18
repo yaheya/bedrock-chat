@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, ".")
 import unittest
 
+from app.repositories.common import RecordNotFoundError
 from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
@@ -17,7 +18,6 @@ from app.routes.schemas.admin import (
 )
 from app.routes.schemas.bot import (
     AllVisibilityInput,
-    BotSwitchVisibilityInput,
     PartialVisibilityInput,
     PrivateVisibilityInput,
 )
@@ -30,6 +30,7 @@ from app.usecases.bot import (
     modify_bot_visibility,
     modify_pinning_status,
     modify_star_status,
+    remove_bot_by_id,
 )
 from tests.test_repositories.utils.bot_factory import (
     create_test_partial_shared_bot,
@@ -231,12 +232,14 @@ class TestScenario(unittest.TestCase):
         delete_cognito_user(cls.admin)
 
     def setUp(self) -> None:
-        # Create user1 bots
+        # Create user1 bots. Both are private
         self.user1_bot1 = create_test_private_bot("1", False, "user1")
         self.user1_bot2 = create_test_private_bot("2", False, "user1")
 
-        # Create user2 bots
+        # Create user2 partial shared bots
+        # bot3 is not shared to user1
         self.user2_bot1 = create_test_partial_shared_bot("3", False, "user2", ["user10"])
+        # bot4 is shared to user1
         self.user2_bot2 = create_test_partial_shared_bot("4", False, "user2", ["user1"])
 
         store_bot(self.user1_bot1)
@@ -247,8 +250,12 @@ class TestScenario(unittest.TestCase):
     def tearDown(self) -> None:
         delete_bot_by_id("user1", "1")
         delete_bot_by_id("user1", "2")
-        delete_bot_by_id("user2", "3")
         delete_bot_by_id("user2", "4")
+
+        try:
+            delete_bot_by_id("user2", "3")
+        except RecordNotFoundError:
+            pass
 
         try:
             delete_alias_by_id("user1", "3")
@@ -262,12 +269,12 @@ class TestScenario(unittest.TestCase):
             print("Alias not found")
             pass
 
-    def test_scenario(self):
-        # Step 1: user1がuser2のボットを取得しようとする (失敗)
+    def test_scenario1(self):
+        # Step 1: Try to fetch user2's bot (should fail)
         with self.assertRaises(PermissionError):
             fetch_bot_summary(self.user1, "3")
 
-        # Step 2: user2のボットの visibility を partial に変更
+        # Step 2: Change user2's bot3 visibility to partial
         input_data = PartialVisibilityInput(
             target_shared_scope="partial",
             target_allowed_user_ids=["user1"],
@@ -275,31 +282,30 @@ class TestScenario(unittest.TestCase):
         )
         modify_bot_visibility(self.user2, "3", input_data)
 
-        # Step 3: user1が再度fetch_bot_summaryし、成功する
-        # このタイミングでAliasが作成される
+        # Step 3: user1 fetches user2's bot3 (should succeed)
+        # Alias is created at this point
         summary = fetch_bot_summary(self.user1, "3")
         self.assertEqual(summary.id, "3")
 
-        # Step 4: fetch_all_bots で private ボットを取得
+        # Step 4: user1 fetches user2's bot4 (should succeed)
         user1_private_bots = fetch_all_bots(self.user1, kind="private", limit=10)
         self.assertEqual(len(user1_private_bots), 2)
 
-        # Step 5: fetch_all_bots を mixed で取得 (エイリアスが含まれる)
+        # Step 5: fetch_all_bots as mixed (should include alias for user2's bot3)
         user1_mixed_bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
-        self.assertEqual(len(user1_mixed_bots), 3)  # 自分のボット2つ + user2のエイリアス
+        self.assertEqual(len(user1_mixed_bots), 3)  # 2 private + 1 alias
 
-        # Step 6: fetch_all_pinned_bots でピン留めボット確認 (0個のはず)
+        # Step 6: fetch_all_pinned_bots (should be empty)
         pinned_bots = fetch_all_pinned_bots(self.user1)
         self.assertEqual(len(pinned_bots), 0)
 
-        # Step 7: user1が自分のボットと user2 のエイリアスにスターをつける
+        # Step 7: user1 star user2's bot3 and bot4
         modify_star_status(self.user1, "1", True)
         modify_star_status(self.user1, "3", True)
-
         starred_bots = fetch_all_bots(self.user1, starred=True, kind="mixed")
         self.assertEqual(len(starred_bots), 2)
 
-        # Step 8: 管理者が user2 のボットの1つを public にし、ピン留め
+        # Step 8: Admin pins user2's bot3
         modify_bot_visibility(
             self.admin,
             "3",
@@ -307,16 +313,16 @@ class TestScenario(unittest.TestCase):
         )
         modify_pinning_status("3", PushBotInputPinned(to_pinned=True, order=1))
 
-        # Step 9: fetch_all_pinned_bots で確認 (1個増えるはず)
+        # Step 9: fetch_all_pinned_bots (should include user2's bot3)
         pinned_bots = fetch_all_pinned_bots(self.user1)
         self.assertEqual(len(pinned_bots), 1)
         self.assertEqual(pinned_bots[0].id, "3")
 
-        # Step 10: fetch_all_bots mixed で取得 (pinnedボットが除外される)
+        # Step 10: user1 fetches mixed bots after pinning
         mixed_bots_after_pin = fetch_all_bots(self.user1, kind="mixed", limit=10)
-        self.assertEqual(len(mixed_bots_after_pin), 2)
+        self.assertEqual(len(mixed_bots_after_pin), 2)  # exclude pinned bot3
 
-        # Step 11: user1のボットのパーミッションを変更し、user2がアクセス不可に
+        # Step 11: modifies user2's bot4 visibility to private
         summary = fetch_bot_summary(self.user1, "4")
         self.assertEqual(summary.id, "4")
         bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
@@ -328,15 +334,39 @@ class TestScenario(unittest.TestCase):
             PrivateVisibilityInput(target_shared_scope="private"),
         )
 
-        # Step 12: user1がuser2のボットにアクセスしようとすると失敗
+        # Step 12: user1 fetches user2's bot4 (should fail)
         with self.assertRaises(PermissionError):
             fetch_bot(self.user1, "4")
 
-        # Step 13: fetch_all_bots で mixed 取得し、ボットメタはアクセス不可
+        # Step 13: fetch_all_bots as mixed
         user1_mixed_bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
         for bot_meta in user1_mixed_bots:
             if bot_meta.id == "4":
-                self.assertFalse(bot_meta.available)  # アクセス不可を確認
+                self.assertFalse(bot_meta.available)  # bot4 is not available
+
+        # Step 14: try to remove bot3
+        with self.assertRaises(ValueError):
+            remove_bot_by_id(self.user1, "3")
+
+        # Step 15: Unpin bot3
+        modify_pinning_status("3", PushBotInputUnpinned(to_pinned=False))
+
+        # Step 16: remove bot3 by admin
+        remove_bot_by_id(self.admin, "3")
+
+        # Step 17: fetch_all_pinned_bots (should be empty)
+        pinned_bots = fetch_all_pinned_bots(self.user1)
+        self.assertEqual(len(pinned_bots), 0)
+
+        # Step 18: Try access bot3 by user1
+        with self.assertRaises(RecordNotFoundError):
+            fetch_bot(self.user1, "3")
+
+        # Step 19: fetch_all_bots as mixed
+        user1_mixed_bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
+        for bot_meta in user1_mixed_bots:
+            if bot_meta.id == "3":
+                self.assertFalse(bot_meta.available)
 
 
 if __name__ == "__main__":
