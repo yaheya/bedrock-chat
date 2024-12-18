@@ -48,7 +48,7 @@ const ENABLE_LAMBDA_SNAPSTART: boolean = app.node.tryGetContext(
   "enableLambdaSnapStart"
 );
 const ENABLE_BOT_STORE: boolean = app.node.tryGetContext("enableBotStore");
-const BOT_STORE_LANGUAGE: string = app.node.tryGetContext(
+const BOT_STORE_LANGUAGE: Language = app.node.tryGetContext(
   "botStoreLanguage"
 ) as Language;
 

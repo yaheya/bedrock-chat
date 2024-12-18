@@ -12,9 +12,15 @@ import {
   ObjectOwnership,
 } from "aws-cdk-lib/aws-s3";
 import { RemovalPolicy, Stack } from "aws-cdk-lib";
-import { Effect, Policy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import {
+  Effect,
+  Policy,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 
-export type Language = 
+export type Language =
   | "en"
   | "de"
   | "fr"
@@ -44,7 +50,8 @@ export class BotStore extends Construct {
       lower: true,
     });
 
-    const standbyReplicas: props.useStandbyReplicas === true ? "ENABLED" : "DISABLED";
+    const standbyReplicas =
+      props.useStandbyReplicas === true ? "ENABLED" : "DISABLED";
 
     const networkPolicy = new oss.CfnSecurityPolicy(this, "NetworkPolicy", {
       name: generatePhysicalName(this, "NetworkPolicy", {
@@ -94,7 +101,7 @@ export class BotStore extends Construct {
       name: collectionName,
       // type: 'VECTORSEARCH',
       type: "SEARCH",
-      standbyReplicas
+      standbyReplicas,
     });
 
     const endpoint = collection.getAtt("CollectionEndpoint").toString();
@@ -109,7 +116,8 @@ export class BotStore extends Construct {
     });
 
     const ingestionLogGroup = new logs.LogGroup(this, "IngensionLogGroup", {
-      logGroupName: `/aws/vendedlogs/OpenSearchIngestion/bot-table-osis-pipeline/${id}`.toLowerCase(),
+      logGroupName:
+        `/aws/vendedlogs/OpenSearchIngestion/bot-table-osis-pipeline/${id}`.toLowerCase(),
       removalPolicy: RemovalPolicy.DESTROY,
       retention: logs.RetentionDays.ONE_WEEK,
     });
@@ -271,9 +279,9 @@ export class BotStore extends Construct {
                     template_type: "index-template",
                     template_content: this.genTemplateContent(props.language),
                   }),
-              document_id: "${getMetadata(\"primary_key\")}",
-              action: "${getMetadata(\"opensearch_action\")}",
-              document_version: "${getMetadata(\"document_version\")}",
+              document_id: '${getMetadata("primary_key")}',
+              action: '${getMetadata("opensearch_action")}',
+              document_version: '${getMetadata("document_version")}',
               document_version_type: "external",
               aws: {
                 sts_role_arn: osisRole.roleArn,
@@ -288,7 +296,7 @@ export class BotStore extends Construct {
 
     new osis.CfnPipeline(this, "OsisPipeline", {
       pipelineName: generatePhysicalName(this, "OsisPipeline", {
-        maxLength: 32,
+        maxLength: 20,
         lower: true,
       }),
       minUnits: 1,
@@ -329,7 +337,7 @@ export class BotStore extends Construct {
             },
           },
         });
-  
+
       default:
         throw new Error(`Unsupported language: ${language}`);
     }
