@@ -1,9 +1,8 @@
 import sys
 import unittest
+from decimal import Decimal
 
 sys.path.append(".")
-
-
 from app.repositories.models.custom_bot import (
     AgentModel,
     AgentToolModel,
@@ -14,6 +13,12 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+)
+from app.repositories.models.custom_bot_kb import (
+    AnalyzerParamsModel,
+    OpenSearchParamsModel,
+    SearchParamsModel,
+    WebCrawlingFiltersModel,
 )
 from app.routes.schemas.bot import type_sync_status
 
@@ -81,8 +86,33 @@ def _create_test_bot_model(
         conversation_quick_starters=(
             [] if conversation_quick_starters is None else conversation_quick_starters
         ),
-        bedrock_knowledge_base=bedrock_knowledge_base,
-        bedrock_guardrails=bedrock_guardrails,
+        bedrock_knowledge_base=bedrock_knowledge_base
+        or BedrockKnowledgeBaseModel(
+            embeddings_model="titan_v2",
+            open_search=OpenSearchParamsModel(analyzer=None),
+            chunking_configuration=None,
+            search_params=SearchParamsModel(max_results=10, search_type="hybrid"),
+            knowledge_base_id="test-knowledge-base-id",
+            data_source_ids=["data-source-1", "data-source-2"],
+            parsing_model="disabled",
+            web_crawling_scope="DEFAULT",
+            web_crawling_filters=WebCrawlingFiltersModel(
+                exclude_patterns=["exclude-pattern"], include_patterns=["include-pattern"]
+            ),
+        ),
+        bedrock_guardrails=bedrock_guardrails
+        or BedrockGuardrailsModel(
+            is_guardrail_enabled=True,
+            hate_threshold=80,
+            insults_threshold=70,
+            sexual_threshold=75,
+            violence_threshold=85,
+            misconduct_threshold=60,
+            grounding_threshold=0.9,
+            relevance_threshold=0.9,
+            guardrail_arn="arn:aws:bedrock:us-east-1:123456789012:guardrail/test-guardrail",
+            guardrail_version="1.0.0",
+        ),
     )
 
 

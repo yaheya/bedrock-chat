@@ -13,6 +13,7 @@ from app.repositories.custom_bot import (
     delete_bot_by_id,
     find_bot_by_id,
     find_owned_bots_by_user_id,
+    find_pinned_public_bots,
     find_recently_used_bots_by_user_id,
     find_starred_bots_by_user_id,
     store_alias,
@@ -213,7 +214,7 @@ def modify_owned_bot(
     )
 
     update_bot(
-        user.id,
+        bot.owner_user_id,
         bot_id,
         title=modify_input.title,
         instruction=modify_input.instruction,
@@ -306,11 +307,15 @@ def fetch_bot(user: User, bot_id: str) -> tuple[bool, BotModel]:
         bot = find_bot_by_id(bot_id)
     except RecordNotFoundError as e:
         # NOTE: If the bot is not found, it must be an alias.
+        logger.info(f"Bot {bot_id} is not found. Update alias.")
         update_alias_is_origin_accessible(user.id, bot_id, False)
         raise e
 
     if not bot.is_accessible_by_user(user):
         # NOTE: If the bot is not accessible, it must be an alias.
+        logger.info(
+            f"User {user.id} is not authorized to access bot {bot_id}. Update alias."
+        )
         update_alias_is_origin_accessible(user.id, bot_id, False)
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
@@ -380,13 +385,29 @@ def fetch_all_bots(
     return bot_metas
 
 
+def fetch_all_pinned_bots(user: User) -> list[BotMetaOutput]:
+    """Fetch all pinned bots."""
+    bots = find_pinned_public_bots()
+    bot_metas = []
+    for bot in bots:
+        if not bot.has_bedrock_knowledge_base:
+            # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
+            # If the bot does not have bedrock knowledge base,
+            # it is not shown in the list.
+            continue
+        bot_metas.append(bot.to_output())
+    return bot_metas
+
+
 def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
+    # TODO: アクセスできなかった時にエイリアス更新処理を入れる
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
         raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     if not bot.is_owned_by_user(user) and not alias_exists(user.id, bot_id):
         # NOTE: At the first time using shared bot, alias is not created yet.
+        logger.info(f"Create alias for user {user.id} and bot {bot_id}")
         store_alias(user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot))
 
     return bot.to_summary_output(user)
@@ -421,6 +442,9 @@ def modify_bot_visibility(
     user: User, bot_id: str, visibility_input: BotSwitchVisibilityInput
 ):
     """Modify bot visibility."""
+    bot = find_bot_by_id(bot_id)
+    if not bot.is_editable_by_user(user):
+        raise PermissionError(f"User {user.id} is not authorized to edit bot {bot_id}")
 
     def _is_private_visibility_input(
         input: BotSwitchVisibilityInput,
@@ -436,10 +460,6 @@ def modify_bot_visibility(
         input: BotSwitchVisibilityInput,
     ) -> TypeGuard[AllVisibilityInput]:
         return input.target_shared_scope == "all"
-
-    bot = find_bot_by_id(bot_id)
-    if not bot.is_editable_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to edit bot {bot_id}")
 
     # Current scope and target scope
     current_scope_priority = {"all": 3, "partial": 2, "private": 1}
@@ -464,8 +484,13 @@ def modify_bot_visibility(
     elif _is_partial_visibility_input(visibility_input) or _is_all_visibility_input(
         visibility_input
     ):
-        target_allowed_user_ids = visibility_input.target_allowed_user_ids
-        target_allowed_group_ids = visibility_input.target_allowed_group_ids
+        if _is_partial_visibility_input(visibility_input):
+            target_allowed_user_ids = visibility_input.target_allowed_user_ids
+            target_allowed_group_ids = visibility_input.target_allowed_group_ids
+        else:
+            # If to all, keep the current allowed user and group ids.
+            target_allowed_user_ids = bot.allowed_cognito_users
+            target_allowed_group_ids = bot.allowed_cognito_groups
 
         if bot.shared_status != "unshared":
             # If the bot is shared, keep the shared status.
@@ -477,7 +502,7 @@ def modify_bot_visibility(
         raise ValueError("Invalid visibility input")
 
     update_bot_shared_status(
-        user.id,
+        bot.owner_user_id,
         bot_id,
         target_shared_scope,
         target_shared_status,
@@ -499,7 +524,7 @@ def modify_pinning_status(bot_id: str, push_input: PushBotInput):
         raise ValueError(f"Bot {bot_id} is private bot. Cannot pin/unpin.")
 
     if _is_push_bot_input_pinned(push_input):
-        shared_status = f"pinned@{push_input.order}"
+        shared_status = f"pinned@{str(push_input.order).zfill(3)}"
     else:
         shared_status = "shared"
 

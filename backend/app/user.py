@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class User(BaseModel):
     id: str
     name: str
+    email: str
     groups: list[str]
 
     def is_admin(self) -> bool:
@@ -22,6 +23,7 @@ class User(BaseModel):
         return cls(
             id=token["sub"],
             name=token["name"],
+            email=token["email"],
             groups=token.get("cognito:groups", []),
         )
 
@@ -31,6 +33,7 @@ class User(BaseModel):
         return cls(
             id=api_bot_id,
             name=api_bot_id,
+            email=api_bot_id,  # dummy email
             # Note: Publish API is allowed to access all bot resources.
             # It should be refactored to have a more fine-grained permission.
             groups=["Admin"],

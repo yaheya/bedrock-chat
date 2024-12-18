@@ -198,7 +198,7 @@ class BotModel(BaseModel):
             return True
 
         # Check if the user is in the allowed Cognito groups
-        user_groups = get_user_cognito_groups(user.id)
+        user_groups = get_user_cognito_groups(user)
         return any(group in self.allowed_cognito_groups for group in user_groups)
 
     def is_editable_by_user(self, user: User) -> bool:
@@ -440,43 +440,50 @@ class BotMeta(BaseModel):
         _is_starred: bool = (
             is_starred if is_starred is not None else item.get("IsStarred", False)
         )
+        assert item["ItemType"].find("BOT") != -1, f"Invalid ItemType: {item['ItemType']}"
+        return cls(
+            id=item["BotId"],
+            title=item["Title"],
+            description=item["Description"],
+            create_time=item["CreateTime"],
+            last_used_time=item["LastUsedTime"],
+            is_starred=_is_starred,
+            sync_status=item["SyncStatus"],
+            has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
+            owned=owned,
+            is_origin_accessible=is_origin_accessible,
+            shared_scope=item.get("SharedScope", "private"),
+            shared_status=item["SharedStatus"],
+        )
 
-        if is_origin_accessible:
-            assert (
-                item["ItemType"].find("BOT") != -1
-            ), f"Invalid ItemType: {item['ItemType']}"
-            return cls(
-                id=item["BotId"],
-                title=item["Title"],
-                description=item["Description"],
-                create_time=item["CreateTime"],
-                last_used_time=item["LastUsedTime"],
-                is_starred=_is_starred,
-                sync_status=item["SyncStatus"],
-                has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
-                owned=owned,
-                is_origin_accessible=is_origin_accessible,
-                shared_scope=item.get("SharedScope", "private"),
-                shared_status=item["SharedStatus"],
-            )
-        else:
-            assert (
-                item["ItemType"].find("ALIAS") != -1
-            ), f"Invalid ItemType: {item['ItemType']}"
-            return cls(
-                id=item["OriginalBotId"],
-                title=item["Title"],
-                description=item["Description"],
-                create_time=item["CreateTime"],
-                last_used_time=item["LastUsedTime"],
-                is_starred=_is_starred,
-                sync_status=item["SyncStatus"],
-                has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
-                owned=owned,
-                is_origin_accessible=is_origin_accessible,
-                shared_scope="private",
-                shared_status="unshared",
-            )
+    @classmethod
+    def from_dynamo_alias_item(
+        cls,
+        item: dict,
+        owned: bool,
+        is_origin_accessible: bool,
+        is_starred: bool | None = None,
+    ) -> Self:
+        _is_starred: bool = (
+            is_starred if is_starred is not None else item.get("IsStarred", False)
+        )
+        assert (
+            item["ItemType"].find("ALIAS") != -1
+        ), f"Invalid ItemType: {item['ItemType']}"
+        return cls(
+            id=item["OriginalBotId"],
+            title=item["Title"],
+            description=item["Description"],
+            create_time=item["CreateTime"],
+            last_used_time=item["LastUsedTime"],
+            is_starred=_is_starred,
+            sync_status=item["SyncStatus"],
+            has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
+            owned=owned,
+            is_origin_accessible=is_origin_accessible,
+            shared_scope="private",
+            shared_status="unshared",
+        )
 
     def to_output(self) -> BotMetaOutput:
         return BotMetaOutput(

@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 import boto3
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
+from app.user import User
 from botocore.client import Config
 from botocore.exceptions import ClientError
 
@@ -167,17 +168,17 @@ def start_codebuild_project(environment_variables: dict) -> str:
     return response["build"]["id"]
 
 
-def get_user_cognito_groups(user_id: str, user_pool_id: str = USER_POOL_ID) -> list[str]:
+def get_user_cognito_groups(user: User, user_pool_id: str = USER_POOL_ID) -> list[str]:
     """Retrieve the groups that a Cognito user belongs to."""
     client = boto3.client("cognito-idp")
 
     try:
         response = client.admin_list_groups_for_user(
-            UserPoolId=user_pool_id, Username=user_id
+            UserPoolId=user_pool_id, Username=user.email
         )
         groups = [group["GroupName"] for group in response.get("Groups", [])]
         return groups
 
     except ClientError as e:
-        print(f"Error retrieving groups for user {user_id}: {e}")
+        print(f"Error retrieving groups for user {user.name}: {e}")
         return []

@@ -326,8 +326,6 @@ class PartialVisibilityInput(BaseSchema):
 
 class AllVisibilityInput(BaseSchema):
     target_shared_scope: Literal["all"]
-    target_allowed_user_ids: list[str]
-    target_allowed_group_ids: list[str]
 
 
 BotSwitchVisibilityInput = (

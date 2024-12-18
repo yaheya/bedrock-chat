@@ -525,24 +525,31 @@ def __find_bots_with_condition(
                     )
                 }
 
+                # Filter original bots based on conditions (e.g., exclude pinned bots)
+                filtered_bot_map = {
+                    bot_id: bot_item
+                    for bot_id, bot_item in original_bot_map.items()
+                    if not bot_item["SharedStatus"].startswith("pinned@")
+                }
+
                 # Create BotMeta objects for aliases
                 for alias in alias_items[i : i + TRANSACTION_BATCH_READ_SIZE]:
-                    original_bot = original_bot_map.get(alias["OriginalBotId"])
+                    original_bot = filtered_bot_map.get(alias["OriginalBotId"])
                     if original_bot:
                         bots.append(
                             BotMeta.from_dynamo_item(
                                 original_bot,
                                 owned=False,
-                                # Note: does not care permission control here
-                                is_origin_accessible=original_bot["SharedStatus"]
-                                != "private",
+                                is_origin_accessible=alias.get(
+                                    "IsOriginAccessible", False
+                                ),
                                 is_starred=alias.get("IsStarred", False),
                             )
                         )
                     else:
                         # If original bot is not found, create a BotMeta object with `is_origin_accessible=False`
                         bots.append(
-                            BotMeta.from_dynamo_item(
+                            BotMeta.from_dynamo_alias_item(
                                 alias,
                                 owned=False,
                                 is_origin_accessible=False,
@@ -567,6 +574,7 @@ def find_starred_bots_by_user_id(user_id: str, limit: int | None = None) -> list
     query_params = {
         "IndexName": "StarredIndex",
         "KeyConditionExpression": Key("PK").eq(user_id) & Key("IsStarred").eq("TRUE"),
+        # "FilterExpression": ~Key("SharedStatus").begins_with("pinned"),
     }
 
     bots = __find_bots_with_condition(query_params)
@@ -589,6 +597,7 @@ def find_recently_used_bots_by_user_id(
     query_params = {
         "IndexName": "LastUsedTimeIndex",
         "KeyConditionExpression": Key("PK").eq(user_id),
+        # "FilterExpression": ~Key("SharedStatus").begins_with("pinned"),
         "ScanIndexForward": False,
     }
 
