@@ -32,6 +32,7 @@ import ExpandableDrawerGroup from '../../../components/ExpandableDrawerGroup';
 import useErrorMessage from '../../../hooks/useErrorMessage';
 import Help from '../../../components/Help';
 import Toggle from '../../../components/Toggle';
+import RadioButton from '../../../components/RadioButton';
 import { useAgent } from '../../../features/agent/hooks/useAgent';
 import { AgentTool } from '../../../features/agent/types';
 import { AvailableTools } from '../../../features/agent/components/AvailableTools';
@@ -122,6 +123,13 @@ const BotKbEditPage: React.FC = () => {
     useState<WebCrawlingScope>('DEFAULT');
 
   const [knowledgeBaseId, setKnowledgeBaseId] = useState<string | null>(null); // Send null when creating a new bot
+  const [existKnowledgeBaseId, setExistKnowledgeBaseId] = useState<string | null>(null);
+  const [knowledgeBaseType, setKnowledgeBaseType] = useState<'new' | 'existing'>('new');
+
+  const disabledKnowledgeEdit = useMemo(() => {
+    return !!existKnowledgeBaseId;
+  }, [existKnowledgeBaseId]);
+
   const [embeddingsModel, setEmbeddingsModel] =
     useState<EmbeddingsModel>('titan_v2');
 
@@ -492,6 +500,7 @@ const BotKbEditPage: React.FC = () => {
                 ]
           );
           setKnowledgeBaseId(bot.bedrockKnowledgeBase.knowledgeBaseId);
+          setExistKnowledgeBaseId(bot.bedrockKnowledgeBase.existKnowledgeBaseId);
           setEmbeddingsModel(bot.bedrockKnowledgeBase!.embeddingsModel);
           setChunkingStrategy(
             bot.bedrockKnowledgeBase!.chunkingConfiguration.chunkingStrategy
@@ -1152,6 +1161,7 @@ const BotKbEditPage: React.FC = () => {
       ),
       bedrockKnowledgeBase: {
         knowledgeBaseId,
+        existKnowledgeBaseId,
         embeddingsModel,
         chunkingConfiguration: (() => {
           switch (chunkingStrategy) {
@@ -1221,6 +1231,7 @@ const BotKbEditPage: React.FC = () => {
     conversationQuickStarters,
     navigate,
     knowledgeBaseId,
+    existKnowledgeBaseId,
     embeddingsModel,
     chunkingStrategy,
     fixedSizeParams,
@@ -1275,6 +1286,7 @@ const BotKbEditPage: React.FC = () => {
         ),
         bedrockKnowledgeBase: {
           knowledgeBaseId,
+          existKnowledgeBaseId,
           embeddingsModel,
           chunkingConfiguration: (() => {
             switch (chunkingStrategy) {
@@ -1348,6 +1360,7 @@ const BotKbEditPage: React.FC = () => {
     conversationQuickStarters,
     navigate,
     knowledgeBaseId,
+    existKnowledgeBaseId,
     embeddingsModel,
     chunkingStrategy,
     fixedSizeParams,
@@ -1442,6 +1455,41 @@ const BotKbEditPage: React.FC = () => {
                   {t('bot.help.knowledge.overview')}
                 </div>
 
+                <div className="flex gap-4 mt-2">
+                  <RadioButton
+                    name="knowledgeBaseType"
+                    value="new"
+                    checked={knowledgeBaseType === 'new'}
+                    label={t('knowledgeBaseSettings.advancedConfigration.existKnowledgeBaseId.createNewKb.label')}
+                    onChange={() => setKnowledgeBaseType('new')}
+                  />
+                  <RadioButton
+                    name="knowledgeBaseType"
+                    value="existing"
+                    checked={knowledgeBaseType === 'existing'}
+                    label={t('knowledgeBaseSettings.advancedConfigration.existKnowledgeBaseId.existing.label')}
+                    onChange={() => setKnowledgeBaseType('existing')}
+                  />
+                </div>
+
+                {(() => {
+                  if (knowledgeBaseType === 'existing') {
+                    return (
+                      <div className="mt-3 p-4 border border-aws-font-color/30 rounded-lg">
+                        <InputText
+                          label={t('knowledgeBaseSettings.advancedConfigration.existKnowledgeBaseId.label')}
+                          value={existKnowledgeBaseId ?? ''}
+                          onChange={setExistKnowledgeBaseId}
+                          disabled={!isNewBot}
+                          placeholder='ABCDEFGHIJ'
+                        />
+                        <div className="text-sm text-aws-font-color/50">
+                          {t('knowledgeBaseSettings.advancedConfigration.existKnowledgeBaseId.description')}
+                        </div>
+                      </div>
+                    );
+                  }
+
                 {errorMessages['syncError'] && (
                   <Alert
                     className="mt-2"
@@ -1456,230 +1504,233 @@ const BotKbEditPage: React.FC = () => {
                   </Alert>
                 )}
 
-                <div className="mt-3">
-                  <div className="font-semibold">{t('bot.label.file')}</div>
-                  <div className="text-sm text-aws-font-color/50">
-                    {t('bot.help.knowledge.file')}
-                  </div>
-                  <div className="mt-2 flex w-full flex-col gap-1">
-                    <KnowledgeFileUploader
-                      className="h-48"
-                      botId={botId}
-                      files={files}
-                      onAdd={onAddFiles}
-                      onUpdate={onUpdateFiles}
-                      onDelete={onDeleteFiles}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="font-semibold">{t('bot.label.s3url')}</div>
-                  <div className="text-sm text-aws-font-color/50">
-                    {t('bot.help.knowledge.s3url')}
-                  </div>
-                  <div className="mt-2 flex w-full flex-col gap-1">
-                    {s3Urls.map((s3Url, idx) => (
-                      <div className="flex w-full gap-2" key={idx}>
-                        <InputText
-                          className="w-full"
-                          type="text"
-                          disabled={isLoading}
-                          value={s3Url}
-                          placeholder={
-                            's3://example-bucket/path/to/data-source/'
-                          }
-                          onChange={(s) => {
-                            onChangeS3Url(s, idx);
-                          }}
-                          errorMessage={errorMessages[`s3Urls-${idx}`]}
-                        />
-                        <ButtonIcon
-                          className="text-red"
-                          disabled={
-                            (s3Urls.length === 1 && !s3Url[0]) || isLoading
-                          }
-                          onClick={() => {
-                            onClickRemoveS3Url(idx);
-                          }}>
-                          <PiTrash />
-                        </ButtonIcon>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2">
-                    <Button
-                      outlined
-                      icon={<PiPlus />}
-                      disabled={s3Urls.length >= 4}
-                      onClick={onClickAddS3Url}>
-                      {t('button.add')}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="font-semibold">{t('bot.label.url')}</div>
-                  <div className="text-sm text-aws-font-color/50">
-                    {t('bot.help.knowledge.url')}
-                  </div>
-                  <div className="mt-2 flex w-full flex-col gap-1">
-                    {urls.map((url, idx) => (
-                      <div className="flex w-full gap-2" key={idx}>
-                        <InputText
-                          className="w-full"
-                          type="text"
-                          disabled={isLoading}
-                          value={url}
-                          placeholder="https://example.com"
-                          onChange={(s) => {
-                            onChangeUrls(s, idx);
-                          }}
-                          errorMessage={errorMessages[`urls-${idx}`]}
-                        />
-                        <ButtonIcon
-                          className="text-red"
-                          disabled={(urls.length === 1 && !url[0]) || isLoading}
-                          onClick={() => {
-                            onClickRemoveUrls(idx);
-                          }}>
-                          <PiTrash />
-                        </ButtonIcon>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2">
-                    <Button
-                      outlined
-                      icon={<PiPlus />}
-                      disabled={urls.length >= 10}
-                      onClick={onClickAddUrls}>
-                      {t('button.add')}
-                    </Button>
-                  </div>
-
-                  <ExpandableDrawerGroup
-                    isDefaultShow={false}
-                    label={t('knowledgeBaseSettings.webCrawlerConfig.title')}
-                    className="py-2">
+              if (knowledgeBaseType === 'new') {
+                return (
+                  <div className="mt-3 p-4 border border-aws-font-color/30 rounded-lg">
                     <div className="mt-3">
-                      <Select
-                        label={t(
-                          'knowledgeBaseSettings.webCrawlerConfig.crawlingScope.label'
-                        )}
-                        value={webCrawlingScope}
-                        options={webCrawlingScopeOptions}
-                        onChange={(val) => {
-                          setWebCrawlingScope(val as WebCrawlingScope);
-                        }}
-                      />
+                      <div className="font-semibold">{t('bot.label.file')}</div>
+                      <div className="text-sm text-aws-font-color/50">
+                        {t('bot.help.knowledge.file')}
+                      </div>
+                      <div className="mt-2 flex w-full flex-col gap-1">
+                        <KnowledgeFileUploader
+                          className="h-48"
+                          botId={botId}
+                          files={files}
+                          onAdd={onAddFiles}
+                          onUpdate={onUpdateFiles}
+                          onDelete={onDeleteFiles}
+                          disabled={disabledKnowledgeEdit}
+                        />
+                      </div>
                     </div>
 
                     <div className="mt-4">
-                      <div className="font-semibold">
-                        {t(
-                          'knowledgeBaseSettings.webCrawlerConfig.includePatterns.label'
-                        )}
-                      </div>
+                      <div className="font-semibold">{t('bot.label.s3url')}</div>
                       <div className="text-sm text-aws-font-color/50">
-                        {t(
-                          'knowledgeBaseSettings.webCrawlerConfig.includePatterns.hint'
-                        )}
+                        {t('bot.help.knowledge.s3url')}
                       </div>
                       <div className="mt-2 flex w-full flex-col gap-1">
-                        {webCrawlingFilters.includePatterns.map(
-                          (pattern, idx) => (
-                            <div className="flex w-full gap-2" key={idx}>
-                              <InputText
-                                className="w-full"
-                                type="text"
-                                disabled={isLoading}
-                                value={pattern}
-                                placeholder=".*\.html$"
-                                onChange={(s) => {
-                                  onChangeIncludePattern(s, idx);
-                                }}
-                              />
-                              <ButtonIcon
-                                className="text-red"
-                                disabled={
-                                  (webCrawlingFilters.includePatterns.length ===
-                                    1 &&
-                                    !pattern) ||
-                                  isLoading
-                                }
-                                onClick={() => {
-                                  onClickRemoveIncludePattern(idx);
-                                }}>
-                                <PiTrash />
-                              </ButtonIcon>
-                            </div>
-                          )
-                        )}
+                        {s3Urls.map((s3Url, idx) => (
+                          <div className="flex w-full gap-2" key={idx}>
+                            <InputText
+                              className="w-full"
+                              type="text"
+                              disabled={isLoading || disabledKnowledgeEdit}
+                              value={s3Url}
+                              placeholder={'s3://example-bucket/path/to/data-source/'}
+                              onChange={(s) => {
+                                onChangeS3Url(s, idx);
+                              }}
+                              errorMessage={errorMessages[`s3Urls-${idx}`]}
+                            />
+                            <ButtonIcon
+                              className="text-red"
+                              disabled={(s3Urls.length === 1 && !s3Url[0]) || isLoading || disabledKnowledgeEdit}
+                              onClick={() => {
+                                onClickRemoveS3Url(idx);
+                              }}>
+                              <PiTrash />
+                            </ButtonIcon>
+                          </div>
+                        ))}
                       </div>
                       <div className="mt-2">
                         <Button
                           outlined
                           icon={<PiPlus />}
-                          onClick={onClickAddIncludePattern}>
+                          disabled={s3Urls.length >= 4 || disabledKnowledgeEdit}
+                          onClick={onClickAddS3Url}>
                           {t('button.add')}
                         </Button>
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <div className="font-semibold">
-                        {t(
-                          'knowledgeBaseSettings.webCrawlerConfig.excludePatterns.label'
-                        )}
-                      </div>
+                      <div className="font-semibold">{t('bot.label.url')}</div>
                       <div className="text-sm text-aws-font-color/50">
-                        {t(
-                          'knowledgeBaseSettings.webCrawlerConfig.excludePatterns.hint'
-                        )}
+                        {t('bot.help.knowledge.url')}
                       </div>
                       <div className="mt-2 flex w-full flex-col gap-1">
-                        {webCrawlingFilters.excludePatterns.map(
-                          (pattern, idx) => (
-                            <div className="flex w-full gap-2" key={idx}>
-                              <InputText
-                                className="w-full"
-                                type="text"
-                                disabled={isLoading}
-                                value={pattern}
-                                placeholder=".*\.pdf$"
-                                onChange={(s) => {
-                                  onChangeExcludePattern(s, idx);
-                                }}
-                              />
-                              <ButtonIcon
-                                className="text-red"
-                                disabled={
-                                  (webCrawlingFilters.excludePatterns.length ===
-                                    1 &&
-                                    !pattern) ||
-                                  isLoading
-                                }
-                                onClick={() => {
-                                  onClickRemoveExcludePattern(idx);
-                                }}>
-                                <PiTrash />
-                              </ButtonIcon>
-                            </div>
-                          )
-                        )}
+                        {urls.map((url, idx) => (
+                          <div className="flex w-full gap-2" key={idx}>
+                            <InputText
+                              className="w-full"
+                              type="text"
+                              disabled={isLoading || disabledKnowledgeEdit}
+                              value={url}
+                              placeholder="https://example.com"
+                              onChange={(s) => {
+                                onChangeUrls(s, idx);
+                              }}
+                              errorMessage={errorMessages[`urls-${idx}`]}
+                            />
+                            <ButtonIcon
+                              className="text-red"
+                              disabled={(urls.length === 1 && !url[0]) || isLoading || disabledKnowledgeEdit}
+                              onClick={() => {
+                                onClickRemoveUrls(idx);
+                              }}>
+                              <PiTrash />
+                            </ButtonIcon>
+                          </div>
+                        ))}
                       </div>
                       <div className="mt-2">
                         <Button
                           outlined
                           icon={<PiPlus />}
-                          onClick={onClickAddExcludePattern}>
+                          disabled={urls.length >= 10 || disabledKnowledgeEdit}
+                          onClick={onClickAddUrls}>
                           {t('button.add')}
                         </Button>
                       </div>
+
+                      <ExpandableDrawerGroup
+                        isDefaultShow={false}
+                        label={t('knowledgeBaseSettings.webCrawlerConfig.title')}
+                        className="py-2">
+                        <div className="mt-3">
+                          <Select
+                            label={t('knowledgeBaseSettings.webCrawlerConfig.crawlingScope.label')}
+                            value={webCrawlingScope}
+                            options={webCrawlingScopeOptions}
+                            onChange={(val) => {
+                              setWebCrawlingScope(val as WebCrawlingScope);
+                            }}
+                            disabled={disabledKnowledgeEdit}
+                          />
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="font-semibold">
+                            {t(
+                              'knowledgeBaseSettings.webCrawlerConfig.includePatterns.label'
+                            )}
+                          </div>
+                          <div className="text-sm text-aws-font-color/50">
+                            {t(
+                              'knowledgeBaseSettings.webCrawlerConfig.includePatterns.hint'
+                            )}
+                          </div>
+                          <div className="mt-2 flex w-full flex-col gap-1">
+                            {webCrawlingFilters.includePatterns.map(
+                              (pattern, idx) => (
+                                <div className="flex w-full gap-2" key={idx}>
+                                  <InputText
+                                    className="w-full"
+                                    type="text"
+                                    disabled={isLoading}
+                                    value={pattern}
+                                    placeholder=".*\.html$"
+                                    onChange={(s) => {
+                                      onChangeIncludePattern(s, idx);
+                                    }}
+                                  />
+                                  <ButtonIcon
+                                    className="text-red"
+                                    disabled={
+                                      (webCrawlingFilters.includePatterns.length ===
+                                        1 &&
+                                        !pattern) ||
+                                      isLoading
+                                    }
+                                    onClick={() => {
+                                      onClickRemoveIncludePattern(idx);
+                                    }}>
+                                    <PiTrash />
+                                  </ButtonIcon>
+                                </div>
+                              )
+                            )}
+                          </div>
+                          <div className="mt-2">
+                            <Button
+                              outlined
+                              icon={<PiPlus />}
+                              onClick={onClickAddIncludePattern}>
+                              {t('button.add')}
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="font-semibold">
+                            {t(
+                              'knowledgeBaseSettings.webCrawlerConfig.excludePatterns.label'
+                            )}
+                          </div>
+                          <div className="text-sm text-aws-font-color/50">
+                            {t(
+                              'knowledgeBaseSettings.webCrawlerConfig.excludePatterns.hint'
+                            )}
+                          </div>
+                          <div className="mt-2 flex w-full flex-col gap-1">
+                            {webCrawlingFilters.excludePatterns.map(
+                              (pattern, idx) => (
+                                <div className="flex w-full gap-2" key={idx}>
+                                  <InputText
+                                    className="w-full"
+                                    type="text"
+                                    disabled={isLoading}
+                                    value={pattern}
+                                    placeholder=".*\.pdf$"
+                                    onChange={(s) => {
+                                      onChangeExcludePattern(s, idx);
+                                    }}
+                                  />
+                                  <ButtonIcon
+                                    className="text-red"
+                                    disabled={
+                                      (webCrawlingFilters.excludePatterns.length ===
+                                        1 &&
+                                        !pattern) ||
+                                      isLoading
+                                    }
+                                    onClick={() => {
+                                      onClickRemoveExcludePattern(idx);
+                                    }}>
+                                    <PiTrash />
+                                  </ButtonIcon>
+                                </div>
+                              )
+                            )}
+                          </div>
+                          <div className="mt-2">
+                            <Button
+                              outlined
+                              icon={<PiPlus />}
+                              onClick={onClickAddExcludePattern}>
+                              {t('button.add')}
+                            </Button>
+                          </div>
+                        </div>
+                      </ExpandableDrawerGroup>
                     </div>
-                  </ExpandableDrawerGroup>
-                </div>
+                  </div>
+                    );
+                  }
+                })()}
 
                 <div className="mt-4">
                   <div className="font-semibold">

@@ -499,6 +499,7 @@ ContentModel = Annotated[
 
 
 def content_model_from_content(content: Content) -> ContentModel:
+
     if isinstance(content, TextContent):
         return TextContentModel.from_text_content(content=content)
 
@@ -513,7 +514,6 @@ def content_model_from_content(content: Content) -> ContentModel:
 
     elif isinstance(content, ToolResultContent):
         return ToolResultContentModel.from_tool_result_content(content=content)
-
     else:
         raise ValueError(f"Unknown content type")
 

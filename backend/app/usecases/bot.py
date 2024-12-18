@@ -109,12 +109,18 @@ def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
         or len(bot_input.knowledge.sitemap_urls) > 0
         or len(bot_input.knowledge.filenames) > 0
         or len(bot_input.knowledge.s3_urls) > 0
+        # This is a condition for running Sfn to register existing KB information in DynamoDB when an existing KB is specified.
+        or (
+            bot_input.bedrock_knowledge_base is not None
+            and bot_input.bedrock_knowledge_base.exist_knowledge_base_id is not None
+        )
     )
 
     has_guardrails = (
         bot_input.bedrock_guardrails
         and bot_input.bedrock_guardrails.is_guardrail_enabled == True
     )
+
     sync_status: type_sync_status = (
         "QUEUED" if has_knowledge or has_guardrails else "SUCCEEDED"
     )
