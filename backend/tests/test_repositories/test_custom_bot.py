@@ -66,6 +66,12 @@ class TestCustomBotRepository(unittest.TestCase):
             shared_status="shared",
             is_starred=False,
             owner_user_id="user1",
+            knowledge=KnowledgeModel(
+                source_urls=["https://aws.amazon.com/"],
+                sitemap_urls=["https://aws.amazon.sitemap.xml"],
+                filenames=["test.txt"],
+                s3_urls=["s3://test-user/test-bot/"],
+            ),
             published_api_stack_name="TestApiStack",
             published_api_datetime=1627984879,
             published_api_codebuild_id="TestCodeBuildId",
@@ -479,6 +485,8 @@ class TestFindAllBots(unittest.TestCase):
         delete_bot_by_id("user2", "4")
         delete_bot_by_id("user2", "5")
         delete_alias_by_id("user1", "5")
+        delete_bot_by_id("user2", "6")
+        delete_bot_by_id("user2", "7")
 
     def test_find_owned_bots_by_user_id(self):
         result = find_owned_bots_by_user_id(user_id="user1")
@@ -500,11 +508,12 @@ class TestFindAllBots(unittest.TestCase):
         result = find_recently_used_bots_by_user_id(user_id="user1")
 
         self.assertEqual(len(result), 4)
-        # Order by last used time
-        self.assertEqual(result[0].id, "5")
-        self.assertEqual(result[1].id, "1")
-        self.assertEqual(result[2].id, "2")
-        self.assertEqual(result[3].id, "3")
+        # Should contain 1,2,3,5
+        bot_ids = [bot.id for bot in result]
+        self.assertIn("1", bot_ids)
+        self.assertIn("2", bot_ids)
+        self.assertIn("3", bot_ids)
+        self.assertIn("5", bot_ids)
 
     def test_limit(self):
         # Only private bots

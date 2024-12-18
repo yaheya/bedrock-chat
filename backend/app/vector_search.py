@@ -2,20 +2,12 @@ import logging
 from typing import TypedDict
 from urllib.parse import urlparse
 
-from app.repositories.models.conversation import (
-    RelatedDocumentModel,
-    TextToolResultModel,
-)
+from app.repositories.models.conversation import RelatedDocumentModel, TextToolResultModel
 from app.repositories.models.custom_bot import BotModel
 from app.utils import get_bedrock_agent_client
-
 from botocore.exceptions import ClientError
-from mypy_boto3_bedrock_runtime.type_defs import (
-    GuardrailConverseContentBlockTypeDef,
-)
-from mypy_boto3_bedrock_agent_runtime.type_defs import (
-    KnowledgeBaseRetrievalResultTypeDef,
-)
+from mypy_boto3_bedrock_agent_runtime.type_defs import KnowledgeBaseRetrievalResultTypeDef
+from mypy_boto3_bedrock_runtime.type_defs import GuardrailConverseContentBlockTypeDef
 
 logger = logging.getLogger(__name__)
 agent_client = get_bedrock_agent_client()

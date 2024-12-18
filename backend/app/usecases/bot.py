@@ -376,11 +376,11 @@ def fetch_all_bots(
 
     bot_metas = []
     for bot in bots:
-        if not bot.has_bedrock_knowledge_base:
-            # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
-            # If the bot does not have bedrock knowledge base,
-            # it is not shown in the list.
-            continue
+        # if not bot.has_bedrock_knowledge_base:
+        #     # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
+        #     # If the bot does not have bedrock knowledge base,
+        #     # it is not shown in the list.
+        #     continue
         bot_metas.append(bot.to_output())
     return bot_metas
 
@@ -390,11 +390,11 @@ def fetch_all_pinned_bots(user: User) -> list[BotMetaOutput]:
     bots = find_pinned_public_bots()
     bot_metas = []
     for bot in bots:
-        if not bot.has_bedrock_knowledge_base:
-            # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
-            # If the bot does not have bedrock knowledge base,
-            # it is not shown in the list.
-            continue
+        # if not bot.has_bedrock_knowledge_base:
+        #     # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
+        #     # If the bot does not have bedrock knowledge base,
+        #     # it is not shown in the list.
+        #     continue
         bot_metas.append(bot.to_output())
     return bot_metas
 

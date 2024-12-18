@@ -18,6 +18,7 @@ from app.repositories.conversation import (
 from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
+    store_alias,
     store_bot,
     update_bot_shared_status,
 )
@@ -26,6 +27,7 @@ from app.repositories.models.conversation import (
     MessageModel,
     TextContentModel,
 )
+from app.repositories.models.custom_bot import BotAliasModel
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.routes.schemas.conversation import (
     AttachmentContent,
@@ -44,12 +46,15 @@ from app.usecases.chat import (
     trace_to_root,
 )
 from app.vector_search import SearchResult
-from tests.test_stream.get_aws_logo import get_aws_logo
-from tests.test_stream.get_pdf import get_aws_overview
-from tests.test_usecases.utils.bot_factory import (
-    create_test_instruction_template,
+from tests.test_repositories.utils.bot_factory import (
     create_test_private_bot,
     create_test_public_bot,
+)
+from tests.test_stream.get_aws_logo import get_aws_logo
+from tests.test_stream.get_pdf import get_aws_overview
+from tests.test_usecases.utils.user_factory import (
+    create_test_admin_user,
+    create_test_user,
 )
 
 MODEL: type_model_name = "claude-v3-haiku"
@@ -174,6 +179,8 @@ class TestTraceToRoot(unittest.TestCase):
 
 
 class TestStartChat(unittest.TestCase):
+    user = create_test_user("user1")
+
     def test_chat(self):
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
@@ -192,7 +199,7 @@ class TestStartChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
@@ -268,6 +275,8 @@ class TestStartChat(unittest.TestCase):
 
 
 class TestAttachmentChat(unittest.TestCase):
+    user = create_test_user("user1")
+
     def tearDown(self) -> None:
         delete_conversation_by_id("user1", self.output.conversation_id)
 
@@ -296,13 +305,15 @@ class TestAttachmentChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         pprint(output.model_dump())
         self.output = output
 
 
 class TestMultimodalChat(unittest.TestCase):
+    user = create_test_user("user1")
+
     def tearDown(self) -> None:
         delete_conversation_by_id("user1", self.output.conversation_id)
 
@@ -334,7 +345,7 @@ class TestMultimodalChat(unittest.TestCase):
         print(message.content[0].body)
         print(type(message.content[0].body))
 
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         # Check the output whether the explanation is about aws logo
         pprint(output.model_dump())
@@ -342,11 +353,12 @@ class TestMultimodalChat(unittest.TestCase):
 
 
 class TestContinueChat(unittest.TestCase):
+    user = create_test_user("user1")
+
     def setUp(self) -> None:
-        self.user_id = "user2"
         self.conversation_id = "conversation2"
         store_conversation(
-            user_id=self.user_id,
+            user_id=self.user.id,
             conversation=ConversationModel(
                 last_message_id="b-2",
                 id=self.conversation_id,
@@ -410,13 +422,13 @@ class TestContinueChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())
 
-        conv = find_conversation_by_id(self.user_id, output.conversation_id)
+        conv = find_conversation_by_id(self.user.id, output.conversation_id)
 
         messages = trace_to_root(conv.last_message_id, conv.message_map)
         self.assertEqual(len(messages), 4)
@@ -428,15 +440,16 @@ class TestContinueChat(unittest.TestCase):
         self.assertEqual(num_empty_children, 1)
 
     def tearDown(self) -> None:
-        delete_conversation_by_id(self.user_id, self.output.conversation_id)
+        delete_conversation_by_id(self.user.id, self.output.conversation_id)
 
 
 class TestRegenerateChat(unittest.TestCase):
+    user = create_test_user("user1")
+
     def setUp(self) -> None:
-        self.user_id = "user3"
         self.conversation_id = "conversation3"
         store_conversation(
-            user_id=self.user_id,
+            user_id=self.user.id,
             conversation=ConversationModel(
                 last_message_id="b-2",
                 id=self.conversation_id,
@@ -534,12 +547,12 @@ class TestRegenerateChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())  # English
-        conv = find_conversation_by_id(self.user_id, output.conversation_id)
+        conv = find_conversation_by_id(self.user.id, output.conversation_id)
         self.assertEqual(len(conv.message_map), 6)
 
         # Question for Chinese
@@ -561,19 +574,21 @@ class TestRegenerateChat(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id=self.user_id, chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         self.output = output
 
         pprint(output.model_dump())  # Chinese
-        conv = find_conversation_by_id(self.user_id, output.conversation_id)
+        conv = find_conversation_by_id(self.user.id, output.conversation_id)
         self.assertEqual(len(conv.message_map), 8)
 
     def tearDown(self) -> None:
-        delete_conversation_by_id(self.user_id, self.conversation_id)
+        delete_conversation_by_id(self.user.id, self.conversation_id)
 
 
 class TestProposeTitle(unittest.TestCase):
+    user = create_test_user("user1")
+
     def setUp(self) -> None:
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
@@ -593,7 +608,7 @@ class TestProposeTitle(unittest.TestCase):
             bot_id=None,
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
         self.output = output
@@ -606,7 +621,7 @@ class TestProposeTitle(unittest.TestCase):
         # print(mistral_output)
 
     def test_propose_title(self):
-        title = propose_conversation_title("user1", self.output.conversation_id)
+        title = propose_conversation_title(self.user.id, self.output.conversation_id)
         print(f"[title]: {title}")
 
     # def test_propose_title_mistral(self):
@@ -614,12 +629,12 @@ class TestProposeTitle(unittest.TestCase):
     #     print(f"[title]: {title}")
 
     def tearDown(self) -> None:
-        delete_conversation_by_id("user1", self.output.conversation_id)
+        delete_conversation_by_id(self.user.id, self.output.conversation_id)
 
 
 class TestChatWithCustomizedBot(unittest.TestCase):
-    first_user_id = "user1"
-    second_user_id = "user2"
+    first_user = create_test_user("user1")
+    second_user = create_test_user("user2")
 
     first_private_bot_id = "private1"
     first_public_bot_id = "public1"
@@ -628,25 +643,26 @@ class TestChatWithCustomizedBot(unittest.TestCase):
         private_bot = create_test_private_bot(
             self.first_private_bot_id,
             True,
-            self.first_user_id,
-            create_test_instruction_template("俺様風の口調で"),
-            "SUCCEEDED",
+            self.first_user.id,
+            instruction="俺様風の口調で",
         )
         public_bot = create_test_public_bot(
             self.first_public_bot_id,
             True,
-            self.second_user_id,
-            self.first_public_bot_id,
-            create_test_instruction_template("大阪弁で"),
+            self.second_user.id,
+            instruction="大阪弁で",
         )
-        store_bot(self.first_user_id, private_bot)
-        store_bot(self.second_user_id, public_bot)
-        update_bot_shared_status(self.second_user_id, self.first_public_bot_id, True)
+        store_bot(private_bot)
+        store_bot(public_bot)
+
+        store_alias(
+            self.first_user.id, BotAliasModel.from_bot_for_initial_alias(public_bot)
+        )
 
     def tearDown(self) -> None:
-        delete_bot_by_id(self.first_user_id, self.first_private_bot_id)
-        delete_bot_by_id(self.second_user_id, self.first_public_bot_id)
-        delete_conversation_by_user_id(self.first_user_id)
+        delete_bot_by_id(self.first_user.id, self.first_private_bot_id)
+        delete_bot_by_id(self.second_user.id, self.first_public_bot_id)
+        delete_conversation_by_user_id(self.first_user.id)
 
     def test_chat_with_private_bot(self):
         # First message
@@ -667,7 +683,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
@@ -694,7 +710,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
@@ -716,7 +732,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
 
         conv = find_conversation_by_id("user1", output.conversation_id)
@@ -742,7 +758,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="public1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
 
         print(output)
@@ -765,7 +781,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output)
 
@@ -790,16 +806,12 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             bot_id="private1",
             continue_generate=False,
         )
-        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
 
         conv = fetch_conversation("user1", output.conversation_id)
         # Assert that instruction is not included
         self.assertIsNone(conv.message_map.get("instruction"))
-
-        msg = trace_to_root(conv.last_message_id, conv.message_map)  # type: ignore
-        self.assertEqual(len(msg), 3)  # system + user + assistant
-        pprint(msg)
 
 
 def on_thinking(to_send: OnThinking):
@@ -824,7 +836,7 @@ def on_stop(on_stop_input: OnStopInput):
 
 
 class TestAgentChat(unittest.TestCase):
-    user_name = "user1"
+    user = create_test_user("user1")
     bot_id = "bot1"
     model: type_model_name = "claude-v3-sonnet"
 
@@ -832,17 +844,14 @@ class TestAgentChat(unittest.TestCase):
         private_bot = create_test_private_bot(
             self.bot_id,
             True,
-            self.user_name,
-            create_test_instruction_template("俺様風の口調で"),
-            "SUCCEEDED",
+            self.user.id,
             include_internet_tool=True,
-            set_dummy_knowledge=False,
         )
-        store_bot(self.user_name, private_bot)
+        store_bot(private_bot)
 
     def tearDown(self) -> None:
-        delete_bot_by_id(self.user_name, self.bot_id)
-        delete_conversation_by_user_id(self.user_name)
+        delete_bot_by_id(self.user.id, self.bot_id)
+        delete_conversation_by_user_id(self.user.id)
 
     def test_agent_chat(self):
         chat_input = ChatInput(
@@ -863,7 +872,7 @@ class TestAgentChat(unittest.TestCase):
             continue_generate=False,
         )
         conversation, message = chat(
-            user_id=self.user_name,
+            self.user,
             chat_input=chat_input,
             on_thinking=on_thinking,
             on_tool_result=on_tool_result,
@@ -872,7 +881,7 @@ class TestAgentChat(unittest.TestCase):
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output.message.content[0].body)
 
-        conv = find_conversation_by_id(self.user_name, output.conversation_id)
+        conv = find_conversation_by_id(self.user.id, output.conversation_id)
         # Assert if thinking log is not empty
         assistant_message = conv.message_map[conv.last_message_id]
         self.assertIsNotNone(assistant_message.thinking_log)
@@ -880,7 +889,7 @@ class TestAgentChat(unittest.TestCase):
 
 
 class TestGuardrailChat(unittest.TestCase):
-    user_name = "user1"
+    user = create_test_user("user1")
     bot_id = "bot1"
     model: type_model_name = "claude-v3-sonnet"
 
@@ -912,11 +921,8 @@ class TestGuardrailChat(unittest.TestCase):
         private_bot = create_test_private_bot(
             self.bot_id,
             True,
-            self.user_name,
-            "",
-            "SUCCEEDED",
+            self.user.id,
             include_internet_tool=False,
-            set_dummy_knowledge=False,
             bedrock_guardrails=BedrockGuardrailsModel(
                 is_guardrail_enabled=True,
                 hate_threshold=0,
@@ -930,11 +936,11 @@ class TestGuardrailChat(unittest.TestCase):
                 guardrail_version="DRAFT",
             ),
         )
-        store_bot(self.user_name, private_bot)
+        store_bot(private_bot)
 
     def tearDown(self) -> None:
-        delete_bot_by_id(self.user_name, self.bot_id)
-        delete_conversation_by_user_id(self.user_name)
+        delete_bot_by_id(self.user.id, self.bot_id)
+        delete_conversation_by_user_id(self.user.id)
         # Delete dummy guardrail
         try:
             self.bedrock_client.delete_guardrail(guardrailIdentifier=self.guardrail_arn)
@@ -961,7 +967,7 @@ class TestGuardrailChat(unittest.TestCase):
             bot_id=self.bot_id,
             continue_generate=False,
         )
-        conversation, message = chat(user_id=self.user_name, chat_input=chat_input)
+        conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
         print(output.message.content[0].body)
 

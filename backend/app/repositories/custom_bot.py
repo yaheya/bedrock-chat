@@ -525,27 +525,22 @@ def __find_bots_with_condition(
                     )
                 }
 
-                # Filter original bots based on conditions (e.g., exclude pinned bots)
-                filtered_bot_map = {
-                    bot_id: bot_item
-                    for bot_id, bot_item in original_bot_map.items()
-                    if not bot_item["SharedStatus"].startswith("pinned@")
-                }
-
                 # Create BotMeta objects for aliases
                 for alias in alias_items[i : i + TRANSACTION_BATCH_READ_SIZE]:
-                    original_bot = filtered_bot_map.get(alias["OriginalBotId"])
+                    original_bot = original_bot_map.get(alias["OriginalBotId"])
                     if original_bot:
-                        bots.append(
-                            BotMeta.from_dynamo_item(
-                                original_bot,
-                                owned=False,
-                                is_origin_accessible=alias.get(
-                                    "IsOriginAccessible", False
-                                ),
-                                is_starred=alias.get("IsStarred", False),
+                        # Exclude pinned bots from the list
+                        if not original_bot.get("SharedStatus").startswith("pinned@"):
+                            bots.append(
+                                BotMeta.from_dynamo_item(
+                                    original_bot,
+                                    owned=False,
+                                    is_origin_accessible=alias.get(
+                                        "IsOriginAccessible", False
+                                    ),
+                                    is_starred=alias.get("IsStarred", False),
+                                )
                             )
-                        )
                     else:
                         # If original bot is not found, create a BotMeta object with `is_origin_accessible=False`
                         bots.append(
