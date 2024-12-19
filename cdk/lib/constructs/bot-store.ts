@@ -296,7 +296,7 @@ export class BotStore extends Construct {
 
     new osis.CfnPipeline(this, "OsisPipeline", {
       pipelineName: generatePhysicalName(this, "OsisPipeline", {
-        maxLength: 20,
+        maxLength: 25,
         lower: true,
       }),
       minUnits: 1,
