@@ -537,7 +537,8 @@ def fetch_all_bots_by_user_id(
                     ConversationQuickStarter(**starter)
                     for starter in item.get("ConversationQuickStarters", [])
                 ]
-                or bot.active_models != item["ActiveModels"]
+                or bot.active_models
+                != ActiveModelsModel.model_validate(dict(item.get("ActiveModels", {})))
             ):
                 # Update alias to the latest original bot
                 store_alias(
@@ -719,9 +720,7 @@ def fetch_bot_summary(user_id: str, bot_id: str) -> BotSummaryOutput:
                     )
                     for starter in bot.conversation_quick_starters
                 ],
-                active_models=ActiveModelsOutput.model_validate(
-                    dict(bot.active_models)
-                ),
+                active_models=bot.active_models,
             ),
         )
         return BotSummaryOutput(
