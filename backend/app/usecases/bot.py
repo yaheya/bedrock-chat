@@ -96,7 +96,10 @@ def _update_s3_documents_by_diff(
 
     for filename in deleted_filenames:
         document_path = compose_upload_document_s3_path(user_id, bot_id, filename)
-        delete_file_from_s3(DOCUMENT_BUCKET, document_path)
+
+        # Ignore errors when deleting a non-existent file from the S3 bucket used in knowledge bases.
+        # This allows users to update bot if the uploaded file is missing after the bot is created.
+        delete_file_from_s3(DOCUMENT_BUCKET, document_path, ignore_not_exist=True)
 
 
 def create_new_bot(user_id: str, bot_input: BotInput) -> BotOutput:
@@ -815,8 +818,12 @@ def issue_presigned_url(
 
 
 def remove_uploaded_file(user_id: str, bot_id: str, filename: str):
+    # Ignore errors when deleting a non-existent file from the S3 bucket used in knowledge bases.
+    # This allows users to update bot if the uploaded file is missing after the bot is created.
     delete_file_from_s3(
-        DOCUMENT_BUCKET, compose_upload_temp_s3_path(user_id, bot_id, filename)
+        DOCUMENT_BUCKET,
+        compose_upload_temp_s3_path(user_id, bot_id, filename),
+        ignore_not_exist=True,
     )
     return
 
