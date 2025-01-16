@@ -154,7 +154,9 @@ def modify_owned_bot(
     bot = find_bot_by_id(bot_id)
 
     if not bot.is_editable_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to modify bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to modify bot {bot_id}"
+        )
 
     source_urls = []
     sitemap_urls = []
@@ -201,7 +203,8 @@ def modify_owned_bot(
             tools=[
                 AgentToolModel(name=t.name, description=t.description)
                 for t in [
-                    get_tool_by_name(tool_name) for tool_name in modify_input.agent.tools
+                    get_tool_by_name(tool_name)
+                    for tool_name in modify_input.agent.tools
                 ]
             ]
         )
@@ -271,7 +274,9 @@ def modify_owned_bot(
             if modify_input.bedrock_guardrails
             else None
         ),
-        active_models=ActiveModelsOutput.model_validate(dict(modify_input.active_models)),
+        active_models=ActiveModelsOutput.model_validate(
+            dict(modify_input.active_models)
+        ),
     )
 
     return BotModifyOutput(
@@ -315,7 +320,9 @@ def modify_owned_bot(
             if modify_input.bedrock_guardrails
             else None
         ),
-        active_models=ActiveModelsOutput.model_validate(dict(modify_input.active_models)),
+        active_models=ActiveModelsOutput.model_validate(
+            dict(modify_input.active_models)
+        ),
     )
 
 
@@ -339,7 +346,9 @@ def fetch_bot(user: User, bot_id: str) -> tuple[bool, BotModel]:
             f"User {user.id} is not authorized to access bot {bot_id}. Update alias."
         )
         update_alias_is_origin_accessible(user.id, bot_id, False)
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
 
     owned = bot.is_owned_by_user(user)
 
@@ -425,12 +434,16 @@ def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
     # TODO: アクセスできなかった時にエイリアス更新処理を入れる
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
 
     if not bot.is_owned_by_user(user) and not alias_exists(user.id, bot_id):
         # NOTE: At the first time using shared bot, alias is not created yet.
         logger.info(f"Create alias for user {user.id} and bot {bot_id}")
-        store_alias(user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot))
+        store_alias(
+            user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot)
+        )
 
     return bot.to_summary_output(user)
 
@@ -439,7 +452,9 @@ def modify_star_status(user: User, bot_id: str, starred: bool):
     """Modify bot pin status."""
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
 
     if bot.is_owned_by_user(user):
         return update_bot_star_status(user.id, bot_id, starred)
@@ -455,7 +470,9 @@ def remove_bot_by_id(user: User, bot_id: str):
             f"Bot {bot_id} is pinned by an administrator and cannot be deleted."
         )
     if not bot.is_editable_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
 
     if bot.is_editable_by_user(user):
         owner_user_id = bot.owner_user_id
@@ -572,7 +589,9 @@ def modify_bot_last_used_time(user: User, bot: BotModel):
         return update_alias_last_used_time(user.id, bot.id)
 
 
-def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: str) -> str:
+def issue_presigned_url(
+    user: User, bot_id: str, filename: str, content_type: str
+) -> str:
     response = generate_presigned_url(
         DOCUMENT_BUCKET,
         compose_upload_temp_s3_path(user.id, bot_id, filename),

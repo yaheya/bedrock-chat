@@ -43,7 +43,9 @@ from app.repositories.models.custom_bot_kb import (
     FixedSizeParamsModel,
     OpenSearchParamsModel,
 )
-from app.repositories.models.custom_bot_kb import SearchParamsModel as SearchParamsModelKB
+from app.repositories.models.custom_bot_kb import (
+    SearchParamsModel as SearchParamsModelKB,
+)
 from app.usecases.bot import fetch_all_bots
 from app.utils import get_current_time
 from tests.test_repositories.utils.bot_factory import (

@@ -15,6 +15,7 @@ def get_current_user(token: HTTPAuthorizationCredentials = Depends(security)):
         return User(
             id=decoded["sub"],
             name=decoded["cognito:username"],
+            email=decoded["email"],
             groups=decoded.get("cognito:groups", []),
         )
     except (IndexError, JWTError):

@@ -73,18 +73,6 @@ def decompose_sk(sk: str):
     return sk.split("#")[-1]
 
 
-# def compose_pk(user_id: str, bot_id: str, item_type: Literal["bot", "alias"]):
-#     if item_type == "bot":
-#         return f"{user_id}#BOT#{bot_id}"
-#     elif item_type == "alias":
-#         return f"{user_id}#ALIAS#{bot_id}"
-
-
-# def decompose_pk(pk: str):
-#     """Decompose partition key to get bot_id."""
-#     return pk.split("#")[-1]
-
-
 def _get_aws_resource(service_name, table_name: str, user_id: str | None = None):
     """Get AWS resource with optional row-level access control for DynamoDB.
     Ref: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_dynamodb_items.html
@@ -101,7 +89,7 @@ def _get_aws_resource(service_name, table_name: str, user_id: str | None = None)
         else:
             return boto3.resource(service_name, region_name=REGION)  # type: ignore[call-overload]
 
-    policy_document: Dict[str, List[Dict]] = {
+    policy_document: dict[str, list[dict]] = {
         "Statement": [
             {
                 "Effect": "Allow",
@@ -174,4 +162,6 @@ def get_bot_table_client():
     """Get a DynamoDB table client for bot table.
     Note: Bot table does not have row-level access control.
     """
-    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(BOT_TABLE_NAME)
+    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(
+        BOT_TABLE_NAME
+    )

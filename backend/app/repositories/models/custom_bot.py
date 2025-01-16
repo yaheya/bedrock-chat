@@ -6,6 +6,7 @@ from app.repositories.models.common import DynamicBaseModel, Float
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
 from app.routes.schemas.bot import (
+    ActiveModelsOutput,
     Agent,
     BedrockGuardrailsOutput,
     BedrockKnowledgeBaseOutput,
@@ -274,7 +275,8 @@ class BotModel(BaseModel):
                 tools=[
                     AgentToolModel(name=t.name, description=t.description)
                     for t in [
-                        get_tool_by_name(tool_name) for tool_name in bot_input.agent.tools
+                        get_tool_by_name(tool_name)
+                        for tool_name in bot_input.agent.tools
                     ]
                 ]
             )
@@ -334,6 +336,9 @@ class BotModel(BaseModel):
                 if bot_input.bedrock_guardrails
                 else None
             ),
+            active_models=ActiveModelsModel.model_validate(
+                dict(bot_input.active_models)
+            ),
         )
 
     def to_output(self) -> BotOutput:
@@ -368,6 +373,7 @@ class BotModel(BaseModel):
                 if self.bedrock_guardrails
                 else None
             ),
+            active_models=ActiveModelsOutput.model_validate(dict(self.active_models)),
         )
 
     def to_summary_output(self, user: User) -> BotSummaryOutput:
@@ -391,6 +397,7 @@ class BotModel(BaseModel):
             ],
             shared_scope=self.shared_scope,
             shared_status=self.shared_status,
+            active_models=ActiveModelsOutput.model_validate(dict(self.active_models)),
         )
 
 
@@ -434,6 +441,7 @@ class BotAliasModel(BaseModel):
             has_knowledge=bot.has_knowledge(),
             has_agent=bot.is_agent_enabled(),
             conversation_quick_starters=bot.conversation_quick_starters,
+            active_models=bot.active_models,
         )
 
 
@@ -474,7 +482,9 @@ class BotMeta(BaseModel):
         _is_starred: bool = (
             is_starred if is_starred is not None else item.get("IsStarred", False)
         )
-        assert item["ItemType"].find("BOT") != -1, f"Invalid ItemType: {item['ItemType']}"
+        assert (
+            item["ItemType"].find("BOT") != -1
+        ), f"Invalid ItemType: {item['ItemType']}"
         return cls(
             id=item["BotId"],
             title=item["Title"],

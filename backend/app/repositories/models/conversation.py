@@ -382,7 +382,9 @@ def tool_result_model_from_tool_result(tool_result: ToolResult) -> ToolResultMod
         return ImageToolResultModel.from_image_tool_result(tool_result=tool_result)
 
     elif isinstance(tool_result, DocumentToolResult):
-        return DocumentToolResultModel.from_document_tool_result(tool_result=tool_result)
+        return DocumentToolResultModel.from_document_tool_result(
+            tool_result=tool_result
+        )
 
     else:
         raise ValueError(f"Unknown tool result type")

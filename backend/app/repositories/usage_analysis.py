@@ -11,6 +11,7 @@ import boto3
 from app.repositories.common import get_bot_table_client
 from app.repositories.models.custom_bot import BotMetaWithStackInfo
 from app.repositories.models.usage_analysis import UsagePerBot, UsagePerUser
+from boto3.dynamodb.conditions import Attr, Key
 
 REGION = os.environ.get("REGION", "us-east-1")
 USAGE_ANALYSIS_DATABASE = os.environ.get(

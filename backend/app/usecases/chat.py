@@ -157,7 +157,8 @@ def prepare_conversation(
     # If the "Generate continue" button is pressed, a new_message is not generated.
     else:
         message_id = (
-            conversation.message_map[conversation.last_message_id].parent or "instruction"
+            conversation.message_map[conversation.last_message_id].parent
+            or "instruction"
         )
 
     return (message_id, conversation, bot)

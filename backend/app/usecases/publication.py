@@ -35,7 +35,9 @@ REGION = os.environ.get("REGION", "us-east-1")
 def _fetch_bot_with_permission_check(user: User, bot_id: str) -> BotModel:
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
     return bot
 
 
@@ -44,7 +46,9 @@ def create_bot_publication(user: User, bot_id: str, bot_publish_input: BotPublis
     # Check existence and permission of the bot
     bot = find_bot_by_id(bot_id)
     if not bot.is_editable_by_user(user):
-        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
+        raise PermissionError(
+            f"User {user.id} is not authorized to access bot {bot_id}"
+        )
 
     if bot.shared_scope != "all":
         raise ValueError(f"Bot {bot_id} is not shared for all users. Cannot publish.")
