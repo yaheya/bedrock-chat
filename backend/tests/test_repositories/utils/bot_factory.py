@@ -5,6 +5,7 @@ from decimal import Decimal
 sys.path.append(".")
 from app.agents.tools.internet_search import internet_search_tool
 from app.repositories.models.custom_bot import (
+    ActiveModelsModel,
     AgentModel,
     AgentToolModel,
     BedrockGuardrailsModel,
@@ -125,6 +126,7 @@ def _create_test_bot_model(
             else bedrock_knowledge_base
         ),
         bedrock_guardrails=bedrock_guardrails,
+        active_models=ActiveModelsModel(),
     )
 
 

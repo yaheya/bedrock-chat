@@ -1,14 +1,11 @@
 import logging
 from typing import Callable
 
-from app.agents.tools.agent_tool import (
-    ToolRunResult,
-    run_result_to_tool_result_content_model,
-)
+from app.agents.tools.agent_tool import ToolRunResult
 from app.agents.tools.knowledge import create_knowledge_tool
 from app.agents.utils import get_tool_by_name
 from app.bedrock import call_converse_api, compose_args_for_converse_api
-from app.prompt import PROMPT_TO_CITE_TOOL_RESULTS, build_rag_prompt
+from app.prompt import build_rag_prompt, get_prompt_to_cite_tool_results
 from app.repositories.conversation import (
     RecordNotFoundError,
     find_conversation_by_id,
@@ -25,11 +22,7 @@ from app.repositories.models.conversation import (
     ToolResultContentModel,
     ToolUseContentModel,
 )
-from app.repositories.models.custom_bot import (
-    BotAliasModel,
-    BotModel,
-    ConversationQuickStarterModel,
-)
+from app.repositories.models.custom_bot import BotAliasModel, BotModel
 from app.routes.schemas.conversation import (
     ChatInput,
     ChatOutput,
@@ -234,11 +227,15 @@ def chat(
         if bot.is_agent_enabled():
             if bot.has_knowledge():
                 # Add knowledge tool
-                knowledge_tool = create_knowledge_tool(bot, chat_input.message.model)
+                knowledge_tool = create_knowledge_tool(bot=bot)
                 tools[knowledge_tool.name] = knowledge_tool
 
             if display_citation:
-                instructions.append(PROMPT_TO_CITE_TOOL_RESULTS)
+                instructions.append(
+                    get_prompt_to_cite_tool_results(
+                        model=chat_input.message.model,
+                    )
+                )
 
         elif bot.has_knowledge():
             # Fetch most related documents from vector store
@@ -280,6 +277,7 @@ def chat(
                 instructions.append(
                     build_rag_prompt(
                         search_results=search_results,
+                        model=chat_input.message.model,
                         display_citation=display_citation,
                     )
                 )
@@ -406,6 +404,8 @@ def chat(
             run_result = tool.run(
                 tool_use_id=content.body.tool_use_id,
                 input=content.body.input,
+                model=chat_input.message.model,
+                bot=bot,
             )
             run_results.append(run_result)
 
@@ -418,8 +418,9 @@ def chat(
         tool_result_message = SimpleMessageModel(
             role="user",
             content=[
-                run_result_to_tool_result_content_model(
+                ToolResultContentModel.from_tool_run_result(
                     run_result=result,
+                    model=chat_input.message.model,
                     display_citation=display_citation,
                 )
                 for result in run_results

@@ -4,13 +4,13 @@ from urllib.parse import urlparse
 
 from app.repositories.models.conversation import RelatedDocumentModel, TextToolResultModel
 from app.repositories.models.custom_bot import BotModel
-from app.utils import get_bedrock_agent_client
+from app.utils import get_bedrock_agent_runtime_client
 from botocore.exceptions import ClientError
 from mypy_boto3_bedrock_agent_runtime.type_defs import KnowledgeBaseRetrievalResultTypeDef
 from mypy_boto3_bedrock_runtime.type_defs import GuardrailConverseContentBlockTypeDef
 
 logger = logging.getLogger(__name__)
-agent_client = get_bedrock_agent_client()
+agent_client = get_bedrock_agent_runtime_client()
 
 
 class SearchResult(TypedDict):
@@ -37,15 +37,18 @@ def search_result_to_related_document(
 
 def to_guardrails_grounding_source(
     search_results: list[SearchResult],
-) -> GuardrailConverseContentBlockTypeDef:
+) -> GuardrailConverseContentBlockTypeDef | None:
     """Convert search results to Guardrails Grounding source format."""
-    grounding_source: GuardrailConverseContentBlockTypeDef = {
-        "text": {
-            "text": "\n\n".join(x["content"] for x in search_results),
-            "qualifiers": ["grounding_source"],
+    return (
+        {
+            "text": {
+                "text": "\n\n".join(x["content"] for x in search_results),
+                "qualifiers": ["grounding_source"],
+            }
         }
-    }
-    return grounding_source
+        if len(search_results) > 0
+        else None
+    )
 
 
 def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResult]:
@@ -53,6 +56,7 @@ def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResu
         bot.bedrock_knowledge_base is not None
         and bot.bedrock_knowledge_base.knowledge_base_id is not None
     )
+
     if bot.bedrock_knowledge_base.search_params.search_type == "semantic":
         search_type = "SEMANTIC"
     elif bot.bedrock_knowledge_base.search_params.search_type == "hybrid":
@@ -61,7 +65,12 @@ def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResu
         raise ValueError("Invalid search type")
 
     limit = bot.bedrock_knowledge_base.search_params.max_results
-    knowledge_base_id = bot.bedrock_knowledge_base.knowledge_base_id
+    # Use exist_knowledge_base_id if available, otherwise use knowledge_base_id
+    knowledge_base_id = (
+        bot.bedrock_knowledge_base.exist_knowledge_base_id
+        if bot.bedrock_knowledge_base.exist_knowledge_base_id is not None
+        else bot.bedrock_knowledge_base.knowledge_base_id
+    )
 
     try:
         response = agent_client.retrieve(

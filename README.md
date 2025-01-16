@@ -62,6 +62,7 @@ By using the [Agent functionality](./docs/AGENT.md), your chatbot can automatica
 - ไทย 💬
 - Bahasa Indonesia 💬
 - Bahasa Melayu 💬
+- Tiếng Việt 💬
 
 ## 🚀 Super-easy Deployment
 
@@ -162,28 +163,22 @@ cd cdk
 npm ci
 ```
 
-- Install [AWS CDK](https://aws.amazon.com/cdk/)
-
-```
-npm i -g aws-cdk
-```
-
-- Before deploying the CDK, you will need to work with Bootstrap once for the region you are deploying to. In this example, we will deploy to the us-east-1 region. Please replace your account id into `<account id>`.
-
-```
-cdk bootstrap aws://<account id>/us-east-1
-```
-
 - If necessary, edit the following entries in [cdk.json](./cdk/cdk.json) if necessary.
 
   - `bedrockRegion`: Region where Bedrock is available. **NOTE: Bedrock does NOT support all regions for now.**
   - `allowedIpV4AddressRanges`, `allowedIpV6AddressRanges`: Allowed IP Address range.
   - `enableLambdaSnapStart`: Defaults to true. Set to false if deploying to a [region that doesn't support Lambda SnapStart for Python functions](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html#snapstart-supported-regions).
 
+- Before deploying the CDK, you will need to work with Bootstrap once for the region you are deploying to.
+
+```
+npx cdk bootstrap
+```
+
 - Deploy this sample project
 
 ```
-cdk deploy --require-approval never --all
+npx cdk deploy --require-approval never --all
 ```
 
 - You will get output similar to the following. The URL of the web app will be output in `BedrockChatStack.FrontendURL`, so please access it from your browser.
@@ -204,7 +199,7 @@ BedrockChatStack.FrontendURL = https://xxxxx.cloudfront.net
 
 ### Configure Mistral models support
 
-Update `enableMistral` to `true` in [cdk.json](./cdk/cdk.json), and run `cdk deploy`.
+Update `enableMistral` to `true` in [cdk.json](./cdk/cdk.json), and run `npx cdk deploy`.
 
 ```json
 ...
@@ -230,7 +225,7 @@ DEFAULT_GENERATION_CONFIG = {
 
 ### Remove resources
 
-If using cli and CDK, please `cdk destroy`. If not, access [CloudFormation](https://console.aws.amazon.com/cloudformation/home) and then delete `BedrockChatStack` and `FrontendWafStack` manually. Please note that `FrontendWafStack` is in `us-east-1` region.
+If using cli and CDK, please `npx cdk destroy`. If not, access [CloudFormation](https://console.aws.amazon.com/cloudformation/home) and then delete `BedrockChatStack` and `FrontendWafStack` manually. Please note that `FrontendWafStack` is in `us-east-1` region.
 
 ### Language Settings
 
@@ -323,6 +318,7 @@ Please also take a look at the following guidelines before contributing:
 ## 🏆 Significant Contributors
 
 - [k70suK3-k06a7ash1](https://github.com/k70suK3-k06a7ash1)
+- [fsatsuki](https://github.com/fsatsuki)
 
 ## Contributors
 

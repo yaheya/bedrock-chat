@@ -28,6 +28,7 @@ from app.repositories.custom_bot import (
     update_knowledge_base_id,
 )
 from app.repositories.models.custom_bot import (
+    ActiveModelsModel,
     AgentModel,
     AgentToolModel,
     BotAliasModel,
@@ -354,6 +355,7 @@ class TestCustomBotRepository(unittest.TestCase):
                 guardrail_arn="arn:aws:guardrail",
                 guardrail_version="v1",
             ),
+            active_models=ActiveModelsModel(),
         )
 
         bot = find_bot_by_id("1")

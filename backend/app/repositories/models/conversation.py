@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self, TypedDict, TypeGuard
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Self, TypeGuard
 from urllib.parse import urlparse
 
 from app.repositories.models.common import Base64EncodedBytes
@@ -35,6 +36,9 @@ from mypy_boto3_bedrock_runtime.type_defs import (
     ToolUseBlockTypeDef,
 )
 from pydantic import BaseModel, Discriminator, Field, JsonValue, field_validator
+
+if TYPE_CHECKING:
+    from app.agents.tools.agent_tool import ToolRunResult
 
 
 class TextContentModel(BaseModel):
@@ -472,6 +476,61 @@ class ToolResultContentModel(BaseModel):
             body=ToolResultContentModelBody.from_tool_result_content_body(content.body),
         )
 
+    @classmethod
+    def from_tool_run_result(
+        cls,
+        run_result: ToolRunResult,
+        model: type_model_name,
+        display_citation: bool,
+    ) -> Self:
+        result_contents = [
+            related_document.to_tool_result_model(
+                display_citation=display_citation,
+            )
+            for related_document in run_result["related_documents"]
+        ]
+
+        from app.bedrock import is_nova_model
+
+        if is_nova_model(model=model):
+            text_or_json_contents = [
+                result_content
+                for result_content in result_contents
+                if isinstance(result_content, TextToolResultModel)
+                or isinstance(result_content, JsonToolResultModel)
+            ]
+            if len(text_or_json_contents) > 1:
+                return cls(
+                    content_type="toolResult",
+                    body=ToolResultContentModelBody(
+                        tool_use_id=run_result["tool_use_id"],
+                        content=[
+                            TextToolResultModel(
+                                text=json.dumps(
+                                    [
+                                        (
+                                            content.json_
+                                            if isinstance(content, JsonToolResultModel)
+                                            else content.text
+                                        )
+                                        for content in text_or_json_contents
+                                    ]
+                                ),
+                            ),
+                        ],
+                        status=run_result["status"],
+                    ),
+                )
+
+        return cls(
+            content_type="toolResult",
+            body=ToolResultContentModelBody(
+                tool_use_id=run_result["tool_use_id"],
+                content=result_contents,
+                status=run_result["status"],
+            ),
+        )
+
     def to_content(self) -> Content:
         return ToolResultContent(
             content_type="toolResult",
@@ -497,6 +556,7 @@ ContentModel = Annotated[
 
 
 def content_model_from_content(content: Content) -> ContentModel:
+
     if isinstance(content, TextContent):
         return TextContentModel.from_text_content(content=content)
 
@@ -511,7 +571,6 @@ def content_model_from_content(content: Content) -> ContentModel:
 
     elif isinstance(content, ToolResultContent):
         return ToolResultContentModel.from_tool_result_content(content=content)
-
     else:
         raise ValueError(f"Unknown content type")
 
@@ -646,7 +705,7 @@ class RelatedDocumentModel(BaseModel):
         if url.scheme == "s3":
             source_link = generate_presigned_url(
                 bucket=url.netloc,
-                key=url.path,
+                key=url.path.removeprefix("/"),
                 client_method="get_object",
             )
             return source_link

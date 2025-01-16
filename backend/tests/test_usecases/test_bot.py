@@ -369,5 +369,29 @@ class TestScenario(unittest.TestCase):
                 self.assertFalse(bot_meta.available)
 
 
+class TestSharing(unittest.TestCase):
+    def setUp(self) -> None:
+        self.publisher_id = "test_user_pub"
+        self.subscriber_id = "test_user_sub"
+
+        self.bot = create_test_public_bot("test_bot", True, self.publisher_id)
+        store_bot(self.publisher_id, self.bot)
+
+    def tearDown(self) -> None:
+        delete_bot_by_id(self.publisher_id, self.bot.id)
+        try:
+            delete_alias_by_id(self.subscriber_id, self.bot.id)
+        except:
+            print("Alias not found")
+
+    def test_share_and_subscribe(self):
+        # Share the bot to public
+        update_bot_visibility(self.publisher_id, self.bot.id, True)
+
+        # Subscribe (equal to open shared URL on browser)
+        bot_summary = fetch_bot_summary(self.subscriber_id, self.bot.id)
+        self.assertEqual(bot_summary.id, self.bot.id)
+
+
 if __name__ == "__main__":
     unittest.main()

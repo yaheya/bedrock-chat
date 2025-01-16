@@ -27,6 +27,7 @@ from app.repositories.custom_bot import (
     update_bot_star_status,
 )
 from app.repositories.models.custom_bot import (
+    ActiveModelsModel,
     AgentModel,
     AgentToolModel,
     BotAliasModel,
@@ -43,6 +44,8 @@ from app.routes.schemas.admin import (
     PushBotInputUnpinned,
 )
 from app.routes.schemas.bot import (
+    ActiveModelsInput,
+    ActiveModelsOutput,
     Agent,
     AgentTool,
     AllVisibilityInput,
@@ -99,7 +102,10 @@ def _update_s3_documents_by_diff(
 
     for filename in deleted_filenames:
         document_path = compose_upload_document_s3_path(user_id, bot_id, filename)
-        delete_file_from_s3(DOCUMENT_BUCKET, document_path)
+
+        # Ignore errors when deleting a non-existent file from the S3 bucket used in knowledge bases.
+        # This allows users to update bot if the uploaded file is missing after the bot is created.
+        delete_file_from_s3(DOCUMENT_BUCKET, document_path, ignore_not_exist=True)
 
 
 def create_new_bot(user: User, bot_input: BotInput) -> BotOutput:
@@ -213,6 +219,24 @@ def modify_owned_bot(
         else "SUCCEEDED"
     )
 
+    # Use the existing knowledge base (KB) configuration if available, as it may have been set externally
+    # by a Step Functions state machine for embedding processes e.g. data source id. If a new KB configuration is provided,
+    # merge it with the existing one; otherwise, retain the current KB settings.
+    current_bot_kb = bot.bedrock_knowledge_base
+    updated_kb: BedrockKnowledgeBaseModel | None = None
+    if modify_input.bedrock_knowledge_base:
+        updated_kb = (
+            current_bot_kb.model_copy(
+                update=modify_input.bedrock_knowledge_base.model_dump()
+            )
+            if current_bot_kb
+            else BedrockKnowledgeBaseModel(
+                **modify_input.bedrock_knowledge_base.model_dump()
+            )
+        )
+    else:
+        updated_kb = current_bot_kb
+
     update_bot(
         bot.owner_user_id,
         bot_id,
@@ -241,16 +265,13 @@ def modify_owned_bot(
                 for starter in modify_input.conversation_quick_starters
             ]
         ),
-        bedrock_knowledge_base=(
-            BedrockKnowledgeBaseModel(**modify_input.bedrock_knowledge_base.model_dump())
-            if modify_input.bedrock_knowledge_base
-            else None
-        ),
+        bedrock_knowledge_base=updated_kb,
         bedrock_guardrails=(
             BedrockGuardrailsModel(**modify_input.bedrock_guardrails.model_dump())
             if modify_input.bedrock_guardrails
             else None
         ),
+        active_models=ActiveModelsOutput.model_validate(dict(modify_input.active_models)),
     )
 
     return BotModifyOutput(
@@ -294,6 +315,7 @@ def modify_owned_bot(
             if modify_input.bedrock_guardrails
             else None
         ),
+        active_models=ActiveModelsOutput.model_validate(dict(modify_input.active_models)),
     )
 
 
@@ -562,8 +584,12 @@ def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: st
 
 
 def remove_uploaded_file(user: User, bot_id: str, filename: str):
+    # Ignore errors when deleting a non-existent file from the S3 bucket used in knowledge bases.
+    # This allows users to update bot if the uploaded file is missing after the bot is created.
     delete_file_from_s3(
-        DOCUMENT_BUCKET, compose_upload_temp_s3_path(user.id, bot_id, filename)
+        DOCUMENT_BUCKET,
+        compose_upload_temp_s3_path(user.id, bot_id, filename),
+        ignore_not_exist=True,
     )
     return
 

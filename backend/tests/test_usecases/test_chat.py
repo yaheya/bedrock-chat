@@ -741,6 +741,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
         self.assertEqual(len(conv.message_map["instruction"].children), 2)
 
     def test_chat_with_public_bot(self):
+
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
             message=MessageInput(
@@ -789,6 +790,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
         delete_alias_by_id("user1", "public1")
 
     def test_fetch_conversation(self):
+
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
             message=MessageInput(
@@ -854,6 +856,7 @@ class TestAgentChat(unittest.TestCase):
         delete_conversation_by_user_id(self.user.id)
 
     def test_agent_chat(self):
+
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
             message=MessageInput(
@@ -894,7 +897,6 @@ class TestGuardrailChat(unittest.TestCase):
     model: type_model_name = "claude-v3-sonnet"
 
     def setUp(self) -> None:
-
         # Note that the region must be the same as the one used in the bedrock client
         # https://github.com/aws/aws-sdk-js-v3/issues/6482
         self.bedrock_client = boto3.client("bedrock", region_name="us-east-1")
@@ -944,11 +946,11 @@ class TestGuardrailChat(unittest.TestCase):
         # Delete dummy guardrail
         try:
             self.bedrock_client.delete_guardrail(guardrailIdentifier=self.guardrail_arn)
-
         except Exception as e:
             print(f"Error deleting guardrail: {e}")
 
     def test_guardrail_chat(self):
+
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
             message=MessageInput(
@@ -1002,6 +1004,7 @@ class TestInsertKnowledge(unittest.TestCase):
         ]
         instruction = build_rag_prompt(
             search_results=results,
+            model="claude-v3.5-sonnet-v2",
             display_citation=True,
         )
         print(instruction)

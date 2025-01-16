@@ -38,6 +38,7 @@ export interface ApiProps {
   readonly bedrockCustomBotProject: codebuild.IProject;
   readonly usageAnalysis?: UsageAnalysis;
   readonly enableMistral: boolean;
+  readonly enableBedrockCrossRegionInference: boolean;
   readonly enableLambdaSnapStart: boolean;
 }
 
@@ -207,6 +208,8 @@ export class Api extends Construct {
         USAGE_ANALYSIS_WORKGROUP: props.usageAnalysis?.workgroupName || "",
         USAGE_ANALYSIS_OUTPUT_LOCATION: usageAnalysisOutputLocation,
         ENABLE_MISTRAL: props.enableMistral.toString(),
+        ENABLE_BEDROCK_CROSS_REGION_INFERENCE:
+          props.enableBedrockCrossRegionInference.toString(),
         AWS_LAMBDA_EXEC_WRAPPER: "/opt/bootstrap",
         PORT: "8000",
       },

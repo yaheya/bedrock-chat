@@ -1,8 +1,10 @@
-from typing import Literal
+from typing import Any, Dict, Literal
 
 from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import find_bot_by_id
 from app.routes.schemas.bot import (
+    ActiveModelsOutput,
+    Agent,
     AgentTool,
     BotInput,
     BotMetaOutput,
@@ -13,6 +15,7 @@ from app.routes.schemas.bot import (
     BotSummaryOutput,
     BotSwitchVisibilityInput,
 )
+from app.routes.schemas.conversation import type_model_name
 from app.usecases.bot import (
     create_new_bot,
     fetch_all_bots,
