@@ -4,7 +4,6 @@ import json
 import logging
 import os
 from decimal import Decimal as decimal
-from functools import partial
 
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG

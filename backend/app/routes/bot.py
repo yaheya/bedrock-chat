@@ -77,20 +77,20 @@ def patch_bot_shared_status(
 def get_all_bots(
     request: Request,
     kind: Literal["private", "mixed"] = "private",
-    pinned: bool = False,
+    starred: bool = False,
     limit: int | None = None,
 ):
     """Get all bots. The order is descending by `last_used_time`.
     - If `kind` is `private`, only private bots will be returned.
-        - If `mixed` must give either `pinned` or `limit`.
-    - If `pinned` is True, only pinned bots will be returned.
+        - If `mixed` must give either `starred` or `limit`.
+    - If `starred` is True, only starred bots will be returned.
         - When kind is `private`, this will be ignored.
     - If `limit` is specified, only the first n bots will be returned.
-        - Cannot specify both `pinned` and `limit`.
+        - Cannot specify both `starred` and `limit`.
     """
     current_user: User = request.state.current_user
 
-    bots = fetch_all_bots(current_user, limit, pinned, kind)
+    bots = fetch_all_bots(current_user, limit, starred, kind)
     return bots
 
 

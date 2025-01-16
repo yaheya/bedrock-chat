@@ -38,3 +38,28 @@ class User(BaseModel):
             # It should be refactored to have a more fine-grained permission.
             groups=["Admin"],
         )
+
+    @classmethod
+    def from_cognito_idp_response(cls, user: dict) -> Self:
+        return cls(
+            id=user["Username"],
+            name=next(
+                attr["Value"] for attr in user["Attributes"] if attr["Name"] == "name"
+            ),
+            email=next(
+                attr["Value"] for attr in user["Attributes"] if attr["Name"] == "email"
+            ),
+            groups=[],
+        )
+
+
+class UserGroup(BaseModel):
+    name: str
+    description: str
+
+    @classmethod
+    def from_cognito_idp_response(cls, group: dict) -> Self:
+        return cls(
+            name=group["GroupName"],
+            description=group.get("Description", ""),
+        )

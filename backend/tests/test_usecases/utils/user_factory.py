@@ -53,6 +53,36 @@ def delete_cognito_user(user: User):
         raise e
 
 
+def store_group_in_cognito(group_name: str, description: str = "") -> None:
+    """
+    Create a group in Cognito if it doesn't already exist.
+    """
+    try:
+        cognito_client.create_group(
+            GroupName=group_name,
+            UserPoolId=USER_POOL_ID,
+            Description=description,
+        )
+        print(f"Group '{group_name}' created in Cognito.")
+    except cognito_client.exceptions.GroupExistsException:
+        print(f"Group '{group_name}' already exists in Cognito.")
+    except ClientError as e:
+        print(f"Error creating group in Cognito: {e}")
+        raise e
+
+
+def delete_cognito_group(group_name: str) -> None:
+    """
+    Delete a group in Cognito.
+    """
+    try:
+        cognito_client.delete_group(GroupName=group_name, UserPoolId=USER_POOL_ID)
+        print(f"Group '{group_name}' deleted from Cognito.")
+    except ClientError as e:
+        print(f"Error deleting group from Cognito: {e}")
+        raise e
+
+
 def create_test_user(user_name: str) -> User:
     return User(
         id=user_name,
