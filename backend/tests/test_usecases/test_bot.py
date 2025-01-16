@@ -5,6 +5,7 @@ import unittest
 
 from app.repositories.common import RecordNotFoundError
 from app.repositories.custom_bot import (
+    alias_exists,
     delete_alias_by_id,
     delete_bot_by_id,
     find_bot_by_id,
@@ -50,9 +51,7 @@ from tests.test_usecases.utils.user_factory import (
 class TestIssuePresignedUrl(unittest.TestCase):
     def test_issue_presigned_url(self):
         user = create_test_user("test_user")
-        url = issue_presigned_url(
-            user, "test_bot", "test_file", content_type="image/png"
-        )
+        url = issue_presigned_url(user, "test_bot", "test_file", content_type="image/png")
         self.assertEqual(type(url), str)
         self.assertTrue(url.startswith("https://"))
 
@@ -240,9 +239,7 @@ class TestScenario(unittest.TestCase):
 
         # Create user2 partial shared bots
         # bot3 is not shared to user1
-        self.user2_bot1 = create_test_partial_shared_bot(
-            "3", False, "user2", ["user10"]
-        )
+        self.user2_bot1 = create_test_partial_shared_bot("3", False, "user2", ["user10"])
         # bot4 is shared to user1
         self.user2_bot2 = create_test_partial_shared_bot("4", False, "user2", ["user1"])
 
@@ -375,26 +372,26 @@ class TestScenario(unittest.TestCase):
 
 class TestSharing(unittest.TestCase):
     def setUp(self) -> None:
-        self.publisher_id = "test_user_pub"
-        self.subscriber_id = "test_user_sub"
+        self.publisher = create_test_user("test_user_pub")
+        self.subscriber = create_test_user("test_user_sub")
 
-        self.bot = create_test_public_bot("test_bot", True, self.publisher_id)
-        store_bot(self.publisher_id, self.bot)
+        self.bot = create_test_public_bot("test_bot", True, self.publisher.id)
+        store_bot(self.bot)
 
     def tearDown(self) -> None:
-        delete_bot_by_id(self.publisher_id, self.bot.id)
+        delete_bot_by_id(self.publisher.id, self.bot.id)
         try:
-            delete_alias_by_id(self.subscriber_id, self.bot.id)
+            delete_alias_by_id(self.subscriber.id, self.bot.id)
         except:
             print("Alias not found")
 
     def test_share_and_subscribe(self):
-        # Share the bot to public
-        update_bot_visibility(self.publisher_id, self.bot.id, True)
-
         # Subscribe (equal to open shared URL on browser)
-        bot_summary = fetch_bot_summary(self.subscriber_id, self.bot.id)
+        bot_summary = fetch_bot_summary(self.subscriber, self.bot.id)
         self.assertEqual(bot_summary.id, self.bot.id)
+
+        # Assert that alias successfully created
+        self.assertTrue(alias_exists(self.subscriber.id, self.bot.id))
 
 
 if __name__ == "__main__":
