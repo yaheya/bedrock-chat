@@ -386,8 +386,10 @@ def fetch_all_bots(
     #     ref: useBot.tsの
     #       recentlyUsedSharedBots: recentlyUsedBots?.filter((bot) => !bot.owned),
 
-    if not starred and not limit:
-        raise ValueError("Must specify either `limit` or `starred`")
+    if kind == "mixed" and not starred and not limit:
+        raise ValueError(
+            "Must specify either `limit` or `starred when mixed specified`"
+        )
     if limit and starred:
         raise ValueError("Cannot specify both `limit` and `starred`")
     if limit and (limit < 0 or limit > 100):
