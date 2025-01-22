@@ -522,6 +522,12 @@ def modify_bot_visibility(
             f"'{bot.shared_scope}' to '{target_shared_scope}'."
         )
 
+    # Check if the bot is published
+    if bot.published_api_stack_name:
+        raise ValueError(
+            f"Bot {bot_id} is published and cannot have its visibility changed."
+        )
+
     # Process based on the target scope
     if _is_private_visibility_input(visibility_input):
         target_allowed_user_ids = []
