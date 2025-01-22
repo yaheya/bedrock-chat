@@ -2,12 +2,12 @@ import logging
 import os
 
 import boto3
-from app.user import User, UserGroup
+from app.user import UserGroup, UserWithoutGroups
 from botocore.exceptions import ClientError
 from retry import retry
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 USER_POOL_ID = os.environ.get("USER_POOL_ID")
 
@@ -15,13 +15,22 @@ client = boto3.client("cognito-idp")
 
 
 @retry(ClientError, tries=3, delay=1)
-def find_users_by_email_prefix(prefix: str, limit: int = 10) -> list[User]:
+def find_users_by_email_prefix(prefix: str, limit: int = 10) -> list[UserWithoutGroups]:
     try:
+        logger.debug(f"Searching users with email prefix: {prefix}")
         response = client.list_users(
-            UserPoolId=USER_POOL_ID, Filter=f'email ^= "{prefix}"', Limit=limit
+            UserPoolId=USER_POOL_ID, Filter=f'email ^= "{prefix.lower()}"', Limit=limit
         )
+        logger.debug(f"Found {len(response['Users'])} users")
+        logger.debug(response)
+
         users = response.get("Users", [])
-        return [User.from_cognito_idp_response(user) for user in users]
+
+        converted_users = [
+            UserWithoutGroups.from_cognito_idp_response(user) for user in users
+        ]
+        logger.debug(f"Converted users: {converted_users}")
+        return converted_users
     except ClientError as e:
         # Retry if rate limit.
         # The quota is 30 RPS for ListUsers.
@@ -63,7 +72,7 @@ def find_group_by_name_prefix(prefix: str) -> list[UserGroup]:
         filtered_groups = [
             UserGroup.from_cognito_idp_response(group)
             for group in groups
-            if group["GroupName"].startswith(prefix)
+            if group["GroupName"].lower().startswith(prefix.lower())
         ]
         return filtered_groups
 

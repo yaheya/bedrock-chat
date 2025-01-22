@@ -1,11 +1,11 @@
 from app.usecases.user import search_group_by_name_prefix, search_user_by_email_prefix
-from app.user import User, UserGroup
+from app.user import User, UserGroup, UserWithoutGroups
 from fastapi import APIRouter, Request
 
 router = APIRouter(tags=["user"])
 
 
-@router.get("/user/search", response_model=list[User])
+@router.get("/user/search", response_model=list[UserWithoutGroups])
 def search_user(request: Request, prefix: str):
     """Search users"""
     current_user: User = request.state.current_user

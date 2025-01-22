@@ -1,12 +1,25 @@
-from typing import Self
+from typing import Optional, Self
 
 from pydantic import BaseModel
 
 
-class User(BaseModel):
+class UserWithoutGroups(BaseModel):
     id: str
     name: str
     email: str
+
+    @classmethod
+    def from_cognito_idp_response(cls, user: dict) -> Self:
+        return cls(
+            id=user["Username"],
+            name=user["Username"],
+            email=next(
+                attr["Value"] for attr in user["Attributes"] if attr["Name"] == "email"
+            ),
+        )
+
+
+class User(UserWithoutGroups):
     groups: list[str]
 
     def is_admin(self) -> bool:
@@ -37,19 +50,6 @@ class User(BaseModel):
             # Note: Publish API is allowed to access all bot resources.
             # It should be refactored to have a more fine-grained permission.
             groups=["Admin"],
-        )
-
-    @classmethod
-    def from_cognito_idp_response(cls, user: dict) -> Self:
-        return cls(
-            id=user["Username"],
-            name=next(
-                attr["Value"] for attr in user["Attributes"] if attr["Name"] == "name"
-            ),
-            email=next(
-                attr["Value"] for attr in user["Attributes"] if attr["Name"] == "email"
-            ),
-            groups=[],
         )
 
 

@@ -1,8 +1,10 @@
 from app.repositories.user import find_group_by_name_prefix, find_users_by_email_prefix
-from app.user import User, UserGroup
+from app.user import UserGroup, UserWithoutGroups
 
 
-def search_user_by_email_prefix(prefix: str, limit: int = 10) -> list[User]:
+def search_user_by_email_prefix(
+    prefix: str, limit: int = 10
+) -> list[UserWithoutGroups]:
     return find_users_by_email_prefix(prefix=prefix, limit=limit)
 
 
