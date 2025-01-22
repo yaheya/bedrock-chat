@@ -167,6 +167,8 @@ export class Api extends Construct {
         actions: [
           "cognito-idp:AdminGetUser",
           "cognito-idp:AdminListGroupsForUser",
+          "cognito-idp:ListUsers",
+          "cognito-idp:ListGroups",
         ],
         resources: [props.auth.userPool.userPoolArn],
       })
