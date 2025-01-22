@@ -49,6 +49,8 @@ export class Database extends Construct {
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
       stream: StreamViewType.NEW_IMAGE,
+      // Need to enable PITR for bot table for Zero-ETL pipeline
+      pointInTimeRecovery: true,
       encryption: TableEncryption.AWS_MANAGED,
     });
     // LSI-1
