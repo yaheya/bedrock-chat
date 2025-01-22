@@ -153,6 +153,16 @@ export class BedrockChatStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    // Custom Bot Store
+    let botStore = undefined;
+    if (props.enableBotStore) {
+      botStore = new BotStore(this, "BotStore", {
+        botTable: database.botTable,
+        useStandbyReplicas: props.useStandbyReplicas,
+        language: props.botStoreLanguage,
+      });
+    }
+
     const usageAnalysis = new UsageAnalysis(this, "UsageAnalysis", {
       accessLogBucket,
       sourceDatabase: database,
@@ -171,6 +181,7 @@ export class BedrockChatStack extends cdk.Stack {
       enableBedrockCrossRegionInference:
         props.enableBedrockCrossRegionInference,
       enableLambdaSnapStart: props.enableLambdaSnapStart,
+      botStoreEndpoint: botStore?.openSearchEndpoint,
     });
     props.documentBucket.grantReadWrite(backendApi.handler);
 
@@ -227,15 +238,6 @@ export class BedrockChatStack extends cdk.Stack {
         allowedIpV6AddressRanges: props.publishedApiAllowedIpV6AddressRanges,
       }
     );
-
-    // Custom Bot Store
-    if (props.enableBotStore) {
-      const botStore = new BotStore(this, "BotStore", {
-        botTable: database.botTable,
-        useStandbyReplicas: props.useStandbyReplicas,
-        language: props.botStoreLanguage,
-      });
-    }
 
     new CfnOutput(this, "DocumentBucketName", {
       value: props.documentBucket.bucketName,

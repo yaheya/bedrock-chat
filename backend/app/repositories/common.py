@@ -3,6 +3,8 @@ import os
 from typing import Literal
 
 import boto3
+from opensearchpy import OpenSearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
 
 DDB_ENDPOINT_URL = os.environ.get("DDB_ENDPOINT_URL")
 CONVERSATION_TABLE_NAME = os.environ.get("CONVERSATION_TABLE_NAME", "")
@@ -10,6 +12,10 @@ BOT_TABLE_NAME = os.environ.get("BOT_TABLE_NAME", "")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 REGION = os.environ.get("REGION", "ap-northeast-1")
 TABLE_ACCESS_ROLE_ARN = os.environ.get("TABLE_ACCESS_ROLE_ARN", "")
+
+BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT = os.environ.get(
+    "BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT"
+)
 
 # DynamoDB batch operation limits
 # Ref: https://docs.aws.amazon.com/en_en/amazondynamodb/latest/developerguide/read-write-operations.html
@@ -162,6 +168,34 @@ def get_bot_table_client():
     """Get a DynamoDB table client for bot table.
     Note: Bot table does not have row-level access control.
     """
-    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(
-        BOT_TABLE_NAME
+    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(BOT_TABLE_NAME)
+
+
+def get_opensearch_client() -> OpenSearch:
+    """Get OpenSearch client with AWS authentication."""
+    if not BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT:
+        raise ValueError("BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT is not set")
+
+    # Get credentials from boto3
+    credentials = boto3.Session().get_credentials()
+    aws_auth = AWS4Auth(
+        credentials.access_key,
+        credentials.secret_key,
+        REGION,
+        "es",
+        session_token=credentials.token,
     )
+
+    # Omit https
+    host = BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT.replace("https://", "")
+
+    client = OpenSearch(
+        hosts=[{"host": host, "port": 443}],
+        http_auth=aws_auth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection,
+        timeout=30,
+    )
+
+    return client

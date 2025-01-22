@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import json
 import logging
@@ -524,9 +523,7 @@ def __find_bots_with_condition(
                         ]
                     }
                 }
-                original_bots_response = client.batch_get_item(
-                    RequestItems=request_items
-                )
+                original_bots_response = client.batch_get_item(RequestItems=request_items)
 
                 # Create a map of original bot details
                 original_bot_map = {
@@ -573,9 +570,7 @@ def __find_bots_with_condition(
     return bots
 
 
-def find_starred_bots_by_user_id(
-    user_id: str, limit: int | None = None
-) -> list[BotMeta]:
+def find_starred_bots_by_user_id(user_id: str, limit: int | None = None) -> list[BotMeta]:
     """Find all starred bots by user id."""
     logger.info(f"Finding starred bots for user: {user_id}")
 

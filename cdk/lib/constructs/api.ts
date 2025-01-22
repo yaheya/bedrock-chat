@@ -40,6 +40,7 @@ export interface ApiProps {
   readonly enableMistral: boolean;
   readonly enableBedrockCrossRegionInference: boolean;
   readonly enableLambdaSnapStart: boolean;
+  readonly botStoreEndpoint?: string;
 }
 
 export class Api extends Construct {
@@ -173,6 +174,31 @@ export class Api extends Construct {
         resources: [props.auth.userPool.userPoolArn],
       })
     );
+    handlerRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "aoss:APIAccessAll",
+          "aoss:DescribeCollection",
+          "aoss:GetCollection",
+          "aoss:SearchCollections",
+          "aoss:BatchGetCollection",
+          "aoss:ListCollections",
+        ],
+        resources: ["*"],
+      })
+    );
+    handlerRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["aoss:DescribeIndex", "aoss:ReadDocument"],
+        resources: [
+          `arn:aws:aoss:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:collection/*`,
+        ],
+      })
+    );
     props.usageAnalysis?.resultOutputBucket.grantReadWrite(handlerRole);
     props.usageAnalysis?.ddbBucket.grantRead(handlerRole);
     props.largeMessageBucket.grantReadWrite(handlerRole);
@@ -212,6 +238,7 @@ export class Api extends Construct {
         ENABLE_MISTRAL: props.enableMistral.toString(),
         ENABLE_BEDROCK_CROSS_REGION_INFERENCE:
           props.enableBedrockCrossRegionInference.toString(),
+        BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT: props.botStoreEndpoint || "",
         AWS_LAMBDA_EXEC_WRAPPER: "/opt/bootstrap",
         PORT: "8000",
       },

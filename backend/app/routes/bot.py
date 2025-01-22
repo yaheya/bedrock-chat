@@ -28,6 +28,7 @@ from app.usecases.bot import (
     modify_star_status,
     remove_bot_by_id,
     remove_uploaded_file,
+    search_bots,
 )
 from app.user import User
 from fastapi import APIRouter, Depends, Request
@@ -56,9 +57,7 @@ def patch_bot(request: Request, bot_id: str, modify_input: BotModifyInput):
 
 
 @router.patch("/bot/{bot_id}/starred")
-def patch_bot_star_status(
-    request: Request, bot_id: str, starred_input: BotStarredInput
-):
+def patch_bot_star_status(request: Request, bot_id: str, starred_input: BotStarredInput):
     """Modify owned bot star status."""
     current_user: User = request.state.current_user
     return modify_star_status(current_user, bot_id, starred=starred_input.starred)
@@ -133,9 +132,7 @@ def delete_bot(request: Request, bot_id: str):
 
 
 @router.get("/bot/{bot_id}/presigned-url", response_model=BotPresignedUrlOutput)
-def get_bot_presigned_url(
-    request: Request, bot_id: str, filename: str, contentType: str
-):
+def get_bot_presigned_url(request: Request, bot_id: str, filename: str, contentType: str):
     """Get presigned url for bot"""
     current_user: User = request.state.current_user
     url = issue_presigned_url(current_user, bot_id, filename, contentType)
@@ -154,3 +151,16 @@ def get_bot_available_tools(request: Request, bot_id: str):
     """Get available tools for bot"""
     tools = fetch_available_agent_tools()
     return [AgentTool(name=tool.name, description=tool.description) for tool in tools]
+
+
+@router.get("/bot/search", response_model=list[BotMetaOutput])
+def search_bots_by_query(
+    request: Request,
+    query: str,
+    limit: int = 20,
+):
+    """Search bots by query string."""
+    current_user: User = request.state.current_user
+
+    bots = search_bots(current_user, query, limit)
+    return bots

@@ -11,7 +11,7 @@ import {
   HttpMethods,
   ObjectOwnership,
 } from "aws-cdk-lib/aws-s3";
-import { RemovalPolicy, Stack } from "aws-cdk-lib";
+import { CfnOutput, RemovalPolicy, Stack } from "aws-cdk-lib";
 import {
   Effect,
   Policy,
@@ -42,6 +42,7 @@ export interface BotStoreProps {
 }
 
 export class BotStore extends Construct {
+  readonly openSearchEndpoint: string;
   constructor(scope: Construct, id: string, props: BotStoreProps) {
     super(scope, id);
 
@@ -310,6 +311,12 @@ export class BotStore extends Construct {
       // Ref: https://opensearch.org/docs/latest/data-prepper/pipelines/configuration/sinks/opensearch/
       pipelineConfigurationBody: JSON.stringify(osisPipelineConfig),
     });
+
+    new CfnOutput(this, "OpenSearchEndpoint", {
+      value: endpoint,
+    });
+
+    this.openSearchEndpoint = endpoint;
   }
 
   private genTemplateContent(language: Language): string {
