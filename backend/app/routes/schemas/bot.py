@@ -1,6 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Type, get_args
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Self,
+    Type,
+    get_args,
+)
 
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
@@ -12,7 +22,7 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseOutput,
 )
 from app.routes.schemas.conversation import type_model_name
-from pydantic import Field, create_model, validator
+from pydantic import Field, create_model, model_validator, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -345,6 +355,14 @@ class PartialVisibilityInput(BaseSchema):
     target_shared_scope: Literal["partial"]
     target_allowed_user_ids: list[str]
     target_allowed_group_ids: list[str]
+
+    @model_validator(mode="after")
+    def validate_not_both_empty(self) -> Self:
+        if not self.target_allowed_user_ids and not self.target_allowed_group_ids:
+            raise ValueError(
+                "Either target_allowed_user_ids or target_allowed_group_ids must not be empty"
+            )
+        return self
 
 
 class AllVisibilityInput(BaseSchema):
