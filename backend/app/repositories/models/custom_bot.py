@@ -337,7 +337,7 @@ class BotModel(BaseModel):
                 else None
             ),
             active_models=ActiveModelsModel.model_validate(
-                dict(bot_input.active_models)
+                bot_input.active_models.model_dump()
             ),
         )
 
@@ -352,28 +352,36 @@ class BotModel(BaseModel):
             is_public=self.shared_scope == "all",
             is_starred=self.is_starred,
             owned=True,
-            generation_params=GenerationParams.model_validate(self.generation_params),
-            agent=Agent.model_validate(self.agent),
-            knowledge=Knowledge.model_validate(self.knowledge),
+            generation_params=GenerationParams.model_validate(
+                self.generation_params.model_dump()
+            ),
+            agent=Agent.model_validate(self.agent.model_dump()),
+            knowledge=Knowledge.model_validate(self.knowledge.model_dump()),
             sync_status=self.sync_status,
             sync_status_reason=self.sync_status_reason,
             sync_last_exec_id=self.sync_last_exec_id,
             display_retrieved_chunks=self.display_retrieved_chunks,
             conversation_quick_starters=[
-                ConversationQuickStarter.model_validate(starter)
+                ConversationQuickStarter.model_validate(starter.model_dump())
                 for starter in self.conversation_quick_starters
             ],
             bedrock_knowledge_base=(
-                BedrockKnowledgeBaseOutput.model_validate(self.bedrock_knowledge_base)
+                BedrockKnowledgeBaseOutput.model_validate(
+                    self.bedrock_knowledge_base.model_dump()
+                )
                 if self.bedrock_knowledge_base
                 else None
             ),
             bedrock_guardrails=(
-                BedrockGuardrailsOutput.model_validate(self.bedrock_guardrails)
+                BedrockGuardrailsOutput.model_validate(
+                    self.bedrock_guardrails.model_dump()
+                )
                 if self.bedrock_guardrails
                 else None
             ),
-            active_models=ActiveModelsOutput.model_validate(dict(self.active_models)),
+            active_models=ActiveModelsOutput.model_validate(
+                self.active_models.model_dump()
+            ),
         )
 
     def to_summary_output(self, user: User) -> BotSummaryOutput:
@@ -397,7 +405,9 @@ class BotModel(BaseModel):
             ],
             shared_scope=self.shared_scope,
             shared_status=self.shared_status,
-            active_models=ActiveModelsOutput.model_validate(dict(self.active_models)),
+            active_models=ActiveModelsOutput.model_validate(
+                self.active_models.model_dump()
+            ),
         )
 
 

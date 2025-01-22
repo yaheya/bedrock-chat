@@ -275,7 +275,7 @@ def modify_owned_bot(
             else None
         ),
         active_models=ActiveModelsOutput.model_validate(
-            dict(modify_input.active_models)
+            modify_input.active_models.model_dump()
         ),
     )
 
@@ -321,7 +321,7 @@ def modify_owned_bot(
             else None
         ),
         active_models=ActiveModelsOutput.model_validate(
-            dict(modify_input.active_models)
+            modify_input.active_models.model_dump()
         ),
     )
 
