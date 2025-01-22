@@ -280,10 +280,11 @@ class BotOutput(BaseSchema):
     instruction: str
     create_time: float
     last_used_time: float
-    is_public: bool
-    is_starred: bool
-    # Whether the bot is owned by the user
-    owned: bool
+    shared_scope: type_shared_scope
+    shared_status: str
+    allowed_cognito_groups: list[str]
+    allowed_cognito_users: list[str]
+    owner_user_id: str
     generation_params: GenerationParams
     agent: Agent
     knowledge: Knowledge

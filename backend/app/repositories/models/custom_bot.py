@@ -349,9 +349,11 @@ class BotModel(BaseModel):
             instruction=self.instruction,
             create_time=self.create_time,
             last_used_time=self.last_used_time,
-            is_public=self.shared_scope == "all",
-            is_starred=self.is_starred,
-            owned=True,
+            shared_scope=self.shared_scope,
+            shared_status=self.shared_status,
+            allowed_cognito_groups=self.allowed_cognito_groups,
+            allowed_cognito_users=self.allowed_cognito_users,
+            owner_user_id=self.owner_user_id,
             generation_params=GenerationParams.model_validate(
                 self.generation_params.model_dump()
             ),
