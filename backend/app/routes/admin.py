@@ -129,7 +129,7 @@ def get_public_bot(request: Request, bot_id: str, admin_check=Depends(check_admi
     return output
 
 
-@router.get("/admin/bot/{bot_id}/pushed")
+@router.patch("/admin/bot/{bot_id}/pushed")
 def pin_bot(
     request: Request,
     bot_id: str,
