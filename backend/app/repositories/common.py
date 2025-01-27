@@ -182,7 +182,7 @@ def get_opensearch_client() -> OpenSearch:
         credentials.access_key,
         credentials.secret_key,
         REGION,
-        "es",
+        "aoss",
         session_token=credentials.token,
     )
 
