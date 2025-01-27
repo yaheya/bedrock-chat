@@ -184,6 +184,12 @@ export class BedrockChatStack extends cdk.Stack {
       botStoreEndpoint: botStore?.openSearchEndpoint,
     });
     props.documentBucket.grantReadWrite(backendApi.handler);
+    botStore?.addDataAccessPolicy(
+      "DAPolicyApiHandler",
+      backendApi.handler.role!,
+      ["aoss:DescribeCollectionItems"],
+      ["aoss:DescribeIndex", "aoss:ReadDocument"]
+    );
 
     // For streaming response
     const websocket = new WebSocket(this, "WebSocket", {

@@ -14,6 +14,7 @@ import {
 import { CfnOutput, RemovalPolicy, Stack } from "aws-cdk-lib";
 import {
   Effect,
+  IRole,
   Policy,
   PolicyStatement,
   Role,
@@ -43,6 +44,7 @@ export interface BotStoreProps {
 
 export class BotStore extends Construct {
   readonly openSearchEndpoint: string;
+  private collection: oss.CfnCollection;
   constructor(scope: Construct, id: string, props: BotStoreProps) {
     super(scope, id);
 
@@ -98,14 +100,14 @@ export class BotStore extends Construct {
       }
     );
 
-    const collection = new oss.CfnCollection(this, "Collection", {
+    this.collection = new oss.CfnCollection(this, "Collection", {
       name: collectionName,
       // type: 'VECTORSEARCH',
       type: "SEARCH",
       standbyReplicas,
     });
 
-    const endpoint = collection.getAtt("CollectionEndpoint").toString();
+    const endpoint = this.collection.getAtt("CollectionEndpoint").toString();
 
     const bucket = new Bucket(this, "Bucket", {
       encryption: BucketEncryption.S3_MANAGED,
@@ -206,43 +208,43 @@ export class BotStore extends Construct {
       type: "data",
       description: `Data access policy for ${collectionName} collection.`,
       policy: `
-        [
-          {
-            "Rules": [
-              {
-                "ResourceType": "collection",
-                "Resource": ["collection/${collectionName}"],
-                "Permission": [
-                  "aoss:CreateCollectionItems",
-                  "aoss:DescribeCollectionItems",
-                  "aoss:DeleteCollectionItems",
-                  "aoss:UpdateCollectionItems"
-                ]
-              },
-              {
-                "ResourceType": "index",
-                "Resource": ["index/${collectionName}/*"],
-                "Permission": [
-                  "aoss:CreateIndex",
-                  "aoss:DeleteIndex",
-                  "aoss:UpdateIndex",
-                  "aoss:DescribeIndex",
-                  "aoss:ReadDocument",
-                  "aoss:WriteDocument"
-                ]
-              }
-            ],
-            "Principal": [
-              "${osisRole.roleArn}"
-            ]
-          }
-        ]
-      `,
+          [
+            {
+              "Rules": [
+                {
+                  "ResourceType": "collection",
+                  "Resource": ["collection/${collectionName}"],
+                  "Permission": [
+                    "aoss:CreateCollectionItems",
+                    "aoss:DescribeCollectionItems",
+                    "aoss:DeleteCollectionItems",
+                    "aoss:UpdateCollectionItems"
+                  ]
+                },
+                {
+                  "ResourceType": "index",
+                  "Resource": ["index/${collectionName}/*"],
+                  "Permission": [
+                    "aoss:CreateIndex",
+                    "aoss:DeleteIndex",
+                    "aoss:UpdateIndex",
+                    "aoss:DescribeIndex",
+                    "aoss:ReadDocument",
+                    "aoss:WriteDocument"
+                  ]
+                }
+              ],
+              "Principal": [
+                "${osisRole.roleArn}"
+              ]
+            }
+          ]
+        `,
     });
 
-    collection.addDependency(encryptionPolicy);
-    collection.addDependency(networkPolicy);
-    collection.addDependency(dataAccessPolicy);
+    this.collection.addDependency(encryptionPolicy);
+    this.collection.addDependency(networkPolicy);
+    this.collection.addDependency(dataAccessPolicy);
 
     const osisPipelineConfig = {
       version: "2",
@@ -348,5 +350,46 @@ export class BotStore extends Construct {
       default:
         throw new Error(`Unsupported language: ${language}`);
     }
+  }
+
+  public addDataAccessPolicy(
+    id: string,
+    principal: IRole,
+    collectionPermissions: string[],
+    indexPermissions: string[]
+  ): void {
+    if (!this.collection) {
+      throw new Error(
+        "Collection is not defined. Cannot attach data access policy."
+      );
+    }
+
+    const newPolicy = new oss.CfnAccessPolicy(this, id, {
+      name: generatePhysicalName(this, id, {
+        maxLength: 32,
+        lower: true,
+      }),
+      type: "data",
+      description: `Custom Data access policy for ${this.collection.name} collection.`,
+      policy: JSON.stringify([
+        {
+          Rules: [
+            {
+              ResourceType: "collection",
+              Resource: [`collection/${this.collection.name}`],
+              Permission: collectionPermissions,
+            },
+            {
+              ResourceType: "index",
+              Resource: [`index/${this.collection.name}/*`],
+              Permission: indexPermissions,
+            },
+          ],
+          Principal: [principal.roleArn],
+        },
+      ]),
+    });
+
+    newPolicy.addDependency(this.collection);
   }
 }
