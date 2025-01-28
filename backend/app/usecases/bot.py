@@ -539,10 +539,13 @@ def modify_bot_visibility(
         if _is_partial_visibility_input(visibility_input):
             target_allowed_user_ids = visibility_input.target_allowed_user_ids
             target_allowed_group_ids = visibility_input.target_allowed_group_ids
+
+            # Note: If the specified user or group ID is not found, an error should be thrown.
+            # However, the current implementation does not check this because Frontend will care about it.
         else:
-            # If to all, keep the current allowed user and group ids.
-            target_allowed_user_ids = bot.allowed_cognito_users
-            target_allowed_group_ids = bot.allowed_cognito_groups
+            # If to all, clear the allowed user and group IDs.
+            target_allowed_user_ids = []
+            target_allowed_group_ids = []
 
         if bot.shared_status != "unshared":
             # If the bot is shared, keep the shared status.
