@@ -168,7 +168,9 @@ def get_bot_table_client():
     """Get a DynamoDB table client for bot table.
     Note: Bot table does not have row-level access control.
     """
-    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(BOT_TABLE_NAME)
+    return _get_aws_resource("dynamodb", table_name=BOT_TABLE_NAME).Table(
+        BOT_TABLE_NAME
+    )
 
 
 def get_opensearch_client() -> OpenSearch:

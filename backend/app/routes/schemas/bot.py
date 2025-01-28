@@ -138,15 +138,19 @@ class BotInput(BaseSchema):
     active_models: ActiveModelsInput  # type: ignore
 
     def has_knowledge(self) -> bool:
-        if self.knowledge is None:
-            return False
-
-        return (
-            len(self.knowledge.source_urls) > 0
-            or len(self.knowledge.sitemap_urls) > 0
-            or len(self.knowledge.filenames) > 0
-            or len(self.knowledge.s3_urls) > 0
-        )
+        if self.knowledge:
+            return (
+                len(self.knowledge.source_urls) > 0
+                or len(self.knowledge.sitemap_urls) > 0
+                or len(self.knowledge.filenames) > 0
+                or len(self.knowledge.s3_urls) > 0
+                # This is a condition for running Sfn to register existing KB information in DynamoDB when an existing KB is specified.
+                or (
+                    self.bedrock_knowledge_base is not None
+                    and self.bedrock_knowledge_base.exist_knowledge_base_id is not None
+                )
+            )
+        return False
 
     def has_guardrails(self) -> bool:
         if self.bedrock_guardrails is None:

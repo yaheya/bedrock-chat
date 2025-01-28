@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List, Self, Type, get_args
 
 from app.config import DEFAULT_GENERATION_CONFIG
@@ -31,6 +32,9 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def _create_model_activate_model(model_names: List[str]) -> Type[DynamicBaseModel]:
@@ -275,7 +279,8 @@ class BotModel(BaseModel):
                 tools=[
                     AgentToolModel(name=t.name, description=t.description)
                     for t in [
-                        get_tool_by_name(tool_name) for tool_name in bot_input.agent.tools
+                        get_tool_by_name(tool_name)
+                        for tool_name in bot_input.agent.tools
                     ]
                 ]
             )
@@ -288,7 +293,11 @@ class BotModel(BaseModel):
             if bot_input.has_knowledge() or bot_input.has_guardrails()
             else "SUCCEEDED"
         )
+        logger.debug("sync_status: %s", sync_status)
+        logger.debug(f"has_knowledge: {bot_input.has_knowledge()}")
+        logger.debug(f"has_guardrails: {bot_input.has_guardrails()}")
 
+        logger.debug(f"bot_input.guarails: {bot_input.bedrock_guardrails}")
         return cls(
             id=bot_input.id,
             owner_user_id=owner_user_id,
@@ -324,14 +333,16 @@ class BotModel(BaseModel):
                 ]
             ),
             bedrock_knowledge_base=(
-                BedrockKnowledgeBaseModel(
-                    **(bot_input.bedrock_knowledge_base.model_dump())
+                BedrockKnowledgeBaseModel.model_validate(
+                    bot_input.bedrock_knowledge_base.model_dump()
                 )
                 if bot_input.bedrock_knowledge_base
                 else None
             ),
             bedrock_guardrails=(
-                BedrockGuardrailsModel(**(bot_input.bedrock_guardrails.model_dump()))
+                BedrockGuardrailsModel.model_validate(
+                    bot_input.bedrock_guardrails.model_dump()
+                )
                 if bot_input.bedrock_guardrails
                 else None
             ),
@@ -493,7 +504,9 @@ class BotMeta(BaseModel):
         _is_starred: bool = (
             is_starred if is_starred is not None else item.get("IsStarred", False)
         )
-        assert item["ItemType"].find("BOT") != -1, f"Invalid ItemType: {item['ItemType']}"
+        assert (
+            item["ItemType"].find("BOT") != -1
+        ), f"Invalid ItemType: {item['ItemType']}"
         return cls(
             id=item["BotId"],
             title=item["Title"],
