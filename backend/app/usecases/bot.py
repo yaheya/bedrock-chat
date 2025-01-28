@@ -650,7 +650,7 @@ def search_bots(
     """Search bots by query string.
     This method is used for bot-store functionality.
     """
-    bots = find_bots_by_query(query, user.id, limit=limit)
+    bots = find_bots_by_query(query, user.id, limit=limit, is_admin=user.is_admin())
     bot_metas = []
     for bot in bots:
         bot_metas.append(bot.to_output())
