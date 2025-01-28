@@ -83,12 +83,12 @@ def delete_cognito_group(group_name: str) -> None:
         raise e
 
 
-def create_test_user(user_name: str) -> User:
+def create_test_user(user_name: str, groups=[]) -> User:
     return User(
         id=user_name,
         name=user_name,
         email=_create_email_from_id(user_name),
-        groups=[],
+        groups=groups,
     )
 
 

@@ -79,6 +79,7 @@ from app.utils import (
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 DOCUMENT_BUCKET = os.environ.get("DOCUMENT_BUCKET", "bedrock-documents")
 ENABLE_MISTRAL = os.environ.get("ENABLE_MISTRAL", "") == "true"
@@ -434,12 +435,19 @@ def fetch_all_pinned_bots(user: User) -> list[BotMetaOutput]:
 
 
 def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
-    # TODO: アクセスできなかった時にエイリアス更新処理を入れる
+    logger.info(f"Fetch bot summary: {bot_id} by user {user.id}")
+
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
+        if alias_exists(user.id, bot_id):
+            delete_alias_by_id(user.id, bot_id)
         raise PermissionError(
             f"User {user.id} is not authorized to access bot {bot_id}"
         )
+
+    logger.debug(f"Bot: {bot}")
+    logger.debug(f"User: {user}")
+    logger.debug(f"bot.is_accessible_by_user(user): {bot.is_accessible_by_user(user)}")
 
     if not bot.is_owned_by_user(user) and not alias_exists(user.id, bot_id):
         # NOTE: At the first time using shared bot, alias is not created yet.
@@ -577,6 +585,10 @@ def modify_pinning_status(bot_id: str, push_input: PushBotInput):
 
     if bot.shared_scope == "private":
         raise ValueError(f"Bot {bot_id} is private bot. Cannot pin/unpin.")
+    elif bot.shared_scope == "partial":
+        raise ValueError(
+            f"Bot {bot_id} is partial shared bot. Currently unsupported to pin/unpin."
+        )
 
     if _is_push_bot_input_pinned(push_input):
         shared_status = f"pinned@{str(push_input.order).zfill(3)}"

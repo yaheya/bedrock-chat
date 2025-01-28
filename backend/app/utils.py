@@ -11,6 +11,7 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 REGION = os.environ.get("REGION", "us-east-1")
 BEDROCK_REGION = os.environ.get("BEDROCK_REGION", "us-east-1")
@@ -183,6 +184,8 @@ def get_user_cognito_groups(user: User, user_pool_id: str = USER_POOL_ID) -> lis
             UserPoolId=user_pool_id, Username=user.email
         )
         groups = [group["GroupName"] for group in response.get("Groups", [])]
+        logger.info(f"Groups for user {user.name}: {groups}")
+
         return groups
 
     except ClientError as e:

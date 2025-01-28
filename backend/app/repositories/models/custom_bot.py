@@ -223,6 +223,7 @@ class BotModel(BaseModel):
 
     def is_accessible_by_user(self, user: User) -> bool:
         """Check if the bot is accessible by the user. This is used for reading the bot."""
+
         if user.is_admin() or self.owner_user_id == user.id:
             return True
 
