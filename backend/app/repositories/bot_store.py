@@ -2,6 +2,7 @@ import logging
 
 from app.repositories.common import get_opensearch_client
 from app.repositories.models.custom_bot import BotMeta
+from app.user import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -9,9 +10,8 @@ logger.setLevel(logging.DEBUG)
 
 def find_bots_by_query(
     query: str,
-    user_id: str,
+    user: User,
     limit: int = 20,
-    is_admin=False,
 ) -> list[BotMeta]:
     """Search bots by query string.
     This method is used for bot-store functionality.
@@ -50,21 +50,47 @@ def find_bots_by_query(
             "bool": {
                 "must": [
                     {"bool": {"must_not": {"exists": {"field": "SharedScope"}}}},
-                    {"term": {"PK.keyword": user_id}},
+                    {"term": {"PK.keyword": user.id}},
                 ]
             }
         },
     ]
 
     # Add partial access filter if not admin
-    if not is_admin:
+    if not user.is_admin():
         filter_should.insert(
             1,  # Insert the partial access clause after the public access clause
             {
                 "bool": {
                     "must": [
                         {"term": {"SharedScope.keyword": "partial"}},
-                        {"term": {"AllowedCognitoUsers.keyword": user_id}},
+                        {
+                            "bool": {
+                                "should": [
+                                    # If user is in AllowedCognitoUsers
+                                    {"term": {"AllowedCognitoUsers.keyword": user.id}},
+                                    # If user is in AllowedCognitoGroups
+                                    {
+                                        "script": {
+                                            "script": {
+                                                "source": (
+                                                    "if (doc['AllowedCognitoGroups.keyword'].size() == 0 || params.user_groups.size() == 0) { "
+                                                    "return false; } "
+                                                    "for (group in doc['AllowedCognitoGroups.keyword']) { "
+                                                    "if (params.user_groups.contains(group)) { return true; } } "
+                                                    "return false;"
+                                                ),
+                                                "params": {"user_groups": user.groups},
+                                                "lang": "painless",
+                                            }
+                                        }
+                                    },
+                                ],
+                                "minimum_should_match": 1,
+                            }
+                        },
+                        # TODO: remove
+                        # {"term": {"AllowedCognitoUsers.keyword": user.id}},
                     ]
                 }
             },
@@ -106,7 +132,7 @@ def find_bots_by_query(
         logger.debug(f"Search response: {response}")
 
         bots = [
-            BotMeta.from_opensearch_response(hit, user_id)
+            BotMeta.from_opensearch_response(hit, user.id)
             for hit in response["hits"]["hits"]
         ]
         logger.info(f"Found {len(bots)} bots matching query: {query}")
