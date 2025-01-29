@@ -35,7 +35,7 @@ class User(UserWithoutGroups):
     def from_decoded_token(cls, token: dict) -> Self:
         return cls(
             id=token["sub"],
-            name=token["name"],
+            name=token["cognito:username"],
             email=token["email"],
             groups=token.get("cognito:groups", []),
         )
