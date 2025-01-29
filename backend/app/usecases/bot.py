@@ -6,8 +6,7 @@ from app.agents.utils import get_available_tools, get_tool_by_name
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
-from app.repositories.bot_store import find_bots_by_query
-from app.repositories.common import RecordNotFoundError, get_bot_table_client
+from app.repositories.common import RecordNotFoundError
 from app.repositories.custom_bot import (
     alias_exists,
     delete_alias_by_id,
@@ -651,22 +650,3 @@ def remove_uploaded_file(user: User, bot_id: str, filename: str):
 def fetch_available_agent_tools():
     """Fetch available tools for bot."""
     return get_available_tools()
-
-
-def search_bots(
-    user: User,
-    query: str,
-    limit: int = 20,
-) -> list[BotMetaOutput]:
-    """Search bots by query string.
-    This method is used for bot-store functionality.
-    """
-    bots = find_bots_by_query(
-        query,
-        user,
-        limit=limit,
-    )
-    bot_metas = []
-    for bot in bots:
-        bot_metas.append(bot.to_output())
-    return bot_metas

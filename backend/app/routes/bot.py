@@ -4,7 +4,6 @@ from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import find_bot_by_id
 from app.routes.schemas.bot import (
     ActiveModelsOutput,
-    Agent,
     AgentTool,
     BotInput,
     BotMetaOutput,
@@ -28,7 +27,6 @@ from app.usecases.bot import (
     modify_star_status,
     remove_bot_by_id,
     remove_uploaded_file,
-    search_bots,
 )
 from app.user import User
 from fastapi import APIRouter, Depends, Request
@@ -155,16 +153,3 @@ def get_bot_available_tools(request: Request, bot_id: str):
     """Get available tools for bot"""
     tools = fetch_available_agent_tools()
     return [AgentTool(name=tool.name, description=tool.description) for tool in tools]
-
-
-@router.get("/bot/search", response_model=list[BotMetaOutput])
-def search_bots_by_query(
-    request: Request,
-    query: str,
-    limit: int = 20,
-):
-    """Search bots by query string."""
-    current_user: User = request.state.current_user
-
-    bots = search_bots(current_user, query, limit)
-    return bots
