@@ -26,6 +26,7 @@ from app.repositories.custom_bot import (
     update_bot_last_used_time,
     update_bot_shared_status,
     update_bot_star_status,
+    update_bot_stats,
 )
 from app.repositories.models.custom_bot import (
     ActiveModelsModel,
@@ -611,6 +612,16 @@ def modify_bot_last_used_time(user: User, bot: BotModel):
         return update_bot_last_used_time(user.id, bot.id)
     else:
         return update_alias_last_used_time(user.id, bot.id)
+
+
+def modify_bot_stats(user: User, bot: BotModel, increment: int):
+    """Modify bot stats."""
+    if bot.is_owned_by_user(user):
+        owner_id = user.id
+    else:
+        owner_id = bot.owner_user_id
+
+    return update_bot_stats(owner_id, bot.id, increment)
 
 
 def issue_presigned_url(

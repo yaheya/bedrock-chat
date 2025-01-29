@@ -15,6 +15,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    UsageStatsModel,
 )
 from app.repositories.models.custom_bot_kb import (
     AnalyzerParamsModel,
@@ -127,6 +128,7 @@ def _create_test_bot_model(
         ),
         bedrock_guardrails=bedrock_guardrails,
         active_models=ActiveModelsModel(),
+        usage_stats=UsageStatsModel(usage_count=0),
     )
 
 

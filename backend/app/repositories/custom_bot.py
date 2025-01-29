@@ -24,6 +24,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    UsageStatsModel,
     default_active_models,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
@@ -87,6 +88,7 @@ def store_bot(custom_bot: BotModel):
             starter.model_dump() for starter in custom_bot.conversation_quick_starters
         ],
         "ActiveModels": custom_bot.active_models.model_dump(),  # type: ignore[attr-defined]
+        "UsageStats": custom_bot.usage_stats.model_dump(),
     }
 
     if custom_bot.shared_scope != "private":
@@ -253,6 +255,29 @@ def update_alias_last_used_time(user_id: str, original_bot_id: str):
         else:
             raise e
     return response
+
+
+def update_bot_stats(owner_user_id: str, bot_id: str, increment: int):
+    """Update usage stats for bot.
+    Currently only supports incrementing usage count.
+    """
+    table = get_bot_table_client()
+    logger.info(f"Updating usage stats for bot: {bot_id}")
+
+    try:
+        response = table.update_item(
+            Key={"PK": owner_user_id, "SK": compose_sk(bot_id, "bot")},
+            UpdateExpression="SET UsageStats.usage_count = if_not_exists(UsageStats.usage_count, :zero) + :val",
+            ExpressionAttributeValues={":zero": 0, ":val": increment},
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+            ReturnValues="ALL_NEW",
+        )
+        return response
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise RecordNotFoundError(f"Bot with id {bot_id} not found")
+        else:
+            raise e
 
 
 def update_bot_star_status(user_id: str, bot_id: str, starred: bool):
@@ -688,6 +713,11 @@ def find_bot_by_id(bot_id: str) -> BotModel:
             ActiveModelsModel.model_validate(item.get("ActiveModels"))
             if item.get("ActiveModels")
             else default_active_models  # for backward compatibility
+        ),
+        usage_stats=(
+            UsageStatsModel.model_validate(item.get("UsageStats"))
+            if item.get("UsageStats")
+            else UsageStatsModel(usage_count=0)  # for backward compatibility
         ),
     )
 

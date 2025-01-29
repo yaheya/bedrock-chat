@@ -14,6 +14,7 @@ from app.repositories.models.custom_bot import (
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    UsageStatsModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import (
@@ -145,6 +146,7 @@ class TestBotModel(unittest.TestCase):
             active_models=ActiveModelsModel(
                 claude_v3_sonnet_v2=True,
             ),
+            usage_stats=UsageStatsModel(usage_count=0),
         )
 
     def test_to_output(self):

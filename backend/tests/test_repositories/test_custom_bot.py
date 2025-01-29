@@ -25,6 +25,7 @@ from app.repositories.custom_bot import (
     update_bot_publication,
     update_bot_shared_status,
     update_bot_star_status,
+    update_bot_stats,
     update_knowledge_base_id,
 )
 from app.repositories.models.custom_bot import (
@@ -414,6 +415,17 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.bedrock_guardrails.relevance_threshold, 0.2)
         self.assertEqual(bot.bedrock_guardrails.guardrail_arn, "arn:aws:guardrail")
         self.assertEqual(bot.bedrock_guardrails.guardrail_version, "v1")
+
+        delete_bot_by_id("user1", "1")
+
+    def test_update_bot_stats(self):
+        # Note: default count is 0
+        bot = create_test_private_bot("1", False, "user1")
+        store_bot(bot)
+        update_bot_stats("user1", "1", 3)
+
+        bot = find_bot_by_id("1")
+        self.assertEqual(bot.usage_stats.usage_count, 3)
 
         delete_bot_by_id("user1", "1")
 

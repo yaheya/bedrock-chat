@@ -103,6 +103,12 @@ class ConversationQuickStarterModel(BaseModel):
     example: str
 
 
+class UsageStatsModel(BaseModel):
+    usage_count: int = Field(
+        ..., description="The number of times the bot has been used."
+    )
+
+
 class BotModel(BaseModel):
     id: str
     owner_user_id: str
@@ -145,6 +151,7 @@ class BotModel(BaseModel):
     bedrock_knowledge_base: BedrockKnowledgeBaseModel | None
     bedrock_guardrails: BedrockGuardrailsModel | None
     active_models: ActiveModelsModel  # type: ignore
+    usage_stats: UsageStatsModel
 
     @staticmethod
     def __is_pinned_format(value: str) -> bool:
@@ -350,6 +357,7 @@ class BotModel(BaseModel):
             active_models=ActiveModelsModel.model_validate(
                 bot_input.active_models.model_dump()
             ),
+            usage_stats=UsageStatsModel(usage_count=0),
         )
 
     def to_output(self) -> BotOutput:

@@ -118,9 +118,6 @@ def find_bots_by_query(
                         "minimum_should_match": 1,
                     }
                 },
-                "must_not": [
-                    {"term": {"ItemType.keyword": "ALIAS"}}  # Exclude ALIAS items
-                ],
             }
         },
         "size": limit,

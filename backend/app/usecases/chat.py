@@ -33,7 +33,7 @@ from app.routes.schemas.conversation import (
     type_model_name,
 )
 from app.stream import ConverseApiStreamHandler, OnStopInput, OnThinking
-from app.usecases.bot import fetch_bot, modify_bot_last_used_time
+from app.usecases.bot import fetch_bot, modify_bot_last_used_time, modify_bot_stats
 from app.user import User
 from app.utils import get_current_time
 from app.vector_search import (
@@ -446,6 +446,8 @@ def chat(
         logger.info("Bot is provided. Updating bot last used time.")
         # Update bot last used time
         modify_bot_last_used_time(user, bot)
+        # Update bot stats
+        modify_bot_stats(user, bot, increment=1)
 
     return conversation, message
 
