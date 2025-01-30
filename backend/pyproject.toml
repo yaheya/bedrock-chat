@@ -27,7 +27,6 @@ requests-aws4auth = ">=1.0.0"
 mypy = "^1.10.0"
 black = "^24.8.0"
 
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

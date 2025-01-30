@@ -48,6 +48,7 @@ def _create_test_bot_model(
     bedrock_knowledge_base=None,
     include_internet_tool=False,
     set_dummy_knowledge=False,
+    usage_count=0,
     **kwargs
 ):
     return BotModel(
@@ -128,7 +129,7 @@ def _create_test_bot_model(
         ),
         bedrock_guardrails=bedrock_guardrails,
         active_models=ActiveModelsModel(),
-        usage_stats=UsageStatsModel(usage_count=0),
+        usage_stats=UsageStatsModel(usage_count=usage_count),
     )
 
 
@@ -168,7 +169,8 @@ def create_test_partial_shared_bot(
     id,
     is_starred,
     owner_user_id,
-    allowed_cognito_users,
+    allowed_cognito_users=[],
+    allowed_cognito_groups=[],
     include_internet_tool=False,
     **kwargs
 ):
@@ -179,6 +181,7 @@ def create_test_partial_shared_bot(
         shared_scope="partial",
         shared_status="shared",
         allowed_cognito_users=allowed_cognito_users,
+        allowed_cognito_groups=allowed_cognito_groups,
         is_starred=is_starred,
         owner_user_id=owner_user_id,
         include_internet_tool=include_internet_tool,

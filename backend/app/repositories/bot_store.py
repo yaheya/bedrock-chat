@@ -5,6 +5,7 @@ import time
 from app.repositories.common import get_opensearch_client
 from app.repositories.models.custom_bot import BotMeta
 from app.user import User
+from opensearchpy import OpenSearch
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -14,10 +15,11 @@ def find_bots_by_query(
     query: str,
     user: User,
     limit: int = 20,
+    client: OpenSearch | None = None,
+    index_name: str = "bot",
 ) -> list[BotMeta]:
     """Search bots by query string.
     This method is used for bot-store functionality.
-
 
     Query Structure Explanation:
 
@@ -25,44 +27,59 @@ def find_bots_by_query(
     - Uses multi_match for flexible text searching
     - Searches across multiple fields (Description, Title, Instruction)
     - Implements fuzzy matching for typo tolerance
-    - Requires 50% of search terms to match
+    - Requires 30% of search terms to match
 
     2. Access Control (filter clause):
     The filter implements three access levels:
-    a) Public Access:
-        - Matches documents with SharedScope = "all"
+    a) Public Bots (`SharedScope = "all"`):
         - Available to all users
 
-    b) Partial Access:
-        - Matches documents with SharedScope = "partial"
-        - User must be in AllowedCognitoUsers list
+    b) Partial Shared Bots (`SharedScope = "partial"`):
+        - Admins can see all of them
+        - Non-admins can see them if they are listed in `AllowedCognitoUsers`
+          or belong to `AllowedCognitoGroups`
 
-    c) Private Access:
-        - Matches documents with no SharedScope field
-        - Only accessible to the owner (PK matches user_id)
+    c) Private Bots (no `SharedScope` field):
+        - Only accessible to the owner (`PK.keyword = user.id`)
+        - Admins can see their own private bots (`PK.keyword = admin-user`)
     """
-    client = get_opensearch_client()
+    client = client or get_opensearch_client()
     logger.info(f"Searching bots with query: {query}")
 
-    # Create the base filter clause
-    filter_must = [{"prefix": {"SK.keyword": "BOT"}}]  # Include only BOT items
+    # Include only BOT items
+    filter_must = [{"prefix": {"SK.keyword": "BOT"}}]
+    # Condition for bots that can be acquired
     filter_should = [
-        {"term": {"SharedScope.keyword": "all"}},
+        {"term": {"SharedScope.keyword": "all"}},  # Everyone can get
+        # Owner AND (no SharedScope i.e. private OR SharedScope = "partial")
         {
             "bool": {
                 "must": [
-                    # Include private bots
-                    {"bool": {"must_not": {"exists": {"field": "SharedScope"}}}},
                     {"term": {"PK.keyword": user.id}},
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "bool": {
+                                        "must_not": {"exists": {"field": "SharedScope"}}
+                                    }
+                                },
+                                {"term": {"SharedScope.keyword": "partial"}},
+                            ],
+                            "minimum_should_match": 1,
+                        }
+                    },
                 ]
             }
         },
     ]
 
-    # Add partial access filter if not admin
-    if not user.is_admin():
-        filter_should.insert(
-            1,  # Insert the partial access clause after the public access clause
+    if user.is_admin():
+        # Administrator can get all partial shared bots
+        filter_should.append({"term": {"SharedScope.keyword": "partial"}})
+    else:
+        # For non-admin users, check the permissions of partial shared bots
+        filter_should.append(
             {
                 "bool": {
                     "must": [
@@ -70,15 +87,11 @@ def find_bots_by_query(
                         {
                             "bool": {
                                 "should": [
-                                    # If user is in AllowedCognitoUsers
                                     {"term": {"AllowedCognitoUsers.keyword": user.id}},
-                                    # If user is in AllowedCognitoGroups
                                     {
                                         "script": {
                                             "script": {
                                                 "source": (
-                                                    "if (doc['AllowedCognitoGroups.keyword'].size() == 0 || params.user_groups.size() == 0) { "
-                                                    "return false; } "
                                                     "for (group in doc['AllowedCognitoGroups.keyword']) { "
                                                     "if (params.user_groups.contains(group)) { return true; } } "
                                                     "return false;"
@@ -94,7 +107,7 @@ def find_bots_by_query(
                         },
                     ]
                 }
-            },
+            }
         )
 
     search_body = {
@@ -107,7 +120,7 @@ def find_bots_by_query(
                             "fields": ["Description", "Title", "Instruction"],
                             "type": "best_fields",
                             "operator": "or",
-                            "minimum_should_match": "50%",
+                            "minimum_should_match": "30%",
                             "fuzziness": "AUTO",
                         }
                     }
@@ -126,7 +139,7 @@ def find_bots_by_query(
     logger.debug(f"Entire search body: {search_body}")
 
     try:
-        response = client.search(index="bot", body=search_body)
+        response = client.search(index=index_name, body=search_body)
         logger.debug(f"Search response: {response}")
 
         bots = [
@@ -144,14 +157,38 @@ def find_bots_by_query(
 def find_bots_sorted_by_usage_count(
     user: User,
     limit: int = 20,
+    client: OpenSearch | None = None,
+    index_name: str = "bot",
 ) -> list[BotMeta]:
-    """Search bots sorted by usage count while excluding private bots."""
-    client = get_opensearch_client()
+    """Search bots sorted by usage count while considering access control."""
+    client = client or get_opensearch_client()
     logger.info(f"Searching bots sorted by usage count")
 
     filter_must = [{"prefix": {"SK.keyword": "BOT"}}]
     filter_should = [
-        {"term": {"SharedScope.keyword": "all"}},
+        {"term": {"SharedScope.keyword": "all"}},  # Public bots
+        # Owner's bots (private or partial)
+        {
+            "bool": {
+                "must": [
+                    {"term": {"PK.keyword": user.id}},
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "bool": {
+                                        "must_not": {"exists": {"field": "SharedScope"}}
+                                    }
+                                },
+                                {"term": {"SharedScope.keyword": "partial"}},
+                            ],
+                            "minimum_should_match": 1,
+                        }
+                    },
+                ]
+            }
+        },
+        # Partial shared bots with access permission
         {
             "bool": {
                 "must": [
@@ -164,8 +201,6 @@ def find_bots_sorted_by_usage_count(
                                     "script": {
                                         "script": {
                                             "source": (
-                                                "if (doc['AllowedCognitoGroups.keyword'].size() == 0 || "
-                                                "params.user_groups.size() == 0) { return false; } "
                                                 "for (group in doc['AllowedCognitoGroups.keyword']) { "
                                                 "if (params.user_groups.contains(group)) { return true; } } "
                                                 "return false;"
@@ -203,7 +238,7 @@ def find_bots_sorted_by_usage_count(
     logger.debug(f"Search body: {search_body}")
 
     try:
-        response = client.search(index="bot", body=search_body)
+        response = client.search(index=index_name, body=search_body)
         logger.debug(f"Search response: {response}")
 
         bots = [
@@ -221,16 +256,38 @@ def find_bots_sorted_by_usage_count(
 def find_random_bots(
     user: User,
     limit: int = 20,
+    client: OpenSearch | None = None,
+    index_name: str = "bot",
 ) -> list[BotMeta]:
-    """Find random bots while considering access control.
-    This method is used for 'Today's Pick' functionality.
-    """
-    client = get_opensearch_client()
+    """Find random bots while considering access control."""
+    client = client or get_opensearch_client()
     logger.info(f"Searching random bots")
 
     filter_must = [{"prefix": {"SK.keyword": "BOT"}}]
     filter_should = [
-        {"term": {"SharedScope.keyword": "all"}},
+        {"term": {"SharedScope.keyword": "all"}},  # Public bots
+        # Owner's bots (private or partial)
+        {
+            "bool": {
+                "must": [
+                    {"term": {"PK.keyword": user.id}},
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "bool": {
+                                        "must_not": {"exists": {"field": "SharedScope"}}
+                                    }
+                                },
+                                {"term": {"SharedScope.keyword": "partial"}},
+                            ],
+                            "minimum_should_match": 1,
+                        }
+                    },
+                ]
+            }
+        },
+        # Partial shared bots with access permission
         {
             "bool": {
                 "must": [
@@ -243,8 +300,6 @@ def find_random_bots(
                                     "script": {
                                         "script": {
                                             "source": (
-                                                "if (doc['AllowedCognitoGroups.keyword'].size() == 0 || "
-                                                "params.user_groups.size() == 0) { return false; } "
                                                 "for (group in doc['AllowedCognitoGroups.keyword']) { "
                                                 "if (params.user_groups.contains(group)) { return true; } } "
                                                 "return false;"
@@ -264,7 +319,6 @@ def find_random_bots(
     ]
 
     seed = int(time.time()) + random.randint(0, 10000)
-
     search_body = {
         "query": {
             "function_score": {
@@ -288,7 +342,7 @@ def find_random_bots(
     logger.debug(f"Search body: {search_body}")
 
     try:
-        response = client.search(index="bot", body=search_body)
+        response = client.search(index=index_name, body=search_body)
         logger.debug(f"Search response: {response}")
 
         bots = [
