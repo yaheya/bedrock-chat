@@ -72,6 +72,7 @@
     "enableBedrockCrossRegionInference": true,
     "enableLambdaSnapStart": true,
     "enableBotStore": true,
-    "botStoreLanguage": "en"
+    "botStoreLanguage": "en",
+    "tokenValidMinutes": 30
   }
 }

@@ -6,7 +6,7 @@ import {
   HttpMethods,
   ObjectOwnership,
 } from "aws-cdk-lib/aws-s3";
-import { CloudFrontWebDistribution } from "aws-cdk-lib/aws-cloudfront";
+import { Distribution } from "aws-cdk-lib/aws-cloudfront";
 import { Construct } from "constructs";
 import { Auth } from "./constructs/auth";
 import { Api } from "./constructs/api";
@@ -24,6 +24,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 import { BedrockCustomBotCodebuild } from "./constructs/bedrock-custom-bot-codebuild";
 import { BotStore, Language } from "./constructs/bot-store";
+import { Duration } from "aws-cdk-lib";
 
 export interface BedrockChatStackProps extends StackProps {
   readonly bedrockRegion: string;
@@ -43,6 +44,7 @@ export interface BedrockChatStackProps extends StackProps {
   readonly enableLambdaSnapStart: boolean;
   readonly enableBotStore: boolean;
   readonly botStoreLanguage: Language;
+  readonly tokenValidMinutes: number;
 }
 
 export class BedrockChatStack extends cdk.Stack {
@@ -136,6 +138,7 @@ export class BedrockChatStack extends cdk.Stack {
       allowedSignUpEmailDomains: props.allowedSignUpEmailDomains,
       autoJoinUserGroups: props.autoJoinUserGroups,
       selfSignUpEnabled: props.selfSignUpEnabled,
+      tokenValidity: Duration.minutes(props.tokenValidMinutes),
     });
     const largeMessageBucket = new Bucket(this, "LargeMessageBucket", {
       encryption: BucketEncryption.S3_MANAGED,
@@ -215,7 +218,7 @@ export class BedrockChatStack extends cdk.Stack {
     });
 
     const cloudFrontWebDistribution = frontend.cloudFrontWebDistribution.node
-      .defaultChild as CloudFrontWebDistribution;
+      .defaultChild as Distribution;
     props.documentBucket.addCorsRule({
       allowedMethods: [HttpMethods.PUT],
       allowedOrigins: [

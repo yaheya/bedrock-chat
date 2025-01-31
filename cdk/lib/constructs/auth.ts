@@ -1,4 +1,10 @@
-import { CfnOutput, Duration, Stack, CustomResource, RemovalPolicy } from "aws-cdk-lib";
+import {
+  CfnOutput,
+  Duration,
+  Stack,
+  CustomResource,
+  RemovalPolicy,
+} from "aws-cdk-lib";
 import {
   ProviderAttribute,
   UserPool,
@@ -25,6 +31,7 @@ export interface AuthProps {
   readonly allowedSignUpEmailDomains: string[];
   readonly autoJoinUserGroups: string[];
   readonly selfSignUpEnabled: boolean;
+  readonly tokenValidity: Duration;
 }
 
 export class Auth extends Construct {
@@ -45,12 +52,12 @@ export class Auth extends Construct {
         username: false,
         email: true,
       },
-      removalPolicy: RemovalPolicy.DESTROY
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     const clientProps = (() => {
       const defaultProps = {
-        idTokenValidity: Duration.days(1),
+        idTokenValidity: props.tokenValidity,
         authFlows: {
           userPassword: true,
           userSrp: true,

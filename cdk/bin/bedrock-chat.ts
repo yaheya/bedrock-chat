@@ -51,6 +51,7 @@ const ENABLE_BOT_STORE: boolean = app.node.tryGetContext("enableBotStore");
 const BOT_STORE_LANGUAGE: Language = app.node.tryGetContext(
   "botStoreLanguage"
 ) as Language;
+const TOKEN_VALID_MINUTES: number = app.node.tryGetContext("tokenValidMinutes");
 
 // WAF for frontend
 // 2023/9: Currently, the WAF for CloudFront needs to be created in the North America region (us-east-1), so the stacks are separated
@@ -105,6 +106,7 @@ const chat = new BedrockChatStack(app, `BedrockChatStack`, {
   enableLambdaSnapStart: ENABLE_LAMBDA_SNAPSTART,
   enableBotStore: ENABLE_BOT_STORE,
   botStoreLanguage: BOT_STORE_LANGUAGE,
+  tokenValidMinutes: TOKEN_VALID_MINUTES,
 });
 chat.addDependency(waf);
 chat.addDependency(bedrockRegionResources);
