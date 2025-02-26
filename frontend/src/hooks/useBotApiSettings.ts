@@ -34,7 +34,7 @@ const useBotApiSettings = (botId: string) => {
     ).includes('is not published'),
     shareBot: () => {
       return updateBotVisibility(botId, {
-        toPublic: true,
+        targetSharedScope: 'all',
       }).then(() => {
         return mutateMyBot();
       });

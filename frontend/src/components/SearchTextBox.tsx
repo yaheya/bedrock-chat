@@ -62,7 +62,9 @@ const SearchTextBox: React.FC<Props> = (props) => {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!props.suggestions?.length) return;
+      if (!props.suggestions?.length) {
+        return;
+      }
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();

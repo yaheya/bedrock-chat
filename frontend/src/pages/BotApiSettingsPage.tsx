@@ -72,12 +72,12 @@ const BotApiSettingsPage: React.FC = () => {
   }, [botPublication?.codebuildStatus]);
 
   const hasShared = useMemo(() => {
-    return !!myBot?.isPublic;
-  }, [myBot?.isPublic]);
+    return myBot?.sharedScope === 'all';
+  }, [myBot?.sharedScope]);
 
   const [hasCreated, setHasCreated] = useState(false);
 
-  const [enabledThtottle, setEnabledThtottle] = useState(true);
+  const [enabledThrottle, setEnabledThrottle] = useState(true);
   const [enabledQuota, setEnabledQuota] = useState(true);
 
   const [rateLimit, setRateLimit] = useState<null | number>(null);
@@ -124,7 +124,7 @@ const BotApiSettingsPage: React.FC = () => {
       return;
     }
     setHasCreated(true);
-    setEnabledThtottle(!!botPublication.throttle);
+    setEnabledThrottle(!!botPublication.throttle);
     setEnabledQuota(!!botPublication.quota);
     setRateLimit(botPublication.throttle.rateLimit);
     setBurstLimit(botPublication.throttle.burstLimit);
@@ -135,7 +135,7 @@ const BotApiSettingsPage: React.FC = () => {
 
   const clearApiSettings = useCallback(() => {
     setHasCreated(false);
-    setEnabledThtottle(true);
+    setEnabledThrottle(true);
     setEnabledQuota(true);
     setRateLimit(null);
     setBurstLimit(null);
@@ -164,11 +164,11 @@ const BotApiSettingsPage: React.FC = () => {
     clearErrorMessages();
 
     let hasError = false;
-    if (enabledThtottle && !rateLimit) {
+    if (enabledThrottle && !rateLimit) {
       setErrorMessage('rateLimit', t('input.validationError.required'));
       hasError = true;
     }
-    if (enabledThtottle && !burstLimit) {
+    if (enabledThrottle && !burstLimit) {
       setErrorMessage('burstLimit', t('input.validationError.required'));
       hasError = true;
     }
@@ -202,7 +202,7 @@ const BotApiSettingsPage: React.FC = () => {
               period,
             }
           : undefined,
-        throttle: enabledThtottle
+        throttle: enabledThrottle
           ? {
               burstLimit: burstLimit!,
               rateLimit: rateLimit!,
@@ -220,7 +220,7 @@ const BotApiSettingsPage: React.FC = () => {
     burstLimit,
     clearErrorMessages,
     enabledQuota,
-    enabledThtottle,
+    enabledThrottle,
     mutateBotPublication,
     origins,
     period,
@@ -398,7 +398,7 @@ const BotApiSettingsPage: React.FC = () => {
                     </>
                   )}
 
-                  {myBot?.isPublic && !hasFailedDeploy && (
+                  {myBot?.sharedScope === 'all' && !hasFailedDeploy && (
                     <div className="flex flex-col gap-1">
                       <div className="text-lg font-bold">
                         {t('bot.apiSettings.label.usagePlan')}
@@ -410,15 +410,15 @@ const BotApiSettingsPage: React.FC = () => {
                       <Toggle
                         label={t('bot.apiSettings.item.throttling')}
                         hint={t('bot.apiSettings.help.throttling')}
-                        value={enabledThtottle}
+                        value={enabledThrottle}
                         disabled={disabledCreate}
-                        onChange={setEnabledThtottle}
+                        onChange={setEnabledThrottle}
                       />
 
                       <div
                         className={twMerge(
                           '-mt-3 origin-top transition-all',
-                          enabledThtottle
+                          enabledThrottle
                             ? 'visible '
                             : 'invisible h-0 scale-y-0'
                         )}>

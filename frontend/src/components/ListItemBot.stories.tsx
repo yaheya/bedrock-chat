@@ -26,11 +26,12 @@ const bots: BotListItem[] = [
     description: 'Bot 1',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: false,
-    IsStarred: false,
+    isStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: true,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
   {
     id: '2',
@@ -38,11 +39,12 @@ const bots: BotListItem[] = [
     description: 'Bot 2',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: true,
-    IsStarred: true,
+    isStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: true,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
   {
     id: '3',
@@ -50,11 +52,12 @@ const bots: BotListItem[] = [
     description: '',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: false,
-    IsStarred: false,
+    isStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: false,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
   {
     id: '4',
@@ -62,11 +65,12 @@ const bots: BotListItem[] = [
     description: '',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: true,
-    IsStarred: true,
+    isStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: false,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
 ];
 
@@ -96,7 +100,7 @@ export const MyBots = () => {
             )}
 
             <div className="mr-5 flex justify-end">
-              {bot.isPublic ? (
+              {bot.sharedScope === 'all' ? (
                 <div className="flex items-center">
                   <PiUsers className="mr-1" />
                   <ButtonIcon className="-mr-3" onClick={() => {}}>
@@ -111,7 +115,7 @@ export const MyBots = () => {
             </div>
 
             <div className="mr-5">
-              {bot.IsStarred ? (
+              {bot.isStarred ? (
                 <ButtonIcon disabled={!bot.available} onClick={() => {}}>
                   <PiStarFill className="text-aws-aqua" />
                 </ButtonIcon>
@@ -173,7 +177,7 @@ export const RecentlyUsedSharedBots = () => {
           bot={bot}
           onClick={() => {}}
           className="last:border-b-0">
-          {bot.IsStarred ? (
+          {bot.isStarred ? (
             <ButtonIcon disabled={!bot.available} onClick={() => {}}>
               <PiStarFill className="text-aws-aqua" />
             </ButtonIcon>

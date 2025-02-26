@@ -1,6 +1,7 @@
 import { BedrockKnowledgeBase } from '../features/knowledgeBase/types';
 import { Model } from './conversation';
 export type BotKind = 'private' | 'mixed';
+export type SharedScope = 'private' | 'partial' | 'all';
 
 type ActiveModels = {
   [K in Model]: boolean;
@@ -12,10 +13,11 @@ export type BotMeta = {
   description: string;
   createTime: Date;
   lastUsedTime: Date;
-  isPublic: boolean;
-  IsStarred: boolean;
+  isStarred: boolean;
   owned: boolean;
   syncStatus: BotSyncStatus;
+  sharedScope: SharedScope;
+  sharedStatus: string;
 };
 
 export type BotKnowledge = {
@@ -68,8 +70,11 @@ export type GuardrailsParams = {
   guardrailVersion: string;
 };
 
-export type BotDetails = BotMeta & {
+export type BotDetails = Omit<BotMeta, 'isStarred' | 'owned'> & {
   instruction: string;
+  allowedCognitoGroups: string[];
+  allowedCognitoUsers: string[];
+  ownerUserId: string;
   generationParams: GenerationParams;
   agent: Agent;
   knowledge: BotKnowledge;
@@ -84,7 +89,6 @@ export type BotDetails = BotMeta & {
 export type BotSummary = BotMeta & {
   hasKnowledge: boolean;
   hasAgent: boolean;
-  hasExistKnowledngeBaseId: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
   activeModels: ActiveModels;
 };
@@ -146,11 +150,29 @@ export type UpdateBotStarredRequest = {
 
 export type UpdateBotStarredResponse = null;
 
-export type UpdateBotVisibilityRequest = {
-  toPublic: boolean;
-};
+export type UpdateBotVisibilityRequest =
+  | {
+      targetSharedScope: 'private';
+    }
+  | {
+      targetSharedScope: 'partial';
+      allowedCognitoGroups: string[];
+      allowedCognitoUsers: string[];
+    }
+  | {
+      targetSharedScope: 'all';
+    };
 
 export type UpdateBotVisibilityResponse = null;
+
+export type UpdateBotPushedRequest =
+  | {
+      toPinned: true;
+      order: number;
+    }
+  | {
+      toPinned: false;
+    };
 
 export type GetBotsRequest =
   | {
@@ -163,12 +185,14 @@ export type GetBotsRequest =
     }
   | {
       kind: 'mixed';
-      pinned: boolean;
+      starred: boolean;
     };
 
 export type GetBotsResponse = BotListItem[];
 
 export type GetMyBotResponse = BotDetails;
+
+export type GetPinnedBotResponse = BotMeta[];
 
 export type GetBotSummaryResponse = BotSummary;
 

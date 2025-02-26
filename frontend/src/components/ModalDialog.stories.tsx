@@ -85,10 +85,11 @@ export const DeleteBot = () => {
         description: 'Bot 1',
         createTime: new Date(),
         lastUsedTime: new Date(),
-        isPublic: false,
-        IsStarred: false,
+        isStarred: false,
         owned: true,
         syncStatus: 'SUCCEEDED',
+        sharedScope: 'private',
+        sharedStatus: '',
       }}
       onDelete={() => {
         setIsOpenDeleteDialog(false);
@@ -151,15 +152,15 @@ export const InstructionsSamples = () => {
 };
 
 export const SelectLanguage = () => {
-  const [isOpenLangage, setIsOpenLangage] = useState(true);
+  const [isOpenLanguage, setIsOpenLanguage] = useState(true);
   return (
     <DialogSelectLanguage
-      isOpen={isOpenLangage}
+      isOpen={isOpenLanguage}
       onSelectLanguage={() => {
-        setIsOpenLangage(false);
+        setIsOpenLanguage(false);
       }}
       onClose={() => {
-        setIsOpenLangage(false);
+        setIsOpenLanguage(false);
       }}
     />
   );
@@ -173,10 +174,11 @@ export const ShareBot = () => {
     description: 'Bot 1',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: false,
-    IsStarred: false,
+    isStarred: false,
     owned: true,
     syncStatus: 'SUCCEEDED',
+    sharedScope: 'private',
+    sharedStatus: '',
   });
   return (
     <DialogShareBot
@@ -185,7 +187,7 @@ export const ShareBot = () => {
       onToggleShare={() => {
         setBot((current) => ({
           ...current,
-          isPublic: !current.isPublic,
+          sharedScope: current.sharedScope === 'private' ? 'all' : 'private',
         }));
       }}
       onClose={() => {

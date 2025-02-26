@@ -21,11 +21,12 @@ const bots: BotListItem[] = [
     description: 'Bot 1',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: false,
-    IsStarred: false,
+    isStarred: false,
     owned: false,
     syncStatus: 'SUCCEEDED',
     available: true,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
   {
     id: '2',
@@ -33,11 +34,12 @@ const bots: BotListItem[] = [
     description: 'Bot 2',
     createTime: new Date(),
     lastUsedTime: new Date(),
-    isPublic: true,
-    IsStarred: true,
+    isStarred: true,
     owned: true,
     syncStatus: 'SUCCEEDED',
     available: true,
+    sharedScope: 'private',
+    sharedStatus: '',
   },
 ];
 
@@ -63,8 +65,8 @@ export const Admin: Story = () => {
     <ChatListDrawer
       isAdmin={true}
       conversations={conversations}
-      starredBots={bots.filter((bot) => bot.IsStarred)}
-      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.IsStarred)}
+      starredBots={bots.filter((bot) => bot.isStarred)}
+      recentlyUsedUnstarredBots={bots.filter((bot) => !bot.isStarred)}
       updateConversationTitle={async () => {}}
       onSignOut={() => {}}
       onDeleteConversation={() => {}}
@@ -79,8 +81,8 @@ export const NonAdmin: Story = () => {
     <ChatListDrawer
       isAdmin={false}
       conversations={conversations}
-      starredBots={bots.filter((bot) => bot.IsStarred)}
-      recentlyUsedUnsterredBots={bots.filter((bot) => !bot.IsStarred)}
+      starredBots={bots.filter((bot) => bot.isStarred)}
+      recentlyUsedUnstarredBots={bots.filter((bot) => !bot.isStarred)}
       updateConversationTitle={async () => {}}
       onSignOut={() => {}}
       onDeleteConversation={() => {}}

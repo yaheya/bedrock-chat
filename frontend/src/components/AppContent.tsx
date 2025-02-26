@@ -29,8 +29,14 @@ const AppContent: React.FC<Props> = (props) => {
   const { switchOpen: switchDrawer } = useDrawer();
   const navigate = useNavigate();
   const { conversationId } = useParams();
-  const { conversations, getTitle, updateTitle, deleteConversation, clearConversations: clear } = useConversation();
-  const { starredBots, recentlyUsedUnsterredBots } = useBot();
+  const {
+    conversations,
+    getTitle,
+    updateTitle,
+    deleteConversation,
+    clearConversations: clear,
+  } = useConversation();
+  const { starredBots, recentlyUsedUnstarredBots } = useBot();
   const { newChat, isGeneratedTitle } = useChat();
   const { isConversationOrNewChat, pathPattern } = usePageTitlePathPattern();
   const { isAdmin } = useUser();
@@ -58,7 +64,8 @@ const AppContent: React.FC<Props> = (props) => {
     []
   );
 
-  const [isOpenClearConversations, setIsOpenClearConversations] = useState(false);
+  const [isOpenClearConversations, setIsOpenClearConversations] =
+    useState(false);
 
   const clearConversations = useCallback(
     () => {
@@ -79,7 +86,7 @@ const AppContent: React.FC<Props> = (props) => {
         isAdmin={isAdmin}
         conversations={conversations}
         starredBots={starredBots}
-        recentlyUsedUnsterredBots={recentlyUsedUnsterredBots}
+        recentlyUsedUnstarredBots={recentlyUsedUnstarredBots}
         updateConversationTitle={async (conversationId, title) => {
           await updateTitle(conversationId, title);
         }}
@@ -118,8 +125,7 @@ const AppContent: React.FC<Props> = (props) => {
         }}
       />
 
-      <main className="min-h-dvh relative flex flex-col flex-1 overflow-y-hidden transition-width">
-
+      <main className="relative flex min-h-dvh flex-1 flex-col overflow-y-hidden transition-width">
         <header className="visible flex h-12 w-full items-center bg-aws-squid-ink p-3 text-lg text-aws-font-color-white lg:hidden lg:h-0">
           <button
             className="mr-2 rounded-full p-2 hover:brightness-50 focus:outline-none focus:ring-1 "

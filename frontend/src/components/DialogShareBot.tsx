@@ -20,8 +20,8 @@ const DialogShareBot: React.FC<Props> = (props) => {
   const [labelCopy, setLabelCopy] = useState(t('bot.button.copy'));
 
   const isShared = useMemo(() => {
-    return props.target?.isPublic ?? false;
-  }, [props.target?.isPublic]);
+    return props.target?.sharedScope === 'all';
+  }, [props.target?.sharedScope]);
 
   const url = useMemo(() => {
     return getBotUrl(props.target?.id ?? '');
@@ -46,7 +46,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
         </div>
 
         <Toggle
-          value={props.target?.isPublic ?? false}
+          value={props.target?.sharedScope === 'all'}
           onChange={() => {
             props.onToggleShare(props.target?.id ?? '');
           }}

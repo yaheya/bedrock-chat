@@ -96,7 +96,7 @@ const BotExplorePage: React.FC = () => {
 
   const onToggleShare = useCallback(() => {
     if (targetShareBot) {
-      updateBotSharing(targetShareBot.id, !targetShareBot.isPublic);
+      updateBotSharing(targetShareBot.id, targetShareBot.sharedScope !== 'all');
     }
   }, [targetShareBot, updateBotSharing]);
 
@@ -174,7 +174,7 @@ const BotExplorePage: React.FC = () => {
                       )}
 
                       <div className="mr-5 flex justify-end">
-                        {bot.isPublic ? (
+                        {bot.sharedScope === 'all' ? (
                           <div className="flex items-center">
                             <PiUsers className="mr-1" />
                             <ButtonIcon
@@ -193,7 +193,7 @@ const BotExplorePage: React.FC = () => {
                       </div>
 
                       <div className="mr-5">
-                        {bot.IsStarred ? (
+                        {bot.isStarred ? (
                           <ButtonIcon
                             disabled={!bot.available}
                             onClick={() => {
@@ -272,7 +272,7 @@ const BotExplorePage: React.FC = () => {
                     bot={bot}
                     onClick={onClickBot}
                     className="last:border-b-0">
-                    {bot.IsStarred ? (
+                    {bot.isStarred ? (
                       <ButtonIcon
                         disabled={!bot.available}
                         onClick={() => {

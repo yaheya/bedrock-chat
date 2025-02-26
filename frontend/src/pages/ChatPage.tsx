@@ -52,7 +52,7 @@ import {
   Model,
   PutFeedbackRequest,
 } from '../@types/conversation.ts';
-import { AVAILABLE_MODEL_KEYS } from '../constants/index'
+import { AVAILABLE_MODEL_KEYS } from '../constants/index';
 import usePostMessageStreaming from '../hooks/usePostMessageStreaming.ts';
 
 // Default model activation settings when no bot is selected
@@ -240,10 +240,10 @@ const ChatPage: React.FC = () => {
     if (!bot) {
       return;
     }
-    const isStarred = !bot.IsStarred;
+    const isStarred = !bot.isStarred;
     mutateBot(
       produce(bot, (draft) => {
-        draft.IsStarred = isStarred;
+        draft.isStarred = isStarred;
       }),
       {
         revalidate: false,
@@ -361,7 +361,7 @@ const ChatPage: React.FC = () => {
           ];
         }
 
-        if (bot?.hasKnowledge || bot?.hasExistKnowledngeBaseId) {
+        if (bot?.hasKnowledge) {
           return [
             {
               thought: t('bot.label.retrievingKnowledge'), // @@
@@ -372,7 +372,7 @@ const ChatPage: React.FC = () => {
 
         return undefined;
       } else {
-        if (bot?.hasKnowledge || bot?.hasExistKnowledngeBaseId) {
+        if (bot?.hasKnowledge) {
           const pseudoToolUseId = message.id;
           const relatedDocumentsOfVectorSearch = getRelatedDocumentsOfToolUse(
             relatedDocuments,
@@ -458,7 +458,7 @@ const ChatPage: React.FC = () => {
                     />
                   )}
                   <ButtonIcon onClick={onClickStar}>
-                    {bot?.IsStarred ? (
+                    {bot?.isStarred ? (
                       <PiStarFill className="text-aws-aqua" />
                     ) : (
                       <PiStar />
@@ -474,7 +474,7 @@ const ChatPage: React.FC = () => {
                         {t('bot.titleSubmenu.edit')}
                       </PopoverItem>
                     )}
-                    {bot?.isPublic && (
+                    {bot?.sharedScope === 'all' && (
                       <PopoverItem
                         onClick={() => {
                           if (bot) {

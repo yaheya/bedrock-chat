@@ -57,7 +57,7 @@ export type GetBotPublicationRequest = {
   ownerUserId?: string;
 };
 
-export type GetBotPublicationRespose = {
+export type GetBotPublicationResponse = {
   stage: string;
   quota: BotPublicationQuota;
   throttle: BotPublicationThrottle;

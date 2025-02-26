@@ -38,8 +38,11 @@ type Props = BaseProps & {
   isAdmin: boolean;
   conversations?: ConversationMeta[];
   starredBots?: BotListItem[];
-  recentlyUsedUnsterredBots?: BotListItem[];
-  updateConversationTitle: (conversationId: string, title: string) => Promise<void>;
+  recentlyUsedUnstarredBots?: BotListItem[];
+  updateConversationTitle: (
+    conversationId: string,
+    title: string
+  ) => Promise<void>;
   onSignOut: () => void;
   onDeleteConversation: (conversation: ConversationMeta) => void;
   onClearConversations: () => void;
@@ -189,7 +192,7 @@ const ChatListDrawer: React.FC<Props> = (props) => {
   const { t } = useTranslation();
   const { getPageLabel } = usePageLabel();
   const { opened, switchOpen } = useDrawer();
-  const { conversations, starredBots, recentlyUsedUnsterredBots } = props;
+  const { conversations, starredBots, recentlyUsedUnstarredBots } = props;
 
   const [prevConversations, setPrevConversations] =
     useState<typeof conversations>();
@@ -321,7 +324,7 @@ const ChatListDrawer: React.FC<Props> = (props) => {
             <ExpandableDrawerGroup
               label={t('app.recentlyUsedBots')}
               className="border-t pt-1">
-              {recentlyUsedUnsterredBots
+              {recentlyUsedUnstarredBots
                 ?.slice(0, 3)
                 .map((bot) => (
                   <DrawerItem

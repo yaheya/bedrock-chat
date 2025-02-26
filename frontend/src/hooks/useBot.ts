@@ -24,7 +24,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
 
   const { data: starredBots, mutate: mutateStarredBots } = api.bots({
     kind: 'mixed',
-    pinned: true,
+    starred: true,
   });
 
   const { data: recentlyUsedBots, mutate: mutateRecentlyUsedBots } = api.bots({
@@ -35,8 +35,8 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
   return {
     myBots,
     starredBots: starredBots?.filter((bot) => bot.available),
-    recentlyUsedUnsterredBots: recentlyUsedBots?.filter(
-      (bot) => !bot.IsStarred && bot.available
+    recentlyUsedUnstarredBots: recentlyUsedBots?.filter(
+      (bot) => !bot.isStarred && bot.available
     ),
     recentlyUsedSharedBots: recentlyUsedBots?.filter((bot) => !bot.owned),
     getMyBot: async (botId: string) => {
@@ -52,10 +52,11 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
             available: true,
             createTime: new Date(),
             lastUsedTime: new Date(),
-            IsStarred: false,
-            isPublic: false,
+            isStarred: false,
             owned: true,
             syncStatus: 'QUEUED',
+            sharedScope: 'private',
+            sharedStatus: 'private',
           });
         }),
         {
@@ -84,12 +85,12 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         mutateMyBots();
       });
     },
-    updateBotSharing: (botId: string, isShareing: boolean) => {
+    updateBotSharing: (botId: string, isSharing: boolean) => {
       mutateMyBots(
         produce(myBots, (draft) => {
           const idx = draft?.findIndex((bot) => bot.id === botId) ?? -1;
           if (draft) {
-            draft[idx].isPublic = isShareing;
+            draft[idx].sharedScope = isSharing ? 'all' : 'private';
           }
         }),
         {
@@ -99,7 +100,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
 
       return api
         .updateBotVisibility(botId, {
-          toPublic: isShareing,
+          targetSharedScope: isSharing ? 'all' : 'private',
         })
         .finally(() => {
           mutateMyBots();
@@ -110,7 +111,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       mutateMyBots(
         produce(myBots, (draft) => {
           if (draft) {
-            draft[idxMybots].IsStarred = isStarred;
+            draft[idxMybots].isStarred = isStarred;
           }
         }),
         {
@@ -122,7 +123,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         produce(recentlyUsedBots, (draft) => {
           const idx = draft?.findIndex((bot) => bot.id === botId) ?? -1;
           if (draft) {
-            draft[idx].IsStarred = isStarred;
+            draft[idx].isStarred = isStarred;
           }
         }),
         {
@@ -159,7 +160,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       mutateRecentlyUsedBots(
         produce(recentlyUsedBots, (draft) => {
           if (draft) {
-            draft[idx].IsStarred = isStarred;
+            draft[idx].isStarred = isStarred;
           }
         }),
         {
