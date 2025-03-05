@@ -1,4 +1,4 @@
-from app.repositories.user import find_group_by_name_prefix, find_users_by_email_prefix
+from app.repositories.user import find_group_by_name_prefix, find_user_by_id, find_users_by_email_prefix
 from app.user import UserGroup, UserWithoutGroups
 
 
@@ -10,3 +10,6 @@ def search_user_by_email_prefix(
 
 def search_group_by_name_prefix(prefix: str) -> list[UserGroup]:
     return find_group_by_name_prefix(prefix=prefix)
+
+def get_user_by_id(id: str) -> UserWithoutGroups:
+    return find_user_by_id(id=id)

@@ -13,8 +13,10 @@ USER_POOL_ID = os.environ.get("USER_POOL_ID")
 
 client = boto3.client("cognito-idp")
 
+class TooManyRequestsError(Exception):
+    pass
 
-@retry(ClientError, tries=3, delay=1)
+@retry(TooManyRequestsError, tries=3, delay=1)
 def find_users_by_email_prefix(prefix: str, limit: int = 10) -> list[UserWithoutGroups]:
     try:
         logger.debug(f"Searching users with email prefix: {prefix}")
@@ -37,12 +39,12 @@ def find_users_by_email_prefix(prefix: str, limit: int = 10) -> list[UserWithout
         # See: https://docs.aws.amazon.com/cognito/latest/developerguide/quotas.html
         if e.response["Error"]["Code"] == "TooManyRequestsException":
             logger.warning(f"Rate limit exceeded. Retrying... Error: {e}")
-            raise
+            raise TooManyRequestsError()
         else:
             raise
 
 
-@retry(ClientError, tries=3, delay=1)
+@retry(TooManyRequestsError, tries=3, delay=1)
 def find_group_by_name_prefix(prefix: str) -> list[UserGroup]:
     groups = []
     next_token = None
@@ -82,6 +84,37 @@ def find_group_by_name_prefix(prefix: str) -> list[UserGroup]:
         # See: https://docs.aws.amazon.com/cognito/latest/developerguide/quotas.html
         if e.response["Error"]["Code"] == "TooManyRequestsException":
             logger.warning(f"Rate limit exceeded. Retrying... Error: {e}")
+            raise TooManyRequestsError()
+        else:
             raise
+
+
+
+@retry(TooManyRequestsError, tries=3, delay=1)
+def find_user_by_id(id: str) -> UserWithoutGroups | None:
+    try:
+        logger.debug(f"get user with id: {id}")
+        response = client.admin_get_user(
+            UserPoolId=USER_POOL_ID, Username=id
+        )
+        logger.debug(response)
+
+        converted_user = UserWithoutGroups.from_cognito_idp_response(response)
+        logger.debug(f"Converted user: {converted_user}")
+
+        return converted_user
+    except ClientError as e:
+        
+        # Retry if rate limit.
+        # The quota is 120 RPS for AdminGetUser.
+        # See: https://docs.aws.amazon.com/cognito/latest/developerguide/quotas.html
+        if e.response["Error"]["Code"] == "TooManyRequestsException":
+            logger.warning(f"Rate limit exceeded. Retrying... Error: {e}")
+            raise TooManyRequestsError()
+
+        if e.response["Error"]["Code"] == "UserNotFoundException":
+            logger.warning(f"User Not Found: {e}")
+            return None
+
         else:
             raise
