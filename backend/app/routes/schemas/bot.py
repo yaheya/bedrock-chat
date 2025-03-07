@@ -360,13 +360,13 @@ class PartialVisibilityInput(BaseSchema):
     target_allowed_user_ids: list[str]
     target_allowed_group_ids: list[str]
 
-    @model_validator(mode="after")
-    def validate_not_both_empty(self) -> Self:
-        if not self.target_allowed_user_ids and not self.target_allowed_group_ids:
-            raise ValueError(
-                "Either target_allowed_user_ids or target_allowed_group_ids must not be empty"
-            )
-        return self
+    # @model_validator(mode="after")
+    # def validate_not_both_empty(self) -> Self:
+    #     if not self.target_allowed_user_ids and not self.target_allowed_group_ids:
+    #         raise ValueError(
+    #             "Either target_allowed_user_ids or target_allowed_group_ids must not be empty"
+    #         )
+    #     return self
 
 
 class AllVisibilityInput(BaseSchema):

@@ -185,10 +185,10 @@ class BotModel(BaseModel):
                 raise ValueError(
                     "shared_status must be 'shared' or 'pinned@xxx' when shared_scope is 'partial'."
                 )
-            if not self.allowed_cognito_groups and not self.allowed_cognito_users:
-                raise ValueError(
-                    "allowed_cognito_groups or allowed_cognito_users must be set when shared_scope is 'partial'."
-                )
+            # if not self.allowed_cognito_groups and not self.allowed_cognito_users:
+            #     raise ValueError(
+            #         "allowed_cognito_groups or allowed_cognito_users must be set when shared_scope is 'partial'."
+            #     )
         elif self.shared_scope == "all":
             if self.shared_status == "unshared":
                 raise ValueError(
