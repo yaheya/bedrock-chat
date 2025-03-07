@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../utils/DateUtils';
 import InputText from './InputText';
+import { PiMagnifyingGlass } from 'react-icons/pi';
 
 export const TextInput = () => {
   const { t } = useTranslation();
@@ -9,7 +10,7 @@ export const TextInput = () => {
   return (
     <InputText
       label={t('bot.item.title')}
-      placeholder='Bot 1'
+      placeholder="Bot 1"
       hint={t('input.hint.required')}
       value={text}
       disabled={false}
@@ -24,10 +25,12 @@ export const TextInputError = () => {
   return (
     <InputText
       label={t('bot.item.title')}
-      placeholder='Bot 1'
+      placeholder="Bot 1"
       hint={t('input.hint.required')}
       value={text}
-      errorMessage={text === '' ? t('input.validationError.required') : undefined}
+      errorMessage={
+        text === '' ? t('input.validationError.required') : undefined
+      }
       disabled={false}
       onChange={setText}
     />
@@ -40,7 +43,7 @@ export const TextInputDisabled = () => {
     <InputText
       label={t('bot.item.title')}
       hint={t('input.hint.required')}
-      value='Bot 1'
+      value="Bot 1"
       disabled={true}
       onChange={() => {}}
     />
@@ -51,9 +54,9 @@ export const UrlInput = () => {
   const [url, setUrl] = useState('http://example.com');
   return (
     <InputText
-      type='url'
+      type="url"
       value={url}
-      placeholder='http://example.com'
+      placeholder="http://example.com"
       disabled={false}
       onChange={setUrl}
     />
@@ -62,8 +65,8 @@ export const UrlInput = () => {
 
 export const UrlInputDisabled = () => (
   <InputText
-    type='url'
-    value='http://example.com'
+    type="url"
+    value="http://example.com"
     disabled={true}
     onChange={() => {}}
   />
@@ -75,7 +78,7 @@ export const DateInput = () => {
   return (
     <InputText
       className="w-full"
-      type='date'
+      type="date"
       label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
       value={date}
       disabled={false}
@@ -89,7 +92,7 @@ export const DateInputError = () => {
   return (
     <InputText
       className="w-full"
-      type='date'
+      type="date"
       label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
       value={formatDate(new Date(), 'YYYY-MM-DD')}
       errorMessage={t('admin.validationError.period')}
@@ -104,7 +107,7 @@ export const DateInputDisabled = () => {
   return (
     <InputText
       className="w-full"
-      type='date'
+      type="date"
       label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
       value={formatDate(new Date(), 'YYYY-MM-DD')}
       disabled={true}
@@ -118,9 +121,9 @@ export const NumberInput = () => {
   const [value, setValue] = useState('5');
   return (
     <InputText
-      type='number'
+      type="number"
       label={t('bot.apiSettings.item.rateLimit')}
-      placeholder='5'
+      placeholder="5"
       hint={t('bot.apiSettings.help.rateLimit')}
       value={value}
       disabled={false}
@@ -134,11 +137,13 @@ export const NumberInputError = () => {
   const [value, setValue] = useState('');
   return (
     <InputText
-      type='number'
+      type="number"
       label={t('bot.apiSettings.item.rateLimit')}
       hint={t('bot.apiSettings.help.rateLimit')}
       value={value}
-      errorMessage={value === '' ? t('input.validationError.required') : undefined}
+      errorMessage={
+        value === '' ? t('input.validationError.required') : undefined
+      }
       disabled={false}
       onChange={setValue}
     />
@@ -149,12 +154,18 @@ export const NumberInputDisabled = () => {
   const { t } = useTranslation();
   return (
     <InputText
-      type='number'
+      type="number"
       label={t('bot.apiSettings.item.rateLimit')}
       hint={t('bot.apiSettings.help.rateLimit')}
-      value='5'
+      value="5"
       disabled={true}
       onChange={() => {}}
     />
+  );
+};
+
+export const Icon = () => {
+  return (
+    <InputText value="" icon={<PiMagnifyingGlass />} onChange={() => {}} />
   );
 };

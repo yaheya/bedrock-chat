@@ -34,6 +34,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
 
   return {
     myBots,
+    mutateMyBots,
     starredBots: starredBots?.filter((bot) => bot.available),
     recentlyUsedUnstarredBots: recentlyUsedBots?.filter(
       (bot) => !bot.isStarred && bot.available
@@ -84,27 +85,6 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       return api.updateBot(botId, params).finally(() => {
         mutateMyBots();
       });
-    },
-    updateBotSharing: (botId: string, isSharing: boolean) => {
-      mutateMyBots(
-        produce(myBots, (draft) => {
-          const idx = draft?.findIndex((bot) => bot.id === botId) ?? -1;
-          if (draft) {
-            draft[idx].sharedScope = isSharing ? 'all' : 'private';
-          }
-        }),
-        {
-          revalidate: false,
-        }
-      );
-
-      return api
-        .updateBotVisibility(botId, {
-          targetSharedScope: isSharing ? 'all' : 'private',
-        })
-        .finally(() => {
-          mutateMyBots();
-        });
     },
     updateMyBotStarred: (botId: string, isStarred: boolean) => {
       const idxMybots = myBots?.findIndex((bot) => bot.id === botId) ?? -1;

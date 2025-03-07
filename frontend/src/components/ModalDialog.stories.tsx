@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BotMeta } from '../@types/bot';
+import { SharedScope } from '../@types/bot';
 import DialogConfirmAddApiKey from './DialogConfirmAddApiKey';
 import DialogConfirmClearConversations from './DialogConfirmClearConversations';
 import DialogConfirmDeleteApi from './DialogConfirmDeleteApi';
@@ -10,6 +10,12 @@ import DialogFeedback from './DialogFeedback';
 import DialogInstructionsSamples from './DialogInstructionsSamples';
 import DialogSelectLanguage from './DialogSelectLanguage';
 import DialogShareBot from './DialogShareBot';
+import {
+  GetUserResponse,
+  SearchUserGroupsResponse,
+  SearchUsersResponse,
+} from '../@types/user';
+import { msw } from '@ladle/react';
 
 export const AddApiKey = () => {
   const [isOpenAddApiKeyDialog, setIsOpenAddApiKeyDialog] = useState(true);
@@ -166,32 +172,105 @@ export const SelectLanguage = () => {
   );
 };
 
+export default {
+  msw: [
+    msw.http.get(
+      new URL('user/search', import.meta.env.VITE_APP_API_ENDPOINT).toString(),
+      () => {
+        const res: SearchUsersResponse = [
+          {
+            id: 'user3',
+            name: 'Tom Morello',
+            email: 'tom@ratm.com',
+          },
+          {
+            id: 'user4',
+            name: 'Zack de la Rocha',
+            email: 'zack@ratm.com',
+          },
+        ];
+        return msw.HttpResponse.json(res);
+      }
+    ),
+    msw.http.get(
+      new URL(
+        'user/group/search',
+        import.meta.env.VITE_APP_API_ENDPOINT
+      ).toString(),
+      () => {
+        const res: SearchUserGroupsResponse = [
+          {
+            type: 'group',
+            name: 'HR all',
+            description: 'All member of the HR department.',
+          },
+        ];
+        return msw.HttpResponse.json(res);
+      }
+    ),
+    msw.http.get(
+      new URL('user/user1', import.meta.env.VITE_APP_API_ENDPOINT).toString(),
+      () => {
+        const res: GetUserResponse = {
+          id: 'user1',
+          name: 'Anthony Kiedis',
+          email: 'anthony@rhcp.com',
+        };
+        return msw.HttpResponse.json(res);
+      }
+    ),
+    msw.http.get(
+      new URL('user/user2', import.meta.env.VITE_APP_API_ENDPOINT).toString(),
+      () => {
+        const res: GetUserResponse = {
+          id: 'user2',
+          name: 'John Frusciante',
+          email: 'jotn@rhcp.com',
+        };
+        return msw.HttpResponse.json(res);
+      }
+    ),
+  ],
+};
+
 export const ShareBot = () => {
-  const [isOpenShareDialog, setIsOpenShareDialog] = useState(true);
-  const [bot, setBot] = useState<BotMeta>({
-    id: '1',
-    title: 'Bot 1',
-    description: 'Bot 1',
-    createTime: new Date(),
-    lastUsedTime: new Date(),
-    isStarred: false,
-    owned: true,
-    syncStatus: 'SUCCEEDED',
-    sharedScope: 'private',
-    sharedStatus: '',
-  });
+  const [isOpen, setIsOpen] = useState(true);
+  const [sharedScope, setSharedScope] = useState<SharedScope>('private');
+  const [allowedUserIds] = useState(['user1', 'user2']);
+  const [allowedGroupIds] = useState(['group1']);
+
   return (
     <DialogShareBot
-      isOpen={isOpenShareDialog}
-      target={bot}
-      onToggleShare={() => {
-        setBot((current) => ({
-          ...current,
-          sharedScope: current.sharedScope === 'private' ? 'all' : 'private',
-        }));
+      isOpen={isOpen}
+      botId="1"
+      allowedUserIds={allowedUserIds}
+      allowedGroupIds={allowedGroupIds}
+      sharedScope={sharedScope}
+      onChangeSharedScope={(scope) => {
+        setSharedScope(scope);
       }}
+      onUpdateAllowedUserAndGroup={() => {}}
       onClose={() => {
-        setIsOpenShareDialog(false);
+        setIsOpen(false);
+      }}
+    />
+  );
+};
+
+export const ShareBotLoading = () => {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <DialogShareBot
+      isOpen={isOpen}
+      isLoading
+      botId="1"
+      allowedUserIds={[]}
+      allowedGroupIds={[]}
+      sharedScope="private"
+      onChangeSharedScope={() => {}}
+      onUpdateAllowedUserAndGroup={() => {}}
+      onClose={() => {
+        setIsOpen(false);
       }}
     />
   );

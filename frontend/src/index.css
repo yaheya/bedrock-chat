@@ -8,3 +8,17 @@
     --amplify-components-button-primary-background-color
   ) !important;
 }
+
+/* styles/globals.css もしくは該当コンポーネントのCSS */
+@keyframes liner-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-liner-progress {
+  animation: liner-progress 1s linear infinite;
+}

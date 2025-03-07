@@ -48,14 +48,17 @@ const translation = {
       },
       'mistral-7b-instruct': {
         label: 'Mistral 7B',
-        description: '自然なコーディング機能で英語のテキスト生成タスクをサポートします'
+        description:
+          '自然なコーディング機能で英語のテキスト生成タスクをサポートします',
       },
       'mixtral-8x7b-instruct': {
         label: 'Mistral-8x7B',
-        description: 'Mixtral-8x7BはMistral AIによって開発された基盤モデルで、英語、フランス語、ドイツ語、イタリア語、スペイン語のテキストをサポートし、コード生成機能を備えています。'
+        description:
+          'Mixtral-8x7BはMistral AIによって開発された基盤モデルで、英語、フランス語、ドイツ語、イタリア語、スペイン語のテキストをサポートし、コード生成機能を備えています。',
       },
       'mistral-large': {
-        label: '実質的な推論機能を必要とする複雑なタスクや、合成テキスト生成およびコード生成などの高度に専門化されたタスクに最適です',
+        label:
+          '実質的な推論機能を必要とする複雑なタスクや、合成テキスト生成およびコード生成などの高度に専門化されたタスクに最適です',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
@@ -355,13 +358,43 @@ const translation = {
       },
       shareDialog: {
         title: '共有',
+        switchLabel: 'このボットを共有する',
+        label: {
+          selectShare: '共有先',
+          all: 'すべてのユーザー',
+          partial: '一部のユーザー',
+          search: 'ユーザーとユーザーグループを検索できます',
+          memberManagement: 'メンバーの管理',
+          sharing: {
+            not_shared: 'どのグループとグループにも共有されていません。',
+            shared_only_users: '{{count}}人のユーザに共有されています。',
+            shared_only_users_plural: '{{count}}人のユーザに共有されています。',
+            shared_only_groups: '{{count}}つのグループに共有されています。',
+            shared_only_groups_plural:
+              '{{count}}つのグループに共有されています。',
+            shared_both:
+              '{{groupCount}}つのグループと{{userCount}}人のユーザーに共有されています。',
+            shared_both_user_plural:
+              '{{groupCount}}つのグループと{{userCount}}人のユーザーに共有されています。',
+            shared_both_group_plural:
+              '{{groupCount}}つのグループと{{userCount}}人のユーザーに共有されています。',
+            shared_both_plural:
+              '{{groupCount}}つのグループと{{userCount}}人のユーザーに共有されています。',
+          },
+        },
+
         off: {
           content:
-            '共有リンクが無効化されているため、あなた以外はこのボットにアクセスできません。',
+            'このボットは共有されていないため、あなた以外アクセスできません。',
         },
         on: {
           content:
-            '共有リンクが有効化されているため、全てのユーザが共有リンクを使って会話できます。',
+            'このボットは共有されているため、あなた以外のユーザーもアクセスできます。共有されているユーザーは「ボットを探す」から、このボットを検索して利用することができます。',
+          linkDescription:
+            '以下の共有リンクを使ってボットと会話することもできます。',
+        },
+        button: {
+          manage: '管理',
         },
       },
       error: {
@@ -435,6 +468,27 @@ const translation = {
       },
       validationError: {
         period: 'FromとToを両方入力してください。',
+      },
+    },
+    store: {
+      pageTitle: 'ボットを探す',
+      description:
+        '全員に共有されているボットとあなたがアクセス許可されているボットのみ、検索・表示されます。',
+      search: {
+        placeholder: 'ボットを検索する',
+      },
+      essential: {
+        label: '利用推奨ボット',
+        description:
+          '管理者が厳選した利用が推奨されているボットです。業務効率化が見込めるので積極的に使いましょう。',
+      },
+      trending: {
+        label: '人気のボット',
+        description: '最も人気のあるボットです。',
+      },
+      discover: {
+        label: '発見',
+        description: 'ランダムにピックアップしたボットが表示されます。',
       },
     },
     deleteDialog: {
@@ -718,16 +772,17 @@ const translation = {
       },
       advancedConfigration: {
         existKnowledgeBaseId: {
-          label: "既存のAmazon Bedrock Knowledge BaseのID",
-          description: "既存のAmazon Bedrock Knowledge Baseを使用することができる",
+          label: '既存のAmazon Bedrock Knowledge BaseのID',
+          description:
+            '既存のAmazon Bedrock Knowledge Baseを使用することができる',
           createNewKb: {
             label: '新規のナレッジを作成する',
           },
           existing: {
             label: '外部のナレッジ(Knowledge Base)を利用する',
-          }
+          },
         },
-      }
+      },
     },
     error: {
       answerResponse: '回答中にエラーが発生しました。',

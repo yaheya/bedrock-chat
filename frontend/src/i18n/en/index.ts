@@ -46,15 +46,18 @@ const translation = {
       },
       'mistral-7b-instruct': {
         label: 'Mistral 7B',
-        description: 'Supports English text generation tasks with natural coding capabilities'
+        description:
+          'Supports English text generation tasks with natural coding capabilities',
       },
       'mixtral-8x7b-instruct': {
         label: 'Mistral-8x7B',
-        description: "A popular, high-quality, sparse Mixture-of-Experts (MoE) model, that is ideal for text summarization, question and answering, text classification, text completion, and code generation."
+        description:
+          'A popular, high-quality, sparse Mixture-of-Experts (MoE) model, that is ideal for text summarization, question and answering, text classification, text completion, and code generation.',
       },
       'mistral-large': {
         label: 'Mistral Large',
-        description: "Ideal for complex tasks that require substantial reasoning capabilities, or ones that are highly specialized, such as Synthetic Text Generation or Code Generation."
+        description:
+          'Ideal for complex tasks that require substantial reasoning capabilities, or ones that are highly specialized, such as Synthetic Text Generation or Code Generation.',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
@@ -355,13 +358,45 @@ How would you categorize this email?`,
       },
       shareDialog: {
         title: 'Share',
+        switchLabel: 'Share this Bot',
+        label: {
+          selectShare: 'Share with',
+          all: 'ALL Users',
+          partial: 'Selected Users',
+          search: 'Search for Users and Groups',
+          memberManagement: 'Edit Members',
+          sharing: {
+            not_shared: 'Not shared with any groups or users',
+            shared_only_users: 'Shared with {{count}} user',
+            shared_only_users_plural: 'Shared with {{count}} users',
+            shared_only_groups: 'Shared with {{count}} group',
+            shared_only_groups_plural: 'Shared with {{count}} groups',
+            shared_both:
+              'Shared with {{groupCount}} group and {{userCount}} user ',
+            shared_both_user_plural:
+              'Shared with {{groupCount}} group and {{userCount}} users',
+            shared_both_group_plural:
+              'Shared with {{groupCount}} groups and {{userCount}} user',
+            shared_both_plural:
+              'Shared with {{groupCount}} groups and {{userCount}} users ',
+          },
+          user: 'User',
+          group: 'Group',
+        },
         off: {
-          content:
-            'Link sharing is off, so only you can access this bot through its URL.',
+          content: 'This bot is private and only you have access to it.',
         },
         on: {
           content:
-            'Link sharing is on, so ALL users can use this link to conversation.',
+            'This bot is shared and accessible to other users. Shared users can find and use this bot through the <Link>Discover Bot</Link> page.',
+          linkDescription:
+            'You can also chat with the bot using this shared link.',
+        },
+        button: {
+          manage: 'Manage',
+          removeAccess: 'Remove Access',
+          cancelRemoval: 'Cancel Removal',
+          cancelAddition: 'Cancel Addition',
         },
       },
       error: {
@@ -434,6 +469,27 @@ How would you categorize this email?`,
       },
       validationError: {
         period: 'Enter both From and To',
+      },
+    },
+    store: {
+      pageTitle: 'DISCOVER BOT',
+      description:
+        'View and search bots that are public or permitted for your access.',
+      search: {
+        placeholder: 'Search Bots',
+      },
+      essential: {
+        label: 'Essential',
+        description:
+          'These bots are officially selected by administrators. Use them actively to improve your work efficiency as part of standard operations.',
+      },
+      trending: {
+        label: 'Trending',
+        description: 'Most popular Bots.',
+      },
+      discover: {
+        label: 'Discover',
+        description: 'Random bot showcase.',
       },
     },
     deleteDialog: {
@@ -723,15 +779,16 @@ How would you categorize this email?`,
       },
       advancedConfigration: {
         existKnowledgeBaseId: {
-          label: "ID for the Amazon Bedrock Knowledge Base",
-          description: "Please specify ID that your existing Amazon Bedrock knowledge base.",
+          label: 'ID for the Amazon Bedrock Knowledge Base',
+          description:
+            'Please specify ID that your existing Amazon Bedrock knowledge base.',
           createNewKb: {
             label: 'Create New Knowledge Base',
           },
           existing: {
             label: 'Use your existing knowledge base',
-          }
-        }
+          },
+        },
       },
     },
     error: {

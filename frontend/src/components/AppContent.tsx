@@ -14,7 +14,7 @@ import useConversation from '../hooks/useConversation';
 import useBot from '../hooks/useBot';
 import useChat from '../hooks/useChat';
 import { usePageLabel, usePageTitlePathPattern } from '../routes';
-import useUser from '../hooks/useUser';
+import useLoginUser from '../hooks/useLoginUser';
 import DialogConfirmDeleteChat from './DialogConfirmDeleteChat';
 import DialogConfirmClearConversations from './DialogConfirmClearConversations';
 import DialogSelectLanguage from './DialogSelectLanguage';
@@ -39,7 +39,7 @@ const AppContent: React.FC<Props> = (props) => {
   const { starredBots, recentlyUsedUnstarredBots } = useBot();
   const { newChat, isGeneratedTitle } = useChat();
   const { isConversationOrNewChat, pathPattern } = usePageTitlePathPattern();
-  const { isAdmin } = useUser();
+  const { isAdmin } = useLoginUser();
 
   const onClickNewChat = useCallback(() => {
     navigate('/');

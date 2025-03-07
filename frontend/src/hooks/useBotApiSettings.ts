@@ -7,7 +7,7 @@ import useBotPublication from './useBotPublication';
 import useBotPublicationApi from './useBotPublicationApi';
 
 const useBotApiSettings = (botId: string) => {
-  const { getMyBot, updateBotVisibility } = useBotApi();
+  const { getMyBot, updateBotSharedScope } = useBotApi();
   const {
     data: myBot,
     isLoading: isLoadingMyBot,
@@ -33,7 +33,7 @@ const useBotApiSettings = (botId: string) => {
       (error?.response?.data['errors'][0] as string) ?? ''
     ).includes('is not published'),
     shareBot: () => {
-      return updateBotVisibility(botId, {
+      return updateBotSharedScope(botId, {
         targetSharedScope: 'all',
       }).then(() => {
         return mutateMyBot();

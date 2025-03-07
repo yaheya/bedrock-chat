@@ -8,12 +8,22 @@ export type UserGroup = {
   description: string;
 };
 
-export type SearchUserRequest = {
-  prefix: string;
-};
-export type SearchUserResponse = User[];
+export type SearchedUser =
+  | ({
+      type: 'user';
+    } & User)
+  | ({
+      type: 'group';
+    } & UserGroup);
 
-export type SearchUserGroupRequest = {
+export type SearchUsersRequest = {
   prefix: string;
 };
-export type SearchUserGroupResponse = UseGroup[];
+export type SearchUsersResponse = User[];
+
+export type SearchUserGroupsRequest = {
+  prefix: string;
+};
+export type SearchUserGroupsResponse = UseGroup[];
+
+export type GetUserResponse = User;

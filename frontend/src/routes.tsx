@@ -15,6 +15,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { useMemo } from 'react';
+import BotStorePage from './pages/BotStorePage.tsx';
 
 const rootChildren = [
   {
@@ -24,6 +25,10 @@ const rootChildren = [
   {
     path: '/bot/explore',
     element: <BotExplorePage />,
+  },
+  {
+    path: '/bot/store',
+    element: <BotStorePage />,
   },
   {
     path: '/bot/new',

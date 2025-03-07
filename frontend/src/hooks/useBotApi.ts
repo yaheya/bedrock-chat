@@ -11,8 +11,9 @@ import {
   UpdateBotStarredResponse,
   UpdateBotRequest,
   UpdateBotResponse,
-  UpdateBotVisibilityRequest,
-  UpdateBotVisibilityResponse,
+  GetPinnedBotResponse,
+  UpdateBotSharedScopeRequest,
+  UpdateBotSharedScopeResponse,
 } from '../@types/bot';
 import useHttp from './useHttp';
 
@@ -33,6 +34,9 @@ const useBotApi = () => {
     },
     getMyBot: (botId?: string) => {
       return http.get<GetMyBotResponse>(botId ? `bot/private/${botId}` : null);
+    },
+    getPinnedBots: () => {
+      return http.get<GetPinnedBotResponse>('bot/pinned');
     },
     botSummary: (botId?: string) => {
       return http.get<GetBotSummaryResponse>(
@@ -62,11 +66,11 @@ const useBotApi = () => {
         params
       );
     },
-    updateBotVisibility: (
+    updateBotSharedScope: (
       botId: string,
-      params: UpdateBotVisibilityRequest
+      params: UpdateBotSharedScopeRequest
     ) => {
-      return http.patch<UpdateBotVisibilityResponse>(
+      return http.patch<UpdateBotSharedScopeResponse>(
         `bot/${botId}/visibility`,
         params
       );

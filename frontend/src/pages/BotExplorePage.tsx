@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../components/Button';
 import {
@@ -23,18 +23,21 @@ import PopoverItem from '../components/PopoverItem';
 import useChat from '../hooks/useChat';
 import Help from '../components/Help';
 import StatusSyncBot from '../components/StatusSyncBot';
-import useUser from '../hooks/useUser';
+import useLoginUser from '../hooks/useLoginUser';
 import ListItemBot from '../components/ListItemBot';
 import { TooltipDirection } from '../constants';
+import useShareBot from '../hooks/useShareBot';
 
 const BotExplorePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAllowCreatingBot, isAllowApiSettings } = useUser();
+  const { isAllowCreatingBot, isAllowApiSettings } = useLoginUser();
   const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
   const [isOpenShareDialog, setIsOpenShareDialog] = useState(false);
   const [targetDelete, setTargetDelete] = useState<BotMeta>();
-  const [targetShareIndex, setTargetShareIndex] = useState<number>();
+  const [openedShareDialogBotId, setOpenedShareDialogBotId] = useState<
+    string | undefined
+  >();
 
   const { newChat } = useChat();
   const {
@@ -42,20 +45,23 @@ const BotExplorePage: React.FC = () => {
     recentlyUsedSharedBots,
     deleteMyBot,
     deleteRecentlyUsedBot,
-    updateBotSharing,
     updateMyBotStarred,
     updateSharedBotStarred,
+    mutateMyBots,
   } = useBot(true);
 
-  const targetShareBot = useMemo(() => {
-    if (myBots) {
-      if ((targetShareIndex ?? -1) < 0) {
-        return undefined;
-      }
-      return myBots[targetShareIndex!];
-    }
-    return undefined;
-  }, [myBots, targetShareIndex]);
+  const {
+    sharedScope,
+    allowedGroupIds,
+    allowedUserIds,
+    isLoading: isLoadingShareBot,
+    updateSharedScope,
+    updateSharedUsersAndGroups,
+  } = useShareBot({
+    botId: openedShareDialogBotId,
+    myBots: myBots ?? [],
+    mutateMyBots,
+  });
 
   const onClickNewBot = useCallback(() => {
     navigate('/bot/new');
@@ -82,9 +88,9 @@ const BotExplorePage: React.FC = () => {
     }
   }, [deleteMyBot, targetDelete]);
 
-  const onClickShare = useCallback((targetIndex: number) => {
+  const onClickShare = useCallback((botId: string) => {
     setIsOpenShareDialog(true);
-    setTargetShareIndex(targetIndex);
+    setOpenedShareDialogBotId(botId);
   }, []);
 
   const onClickApiSettings = useCallback(
@@ -93,12 +99,6 @@ const BotExplorePage: React.FC = () => {
     },
     [navigate]
   );
-
-  const onToggleShare = useCallback(() => {
-    if (targetShareBot) {
-      updateBotSharing(targetShareBot.id, targetShareBot.sharedScope !== 'all');
-    }
-  }, [targetShareBot, updateBotSharing]);
 
   const onClickBot = useCallback(
     (botId: string) => {
@@ -120,8 +120,17 @@ const BotExplorePage: React.FC = () => {
       />
       <DialogConfirmShareBot
         isOpen={isOpenShareDialog}
-        target={targetShareBot}
-        onToggleShare={onToggleShare}
+        botId={openedShareDialogBotId}
+        sharedScope={sharedScope}
+        allowedGroupIds={allowedGroupIds}
+        allowedUserIds={allowedUserIds}
+        isLoading={isLoadingShareBot}
+        onChangeSharedScope={(scope) => {
+          updateSharedScope(scope);
+        }}
+        onUpdateAllowedUserAndGroup={(userIds, groupIds) => {
+          updateSharedUsersAndGroups(userIds, groupIds);
+        }}
         onClose={() => {
           setIsOpenShareDialog(false);
         }}
@@ -156,7 +165,7 @@ const BotExplorePage: React.FC = () => {
                     {t('bot.label.noBots')}
                   </div>
                 )}
-                {myBots?.map((bot, idx) => (
+                {myBots?.map((bot) => (
                   <ListItemBot
                     key={bot.id}
                     bot={bot}
@@ -174,13 +183,14 @@ const BotExplorePage: React.FC = () => {
                       )}
 
                       <div className="mr-5 flex justify-end">
-                        {bot.sharedScope === 'all' ? (
+                        {bot.sharedScope === 'all' ||
+                        bot.sharedScope === 'partial' ? (
                           <div className="flex items-center">
                             <PiUsers className="mr-1" />
                             <ButtonIcon
                               className="-mr-3"
                               onClick={() => {
-                                onClickShare(idx);
+                                onClickShare(bot.id);
                               }}>
                               <PiLink />
                             </ButtonIcon>
@@ -224,7 +234,7 @@ const BotExplorePage: React.FC = () => {
                         <PopoverMenu className="h-8" target="bottom-right">
                           <PopoverItem
                             onClick={() => {
-                              onClickShare(idx);
+                              onClickShare(bot.id);
                             }}>
                             <PiUsers />
                             {t('bot.button.share')}

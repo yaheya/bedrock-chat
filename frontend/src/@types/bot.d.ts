@@ -150,20 +150,20 @@ export type UpdateBotStarredRequest = {
 
 export type UpdateBotStarredResponse = null;
 
-export type UpdateBotVisibilityRequest =
+export type UpdateBotSharedScopeRequest =
   | {
       targetSharedScope: 'private';
     }
   | {
       targetSharedScope: 'partial';
-      allowedCognitoGroups: string[];
-      allowedCognitoUsers: string[];
+      targetAllowedGroupIds: string[];
+      targetAllowedUserIds: string[];
     }
   | {
       targetSharedScope: 'all';
     };
 
-export type UpdateBotVisibilityResponse = null;
+export type UpdateBotSharedScopeResponse = null;
 
 export type UpdateBotPushedRequest =
   | {
