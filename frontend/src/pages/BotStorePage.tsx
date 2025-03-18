@@ -1,27 +1,65 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   PiBinoculars,
   PiCertificate,
   PiMagnifyingGlass,
   PiRanking,
+  PiStar,
+  PiStarFill,
 } from 'react-icons/pi';
 import InputText from '../components/InputText';
 import useBotStore from '../hooks/useBotStore';
 import Skeleton from '../components/Skeleton';
 import { twMerge } from 'tailwind-merge';
+import { useNavigate } from 'react-router-dom';
+import useChat from '../hooks/useChat';
+import ButtonIcon from '../components/ButtonIcon';
+import useBot from '../hooks/useBot';
 
 type CardBotProps = {
   title: string;
   description: string;
+  id?: string;
+  isStarred?: boolean;
+  onToggleStar?: (id: string, starred: boolean) => void;
 };
 
 const CardBot: React.FC<CardBotProps> = (props) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { newChat } = useChat();
+
+  const handleClick = () => {
+    if (props.id) {
+      newChat();
+      navigate(`/bot/${props.id}`);
+    }
+  };
+
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (props.id && props.onToggleStar) {
+      props.onToggleStar(props.id, !props.isStarred);
+    }
+  };
 
   return (
-    <div className="rounded-xl border border-gray  bg-white px-4 py-2">
-      <div className="text-base font-bold">{props.title}</div>
+    <div
+      className="relative cursor-pointer rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray"
+      onClick={handleClick}>
+      {props.id && props.onToggleStar && (
+        <div className="absolute right-2 top-2">
+          <ButtonIcon onClick={handleStarClick}>
+            {props.isStarred ? (
+              <PiStarFill className="text-aws-aqua" />
+            ) : (
+              <PiStar />
+            )}
+          </ButtonIcon>
+        </div>
+      )}
+      <div className="pr-8 text-base font-bold">{props.title}</div>
       <div className="text-sm italic text-dark-gray">
         {props.description === ''
           ? t('bot.label.noDescription')
@@ -44,7 +82,18 @@ const BotStorePage: React.FC = () => {
     popularBots,
     isLoadingPopularBots,
     pinnedBots,
+    toggleBotStarred,
   } = useBotStore();
+  const { mutateStarredBots } = useBot();
+
+  const handleToggleStar = useCallback(
+    (botId: string, starred: boolean) => {
+      toggleBotStarred(botId, starred).finally(() => {
+        mutateStarredBots();
+      });
+    },
+    [mutateStarredBots, toggleBotStarred]
+  );
 
   return (
     <>
@@ -85,6 +134,9 @@ const BotStorePage: React.FC = () => {
                   key={bot.id}
                   title={bot.title}
                   description={bot.description}
+                  id={bot.id}
+                  isStarred={bot.isStarred}
+                  onToggleStar={handleToggleStar}
                 />
               ))}
             </div>
@@ -110,7 +162,13 @@ const BotStorePage: React.FC = () => {
                 <div className="flex" key={bot.id}>
                   <div className="mr-2 text-xl font-bold">{idx + 1}.</div>
                   <div className="grow">
-                    <CardBot title={bot.title} description={bot.description} />
+                    <CardBot
+                      title={bot.title}
+                      description={bot.description}
+                      id={bot.id}
+                      isStarred={bot.isStarred}
+                      onToggleStar={handleToggleStar}
+                    />
                   </div>
                 </div>
               ))}
@@ -138,6 +196,9 @@ const BotStorePage: React.FC = () => {
                   key={bot.id}
                   title={bot.title}
                   description={bot.description}
+                  id={bot.id}
+                  isStarred={bot.isStarred}
+                  onToggleStar={handleToggleStar}
                 />
               ))}
             </div>

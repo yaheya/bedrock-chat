@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 
 type Props = BaseProps & {
   disabled?: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   children: React.ReactNode;
 };
 
@@ -19,7 +19,7 @@ const ButtonIcon: React.FC<Props> = (props) => {
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
-        props.onClick();
+        props.onClick(e);
       }}
       disabled={props.disabled}>
       {props.children}
