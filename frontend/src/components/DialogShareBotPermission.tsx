@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { BaseProps } from '../@types/common';
 import Button from './Button';
 import { useTranslation } from 'react-i18next';
 import InputText from './InputText';
-import { User, UserGroup } from '../@types/user';
+import { SearchedUser, User, UserGroup } from '../@types/user';
 import { PiMagnifyingGlass, PiUser, PiUsers } from 'react-icons/pi';
 import Progress from './Progress';
 import useUser from '../hooks/useUser';
@@ -70,7 +70,7 @@ const SharedUserItem: React.FC<SharedUserItemProps> = (props) => {
       {isLoading ? (
         <Skeleton className="h-8 w-full" />
       ) : (
-        <SharedItem {...props} label={user ? user.name : ''} />
+        <SharedItem {...props} label={user ? user.email : ''} />
       )}
     </>
   );
@@ -90,29 +90,84 @@ type Props = BaseProps & {
 
 const DialogShareBotPermission: React.FC<Props> = (props) => {
   const { t } = useTranslation();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [addTargetGroups, setAddTargetGroups] = useState<UserGroup[]>([]);
-  const [addTargetUsers, setAddTargetUsers] = useState<User[]>([]);
+  const [addedTargetGroups, setAddedTargetGroups] = useState<UserGroup[]>([]);
+  const [addedTargetUsers, setAddedTargetUsers] = useState<User[]>([]);
   const [removeTargetIds, setRemoveTargetIds] = useState<string[]>([]);
+  const [previousSearchedUsers, setPreviousSearchedUsers] = useState<
+    SearchedUser[]
+  >([]);
+  const [isShowingNoResults, setIsShowingNoResults] = useState<boolean>(false);
 
   const { searchedUsers, isLoading: isSearching } = useSearchUsers(
     props.searchUsersPrefix
   );
 
+  useEffect(() => {
+    // Focus on the search input field when the component is mounted.
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  // Reset state when component unmounts or when cancel is clicked
+  const handleCancel = () => {
+    props.onChangeSearchUsersPrefix('');
+    props.onCancel();
+  };
+
+  useEffect(() => {
+    // When search is complete and we have results, update the previous results
+    if (!isSearching && searchedUsers.length > 0) {
+      setPreviousSearchedUsers(searchedUsers as SearchedUser[]);
+      setIsShowingNoResults(false);
+    }
+    // When search is complete and we have no results, show no results message
+    else if (
+      !isSearching &&
+      searchedUsers.length === 0 &&
+      props.searchUsersPrefix
+    ) {
+      setIsShowingNoResults(true);
+    }
+  }, [isSearching, searchedUsers, props.searchUsersPrefix]);
+
   const displaySearchedUsers = useMemo(() => {
+    // Use current search results if available, otherwise use previous results during loading
+    const usersToDisplay =
+      searchedUsers.length > 0 || !isSearching
+        ? searchedUsers
+        : previousSearchedUsers;
+
     // exclude added items
-    return searchedUsers.filter((user) => {
+    return usersToDisplay.filter((user) => {
       if (user.type === 'user') {
-        return !addTargetUsers.find((target) => target.id === user.id);
+        return (
+          !props.allowedUserIds.includes(user.id) &&
+          !addedTargetUsers.find((target) => target.id === user.id)
+        );
       } else {
-        return !addTargetGroups.find((target) => target.name === user.name);
+        return (
+          !props.allowedGroupIds.includes(user.name) &&
+          !addedTargetGroups.find((target) => target.name === user.name)
+        );
       }
     });
-  }, [addTargetGroups, addTargetUsers, searchedUsers]);
+  }, [
+    addedTargetGroups,
+    addedTargetUsers,
+    props.allowedGroupIds,
+    props.allowedUserIds,
+    searchedUsers,
+    previousSearchedUsers,
+    isSearching,
+  ]);
 
   return (
     <div>
       <InputText
+        ref={searchInputRef}
         value={props.searchUsersPrefix}
         placeholder={t('bot.shareDialog.label.search')}
         icon={<PiMagnifyingGlass />}
@@ -129,13 +184,13 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
               className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-light-gray"
               onClick={() => {
                 if (user.type === 'user') {
-                  setAddTargetUsers((prev) => {
+                  setAddedTargetUsers((prev) => {
                     return produce(prev, (draft) => {
                       draft.push(user);
                     });
                   });
                 } else {
-                  setAddTargetGroups((prev) => {
+                  setAddedTargetGroups((prev) => {
                     return produce(prev, (draft) => {
                       draft.push(user);
                     });
@@ -149,9 +204,14 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
                   <PiUsers className="text-base" />
                 )}
               </div>
-              <div>{user.name}</div>
+              <div>{user.type === 'user' ? user.email : user.name}</div>
             </div>
           ))}
+          {isShowingNoResults && (
+            <div className="p-3 text-center text-gray">
+              {t('bot.shareDialog.label.noSearchResults')}
+            </div>
+          )}
           {isSearching && (
             <div className="sticky bottom-0">
               <Progress thin />
@@ -165,12 +225,12 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
           {t('bot.shareDialog.label.group')}
         </div>
         <div className="flex flex-col gap-3">
-          {addTargetGroups.map((group) => (
+          {addedTargetGroups.map((group) => (
             <NewSharedItem
               key={group.name}
               label={group.name}
               onClickRemove={() => {
-                setAddTargetGroups((prev) => {
+                setAddedTargetGroups((prev) => {
                   const foundIndex = prev.findIndex(
                     (v) => v.name === group.name
                   );
@@ -208,12 +268,12 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
           {t('bot.shareDialog.label.user')}
         </div>
         <div className="flex flex-col gap-3">
-          {addTargetUsers.map((user) => (
+          {addedTargetUsers.map((user) => (
             <NewSharedItem
               key={user.id}
-              label={user.name}
+              label={user.email}
               onClickRemove={() => {
-                setAddTargetUsers((prev) => {
+                setAddedTargetUsers((prev) => {
                   const foundIndex = prev.findIndex((v) => v.id === user.id);
                   if (foundIndex > -1) {
                     return produce(prev, (draft) => {
@@ -249,17 +309,17 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
 
       <div className="my-3 border-t" />
       <div className="flex justify-end gap-2">
-        <Button outlined onClick={props.onCancel}>
+        <Button outlined onClick={handleCancel}>
           {t('button.cancel')}
         </Button>
 
         <Button
           onClick={() => {
-            const allowedUserIds_ = addTargetUsers
+            const allowedUserIds_ = addedTargetUsers
               .map((user) => user.id)
               .concat(props.allowedUserIds)
               .filter((userId) => !removeTargetIds.includes(userId));
-            const allowedGroupIds_ = addTargetGroups
+            const allowedGroupIds_ = addedTargetGroups
               .map((group) => group.name)
               .concat(props.allowedGroupIds)
               .filter((groupId) => !removeTargetIds.includes(groupId));
@@ -268,6 +328,7 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
               allowedUserIds_,
               allowedGroupIds_
             );
+            handleCancel();
           }}
           className="p-2">
           {t('button.done')}

@@ -14,7 +14,7 @@ type Props = {
   onChange?: (s: string) => void;
 };
 
-const InputText: React.FC<Props> = (props) => {
+const InputText = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
   return (
     <div className={twMerge('flex flex-col', props.className)}>
       {props.icon && (
@@ -23,6 +23,7 @@ const InputText: React.FC<Props> = (props) => {
         </div>
       )}
       <input
+        ref={ref}
         type={props.type ?? 'text'}
         className={twMerge(
           'peer h-9 rounded border p-1',
@@ -58,6 +59,8 @@ const InputText: React.FC<Props> = (props) => {
       )}
     </div>
   );
-};
+});
+
+InputText.displayName = 'InputText';
 
 export default InputText;

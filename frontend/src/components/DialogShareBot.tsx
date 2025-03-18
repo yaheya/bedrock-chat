@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { BaseProps } from '../@types/common';
 import Button from './Button';
 import ModalDialog from './ModalDialog';
@@ -76,6 +76,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
   const [labelCopy, setLabelCopy] = useState(t('bot.button.copy'));
   const [isPermissionManagement, setIsPermissionManagement] = useState(false);
   const [searchUsersPrefix, setSearchUsersPrefix] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isShared = useMemo(() => {
     return props.sharedScope ? props.sharedScope !== 'private' : false;
@@ -94,6 +95,29 @@ const DialogShareBot: React.FC<Props> = (props) => {
     }, 3000);
   }, [props.botId, t]);
 
+  // ダイアログが閉じられたときに検索入力をリセット
+  useEffect(() => {
+    if (!props.isOpen) {
+      setSearchUsersPrefix('');
+      setIsPermissionManagement(false);
+    }
+  }, [props.isOpen]);
+
+  // 検索入力フィールドにフォーカスを当てる
+  useEffect(() => {
+    if (isPermissionManagement && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isPermissionManagement]);
+
+  // 検索プレフィックスが変更されたときにフォーカスを維持する
+  const handleSearchPrefixChange = (value: string) => {
+    setSearchUsersPrefix(value);
+    if (!isPermissionManagement) {
+      setIsPermissionManagement(true);
+    }
+  };
+
   return (
     <ModalDialog
       {...props}
@@ -107,7 +131,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
           allowedGroupIds={props.allowedGroupIds ?? []}
           allowedUserIds={props.allowedUserIds ?? []}
           searchUsersPrefix={searchUsersPrefix}
-          onChangeSearchUsersPrefix={setSearchUsersPrefix}
+          onChangeSearchUsersPrefix={handleSearchPrefixChange}
           onUpdateAllowedUserAndGroup={(userIds, groupIds) => {
             props.onUpdateAllowedUserAndGroup(userIds, groupIds);
             setIsPermissionManagement(false);

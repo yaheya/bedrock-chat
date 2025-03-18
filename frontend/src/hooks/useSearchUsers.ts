@@ -1,22 +1,17 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import useUserApi from './useUserApi';
 import { SearchedUser } from '../@types/user';
 
 const useSearchUsers = (prefix: string) => {
   const { searchUsers, searchUserGroups } = useUserApi();
 
-  const {
-    data: users,
-    isLoading: isLoadingUsers,
-    isValidating,
-  } = searchUsers(prefix === '' ? undefined : prefix);
-  const { data: userGroups, isLoading: isLoadingUserGroups } = searchUserGroups(
-    prefix === '' ? undefined : prefix
-  );
+  const normalizedPrefix = prefix === '' ? undefined : prefix;
 
-  useEffect(() => {
-    console.log(isValidating, isLoadingUsers);
-  }, [isValidating, isLoadingUsers]);
+  const { data: users, isLoading: isLoadingUsers } =
+    searchUsers(normalizedPrefix);
+
+  const { data: userGroups, isLoading: isLoadingUserGroups } =
+    searchUserGroups(normalizedPrefix);
 
   const searchedUsers = useMemo<SearchedUser[]>(() => {
     const users_: SearchedUser[] =

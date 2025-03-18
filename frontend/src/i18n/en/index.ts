@@ -364,6 +364,7 @@ How would you categorize this email?`,
           all: 'ALL Users',
           partial: 'Selected Users',
           search: 'Search for Users and Groups',
+          noSearchResults: 'No search results found',
           memberManagement: 'Edit Members',
           sharing: {
             not_shared: 'Not shared with any groups or users',

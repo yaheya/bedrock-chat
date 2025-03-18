@@ -364,6 +364,7 @@ const translation = {
           all: 'すべてのユーザー',
           partial: '一部のユーザー',
           search: 'ユーザーとユーザーグループを検索できます',
+          noSearchResults: '検索結果がありません',
           memberManagement: 'メンバーの管理',
           sharing: {
             not_shared: 'どのグループとグループにも共有されていません。',
