@@ -145,6 +145,7 @@ const translation = {
         notAvailable: 'このボットは利用できません。',
         noBots: 'ボットが登録されていません。',
         noBotsRecentlyUsed: '最近利用した公開ボットはありません。',
+        pinned: '管理者認定ボット',
         retrievingKnowledge: '[ナレッジを取得中...]',
         referenceLink: '参考ドキュメント',
         dndFileUpload:
@@ -173,6 +174,8 @@ const translation = {
         edit: 'ボットを編集',
         copyLink: '共有リンクをコピー',
         copiedLink: 'コピーしました',
+        markAsEssential: '管理者認定に登録',
+        removeEssential: '管理者認定を解除',
       },
       help: {
         overview:
@@ -351,6 +354,8 @@ const translation = {
         instructionsSamples: 'サンプル',
         chooseFiles: 'ファイルを選択',
         apiSettings: 'API公開設定',
+        pinBot: '管理者認定に登録',
+        unpinBot: '管理者認定を解除',
       },
       deleteDialog: {
         title: '削除しますか？',

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import { BaseProps } from '../@types/common';
 import Button from './Button';
 import ModalDialog from './ModalDialog';
@@ -163,7 +169,9 @@ const DialogShareBot: React.FC<Props> = (props) => {
 
           {isShared && (
             <>
-              <div className="-mb-1">Share with</div>
+              <div className="-mb-1">
+                {t('bot.shareDialog.label.selectShare')}
+              </div>
               <div className="flex gap-3">
                 <RadioButton
                   name="shared-scope"

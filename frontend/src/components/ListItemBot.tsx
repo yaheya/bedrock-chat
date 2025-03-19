@@ -1,12 +1,11 @@
 import { ReactNode } from 'react';
 import { BaseProps } from '../@types/common';
 import { useTranslation } from 'react-i18next';
+import { BotMeta } from '../@types/bot';
+import PinnedBotIcon from './PinnedBotIcon';
 
 type Props = BaseProps & {
-  bot: {
-    id: string;
-    title: string;
-    description: string;
+  bot: BotMeta & {
     available: boolean;
   };
   onClick: (botId: string) => void;
@@ -15,6 +14,7 @@ type Props = BaseProps & {
 
 const ListItemBot: React.FC<Props> = (props) => {
   const { t } = useTranslation();
+
   return (
     <div
       key={props.bot.id}
@@ -32,8 +32,9 @@ const ListItemBot: React.FC<Props> = (props) => {
             props.onClick(props.bot.id);
           }
         }}>
-        <div className="w-full overflow-hidden text-ellipsis text-sm font-semibold">
+        <div className="flex w-full items-center overflow-hidden text-ellipsis text-sm font-semibold">
           {props.bot.title}
+          <PinnedBotIcon bot={props.bot} className="ml-1 text-aws-aqua" />
         </div>
         {props.bot.description ? (
           <div className="mt-1 overflow-hidden text-ellipsis text-xs">

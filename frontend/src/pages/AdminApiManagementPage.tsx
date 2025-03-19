@@ -56,6 +56,14 @@ const AdminApiManagementPage: React.FC = () => {
                   bot={{
                     ...api,
                     available: true,
+                    sharedScope: 'all',
+                    // the following are fixed values to prevent type errors
+                    sharedStatus: '',
+                    owned: false,
+                    isStarred: false,
+                    createTime: new Date(),
+                    lastUsedTime: new Date(),
+                    syncStatus: 'SUCCEEDED',
                   }}
                   onClick={() => {
                     onClickViewApi(api.id);

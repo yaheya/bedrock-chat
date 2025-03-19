@@ -1,18 +1,25 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BotMeta } from '../@types/bot';
-import { PiArrowLeft, PiStar, PiStarFill } from 'react-icons/pi';
+import {
+  PiArrowLeft,
+  PiSealCheckFill,
+  PiStar,
+  PiStarFill,
+} from 'react-icons/pi';
 import ButtonIcon from './ButtonIcon';
 import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat';
 import Skeleton from './Skeleton';
 import Button from './Button';
+import { isPinnedBot } from '../utils/BotUtils';
 
 type CardBotProps = {
   title: string;
   description: string;
   id?: string;
   isStarred?: boolean;
+  isPinned?: boolean;
   onToggleStar?: (id: string, starred: boolean) => void;
 };
 
@@ -50,7 +57,10 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
           </ButtonIcon>
         </div>
       )}
-      <div className="pr-8 text-base font-bold">{props.title}</div>
+      <div className="flex items-center">
+        <div className="text-base font-bold">{props.title}</div>
+        {props.isPinned && <PiSealCheckFill className="ml-1 text-aws-aqua" />}
+      </div>
       <div className="text-sm italic text-dark-gray">
         {props.description === ''
           ? t('bot.label.noDescription')
@@ -143,6 +153,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
               description={bot.description}
               id={bot.id}
               isStarred={bot.isStarred}
+              isPinned={isPinnedBot(bot)}
               onToggleStar={onToggleStar}
             />
           ))}

@@ -14,7 +14,7 @@ import {
 } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useBot from '../hooks/useBot';
-import { BotMeta } from '../@types/bot';
+import { BotListItem, BotMeta } from '../@types/bot';
 import DialogConfirmDeleteBot from '../components/DialogConfirmDeleteBot';
 import DialogConfirmShareBot from '../components/DialogShareBot';
 import ButtonIcon from '../components/ButtonIcon';
@@ -26,18 +26,23 @@ import StatusSyncBot from '../components/StatusSyncBot';
 import useLoginUser from '../hooks/useLoginUser';
 import ListItemBot from '../components/ListItemBot';
 import { TooltipDirection } from '../constants';
+import PinnedBotIcon from '../components/PinnedBotIcon';
 import useShareBot from '../hooks/useShareBot';
+import useBotPinning from '../hooks/useBotPinning';
+import { isPinnedBot, canBePinned } from '../utils/BotUtils';
+import { produce } from 'immer';
 
 const BotExplorePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAllowCreatingBot, isAllowApiSettings } = useLoginUser();
+  const { isAllowCreatingBot, isAllowApiSettings, isAdmin } = useLoginUser();
   const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
   const [isOpenShareDialog, setIsOpenShareDialog] = useState(false);
   const [targetDelete, setTargetDelete] = useState<BotMeta>();
   const [openedShareDialogBotId, setOpenedShareDialogBotId] = useState<
     string | undefined
   >();
+  const { pinBot, unpinBot } = useBotPinning();
 
   const { newChat } = useChat();
   const {
@@ -106,6 +111,33 @@ const BotExplorePage: React.FC = () => {
       navigate(`/bot/${botId}`);
     },
     [navigate, newChat]
+  );
+
+  const togglePinBot = useCallback(
+    (bot: BotListItem) => {
+      mutateMyBots(
+        produce(myBots, (draft) => {
+          if (draft) {
+            const target = draft.find((b) => b.id === bot.id);
+            if (target) {
+              target.sharedStatus = isPinnedBot(bot) ? 'shared' : 'pinned@000';
+            }
+          }
+        }),
+        {
+          revalidate: false,
+        }
+      );
+
+      isPinnedBot(bot)
+        ? unpinBot(bot.id).finally(() => {
+            mutateMyBots();
+          })
+        : pinBot(bot.id, 0).finally(() => {
+            mutateMyBots();
+          });
+    },
+    [mutateMyBots, myBots, pinBot, unpinBot]
   );
 
   return (
@@ -246,6 +278,27 @@ const BotExplorePage: React.FC = () => {
                               }}>
                               <PiGlobe />
                               {t('bot.button.apiSettings')}
+                            </PopoverItem>
+                          )}
+                          {isAdmin && canBePinned(bot) && (
+                            <PopoverItem
+                              onClick={() => {
+                                togglePinBot(bot);
+                              }}>
+                              {isPinnedBot(bot) ? (
+                                <>
+                                  <PinnedBotIcon
+                                    showAlways
+                                    className="text-aws-aqua"
+                                  />
+                                  {t('bot.button.unpinBot')}
+                                </>
+                              ) : (
+                                <>
+                                  <PinnedBotIcon showAlways outlined />
+                                  {t('bot.button.pinBot')}
+                                </>
+                              )}
                             </PopoverItem>
                           )}
                           <PopoverItem

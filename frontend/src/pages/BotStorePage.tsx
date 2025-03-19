@@ -16,6 +16,7 @@ import BotSearchResults, {
   CardBot,
   SkeletonBot,
 } from '../components/BotSearchResults';
+import { isPinnedBot } from '../utils/BotUtils';
 
 const BotStorePage: React.FC = () => {
   const { t } = useTranslation();
@@ -146,6 +147,7 @@ const BotStorePage: React.FC = () => {
                       description={bot.description}
                       id={bot.id}
                       isStarred={bot.isStarred}
+                      isPinned={isPinnedBot(bot)}
                       onToggleStar={handleToggleStar}
                     />
                   ))}
@@ -177,6 +179,7 @@ const BotStorePage: React.FC = () => {
                           description={bot.description}
                           id={bot.id}
                           isStarred={bot.isStarred}
+                          isPinned={isPinnedBot(bot)}
                           onToggleStar={handleToggleStar}
                         />
                       </div>
@@ -208,6 +211,7 @@ const BotStorePage: React.FC = () => {
                       description={bot.description}
                       id={bot.id}
                       isStarred={bot.isStarred}
+                      isPinned={isPinnedBot(bot)}
                       onToggleStar={handleToggleStar}
                     />
                   ))}

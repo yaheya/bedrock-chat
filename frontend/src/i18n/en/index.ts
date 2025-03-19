@@ -173,6 +173,8 @@ const translation = {
         edit: 'Edit',
         copyLink: 'Copy Link',
         copiedLink: 'Copied',
+        markAsEssential: 'Mark as Essential',
+        removeEssential: 'Remove Essential Status',
       },
       help: {
         overview:
@@ -347,6 +349,8 @@ How would you categorize this email?`,
         delete: 'Delete',
         share: 'Share',
         apiSettings: 'API Publish Settings',
+        pinBot: 'Mark as Essential',
+        unpinBot: 'Remove Essential Status',
         copy: 'Copy',
         copied: 'Copied',
         instructionsSamples: 'Samples',

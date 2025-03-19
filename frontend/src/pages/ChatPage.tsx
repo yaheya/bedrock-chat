@@ -29,9 +29,10 @@ import useBot from '../hooks/useBot';
 import useConversation from '../hooks/useConversation';
 import ButtonPopover from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
-import { ActiveModels } from '../@types/bot';
+import { ActiveModels, BotSummary } from '../@types/bot';
+import PinnedBotIcon from '../components/PinnedBotIcon';
 
-import { copyBotUrl } from '../utils/BotUtils';
+import { copyBotUrl, isPinnedBot, canBePinned } from '../utils/BotUtils';
 import { toCamelCase } from '../utils/StringUtils';
 import { produce } from 'immer';
 import ButtonIcon from '../components/ButtonIcon';
@@ -54,6 +55,8 @@ import {
 } from '../@types/conversation.ts';
 import { AVAILABLE_MODEL_KEYS } from '../constants/index';
 import usePostMessageStreaming from '../hooks/usePostMessageStreaming.ts';
+import useLoginUser from '../hooks/useLoginUser';
+import useBotPinning from '../hooks/useBotPinning';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -67,6 +70,8 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const { open: openSnackbar } = useSnackbar();
   const { errorDetail } = usePostMessageStreaming();
+  const { isAdmin } = useLoginUser();
+  const { pinBot, unpinBot } = useBotPinning();
 
   const {
     agentThinking,
@@ -431,6 +436,28 @@ const ChatPage: React.FC = () => {
     return isActiveModelsEmpty ? defaultActiveModels : bot.activeModels;
   }, [bot]);
 
+  const togglePinBot = useCallback(
+    (bot: BotSummary) => {
+      mutateBot(
+        produce(bot, (draft) => {
+          draft.sharedStatus = isPinnedBot(bot) ? 'shared' : 'pinned@000';
+        }),
+        {
+          revalidate: false,
+        }
+      );
+
+      isPinnedBot(bot)
+        ? unpinBot(bot.id).finally(() => {
+            mutateBot();
+          })
+        : pinBot(bot.id, 0).finally(() => {
+            mutateBot();
+          });
+    },
+    [mutateBot, pinBot, unpinBot]
+  );
+
   return (
     <div
       className="relative flex h-full flex-1 flex-col"
@@ -441,7 +468,10 @@ const ChatPage: React.FC = () => {
         <div className="sticky top-0 z-10 mb-1.5 flex h-14 w-full items-center justify-between border-b border-gray bg-aws-paper p-2">
           <div className="flex w-full justify-between">
             <div className="p-2">
-              <div className="mr-10 font-bold">{pageTitle}</div>
+              <div className="mr-10 flex items-center font-bold">
+                {pageTitle}
+                <PinnedBotIcon bot={bot} className="ml-1 text-aws-aqua" />
+              </div>
               <div className="text-xs font-thin text-dark-gray">
                 {description}
               </div>
@@ -483,6 +513,29 @@ const ChatPage: React.FC = () => {
                         }}>
                         <PiLink />
                         {copyLabel}
+                      </PopoverItem>
+                    )}
+                    {isAdmin && bot && canBePinned(bot) && (
+                      <PopoverItem
+                        onClick={() => {
+                          if (bot) {
+                            togglePinBot(bot);
+                          }
+                        }}>
+                        {isPinnedBot(bot) ? (
+                          <>
+                            <PinnedBotIcon
+                              showAlways
+                              className="text-aws-aqua"
+                            />
+                            {t('bot.titleSubmenu.removeEssential')}
+                          </>
+                        ) : (
+                          <>
+                            <PinnedBotIcon showAlways outlined />
+                            {t('bot.titleSubmenu.markAsEssential')}
+                          </>
+                        )}
                       </PopoverItem>
                     )}
                   </ButtonPopover>
