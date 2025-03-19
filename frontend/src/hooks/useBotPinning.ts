@@ -7,7 +7,7 @@ const useBotPinning = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   /**
-   * ボットを管理者認定として登録する
+   * Register a bot as pinned by administrator
    */
   const pinBot = async (botId: string, order: number) => {
     setIsUpdating(true);
@@ -27,7 +27,7 @@ const useBotPinning = () => {
   };
 
   /**
-   * ボットの管理者認定を解除する
+   * Remove pinned status from a bot
    */
   const unpinBot = async (botId: string) => {
     setIsUpdating(true);

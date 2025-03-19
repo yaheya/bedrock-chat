@@ -11,10 +11,11 @@ type Props = BaseProps & {
 };
 
 /**
- * ピン留めされたボットを示すアイコンコンポーネント
- * @param props.bot ボットメタデータ
- * @param props.className アイコンに適用するクラス名
- * @param props.showAlways ボットがピン留めされていなくても常に表示する場合はtrue
+ * Icon component that indicates a pinned bot
+ * @param props.bot Bot metadata
+ * @param props.className CSS class name to apply to the icon
+ * @param props.showAlways If true, always show the icon regardless of whether the bot is pinned
+ * @param props.outlined If true, show the outlined version of the icon
  */
 const PinnedBotIcon: React.FC<Props> = ({
   bot,

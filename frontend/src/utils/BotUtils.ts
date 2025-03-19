@@ -10,18 +10,18 @@ export const copyBotUrl = (botId: string) => {
 };
 
 /**
- * ボットが管理者認定されているかどうかを判定する
- * @param bot ボットメタデータ
- * @returns 管理者認定されている場合はtrue、そうでない場合はfalse
+ * Determines if a bot is pinned by an administrator
+ * @param bot Bot metadata
+ * @returns true if the bot is pinned, false otherwise
  */
 export const isPinnedBot = (bot: BotMeta): boolean => {
   return bot.sharedStatus.startsWith('pinned@');
 };
 
 /**
- * 管理者認定されているボットの順序を取得する
- * @param bot ボットメタデータ
- * @returns 管理者認定の順序（数値）。認定されていない場合は-1
+ * Gets the order of a pinned bot
+ * @param bot Bot metadata
+ * @returns The numerical order of the pinned bot. Returns -1 if the bot is not pinned
  */
 export const getPinOrder = (bot: BotMeta): number => {
   if (!isPinnedBot(bot)) {
@@ -32,9 +32,9 @@ export const getPinOrder = (bot: BotMeta): number => {
   return parseInt(orderStr, 10);
 };
 /**
- * ボットが管理者認定可能かどうかを判定する
- * @param bot ボットメタデータ
- * @returns 管理者認定可能な場合はtrue、そうでない場合はfalse
+ * Determines if a bot can be pinned by an administrator
+ * @param bot Bot metadata
+ * @returns true if the bot can be pinned, false otherwise
  */
 export const canBePinned = (bot: BotMeta): boolean => {
   return bot.sharedScope === 'all';
