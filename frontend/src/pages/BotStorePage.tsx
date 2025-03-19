@@ -1,80 +1,25 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   PiBinoculars,
   PiCertificate,
   PiMagnifyingGlass,
   PiRanking,
-  PiStar,
-  PiStarFill,
+  PiX,
 } from 'react-icons/pi';
 import InputText from '../components/InputText';
 import useBotStore from '../hooks/useBotStore';
-import Skeleton from '../components/Skeleton';
 import { twMerge } from 'tailwind-merge';
-import { useNavigate } from 'react-router-dom';
-import useChat from '../hooks/useChat';
-import ButtonIcon from '../components/ButtonIcon';
 import useBot from '../hooks/useBot';
-
-type CardBotProps = {
-  title: string;
-  description: string;
-  id?: string;
-  isStarred?: boolean;
-  onToggleStar?: (id: string, starred: boolean) => void;
-};
-
-const CardBot: React.FC<CardBotProps> = (props) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { newChat } = useChat();
-
-  const handleClick = () => {
-    if (props.id) {
-      newChat();
-      navigate(`/bot/${props.id}`);
-    }
-  };
-
-  const handleStarClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (props.id && props.onToggleStar) {
-      props.onToggleStar(props.id, !props.isStarred);
-    }
-  };
-
-  return (
-    <div
-      className="relative cursor-pointer rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray"
-      onClick={handleClick}>
-      {props.id && props.onToggleStar && (
-        <div className="absolute right-2 top-2">
-          <ButtonIcon onClick={handleStarClick}>
-            {props.isStarred ? (
-              <PiStarFill className="text-aws-aqua" />
-            ) : (
-              <PiStar />
-            )}
-          </ButtonIcon>
-        </div>
-      )}
-      <div className="pr-8 text-base font-bold">{props.title}</div>
-      <div className="text-sm italic text-dark-gray">
-        {props.description === ''
-          ? t('bot.label.noDescription')
-          : props.description}
-      </div>
-    </div>
-  );
-};
-
-const SkeletonBot: React.FC = () => {
-  return <Skeleton className="h-16 w-full rounded-xl" />;
-};
+import useBotSearch from '../hooks/useBotSearch';
+import BotSearchResults, {
+  CardBot,
+  SkeletonBot,
+} from '../components/BotSearchResults';
 
 const BotStorePage: React.FC = () => {
   const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState('');
 
   const {
     pickupBots,
@@ -85,15 +30,60 @@ const BotStorePage: React.FC = () => {
     toggleBotStarred,
   } = useBotStore();
   const { mutateStarredBots } = useBot();
+  const {
+    displayQuery, // Query used for displaying search results
+    searchResults,
+    isSearching,
+    hasSearched,
+    handleSearch,
+    clearSearch,
+    updateSearchResultStarredStatus,
+  } = useBotSearch();
 
   const handleToggleStar = useCallback(
     (botId: string, starred: boolean) => {
-      toggleBotStarred(botId, starred).finally(() => {
-        mutateStarredBots();
-      });
+      // Optimistic update for search results
+      if (hasSearched) {
+        updateSearchResultStarredStatus(botId, starred);
+      }
+
+      // Optimistic update for regular bot lists and API call
+      toggleBotStarred(botId, starred)
+        .catch((error) => {
+          console.error('Failed to update star status:', error);
+          // Revert search results on error
+          if (hasSearched) {
+            updateSearchResultStarredStatus(botId, !starred);
+          }
+        })
+        .finally(() => {
+          // Refresh starred bots list
+          mutateStarredBots();
+        });
     },
-    [mutateStarredBots, toggleBotStarred]
+    [
+      mutateStarredBots,
+      toggleBotStarred,
+      hasSearched,
+      updateSearchResultStarredStatus,
+    ]
   );
+
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setInputValue(value);
+      handleSearch(value); // Trigger search on input change for real-time search
+    },
+    [handleSearch]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setInputValue('');
+    clearSearch();
+  }, [clearSearch]);
+
+  // Show regular content when not searching
+  const showRegularContent = useMemo(() => !hasSearched, [hasSearched]);
 
   return (
     <>
@@ -107,102 +97,124 @@ const BotStorePage: React.FC = () => {
             <div>{t('store.description')}</div>
           </div>
 
-          <div className="mt-6">
+          <div className="relative mt-6">
             <InputText
               icon={<PiMagnifyingGlass />}
               placeholder={t('store.search.placeholder')}
-              value=""
+              value={inputValue}
+              onChange={handleInputChange}
             />
+            {inputValue && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray hover:text-dark-gray"
+                onClick={handleClearSearch}>
+                <PiX size={20} />
+              </button>
+            )}
           </div>
 
-          <div
-            className={twMerge(
-              pinnedBots.length === 0 ? 'invisible h-0 scale-y-0' : 'mt-6',
-              'transition-all duration-300'
-            )}>
-            <div className="flex items-center text-2xl font-bold">
-              <PiCertificate className="mr-2" />
-              {t('store.essential.label')}
-            </div>
-            <div className="mt-1 text-sm text-gray">
-              {t('store.essential.description')}
-            </div>
+          {/* Search Results */}
+          <BotSearchResults
+            results={searchResults}
+            isSearching={isSearching}
+            hasSearched={hasSearched}
+            searchQuery={displayQuery}
+            onToggleStar={handleToggleStar}
+            onBackToHome={handleClearSearch}
+          />
 
-            <div className="mt-3 grid grid-cols-2 gap-6">
-              {pinnedBots.map((bot) => (
-                <CardBot
-                  key={bot.id}
-                  title={bot.title}
-                  description={bot.description}
-                  id={bot.id}
-                  isStarred={bot.isStarred}
-                  onToggleStar={handleToggleStar}
-                />
-              ))}
-            </div>
-          </div>
+          {showRegularContent && (
+            <>
+              <div
+                className={twMerge(
+                  pinnedBots.length === 0 ? 'invisible h-0 scale-y-0' : 'mt-6',
+                  'transition-all duration-300'
+                )}>
+                <div className="flex items-center text-2xl font-bold">
+                  <PiCertificate className="mr-2" />
+                  {t('store.essential.label')}
+                </div>
+                <div className="mt-1 text-sm text-gray">
+                  {t('store.essential.description')}
+                </div>
 
-          <div className="mt-6">
-            <div className="flex items-center text-2xl font-bold">
-              <PiRanking className="mr-2" />
-              {t('store.trending.label')}
-            </div>
-            <div className="mt-1 text-sm text-gray">
-              {t('store.trending.description')}
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-9">
-              {isLoadingPopularBots && (
-                <>
-                  <SkeletonBot />
-                  <SkeletonBot />
-                </>
-              )}
-              {popularBots.map((bot, idx) => (
-                <div className="flex" key={bot.id}>
-                  <div className="mr-2 text-xl font-bold">{idx + 1}.</div>
-                  <div className="grow">
+                <div className="mt-3 grid grid-cols-2 gap-6">
+                  {pinnedBots.map((bot) => (
                     <CardBot
+                      key={bot.id}
                       title={bot.title}
                       description={bot.description}
                       id={bot.id}
                       isStarred={bot.isStarred}
                       onToggleStar={handleToggleStar}
                     />
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="mt-6">
-            <div className="flex items-center text-2xl font-bold">
-              <PiBinoculars className="mr-2" />
-              {t('store.discover.label')}
-            </div>
-            <div className="mt-1 text-sm text-gray">
-              {t('store.discover.description')}
-            </div>
+              <div className="mt-6">
+                <div className="flex items-center text-2xl font-bold">
+                  <PiRanking className="mr-2" />
+                  {t('store.trending.label')}
+                </div>
+                <div className="mt-1 text-sm text-gray">
+                  {t('store.trending.description')}
+                </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-6">
-              {isLoadingPickupBots && (
-                <>
-                  <SkeletonBot />
-                  <SkeletonBot />
-                </>
-              )}
-              {pickupBots.map((bot) => (
-                <CardBot
-                  key={bot.id}
-                  title={bot.title}
-                  description={bot.description}
-                  id={bot.id}
-                  isStarred={bot.isStarred}
-                  onToggleStar={handleToggleStar}
-                />
-              ))}
-            </div>
-          </div>
+                <div className="mt-3 grid grid-cols-2 gap-9">
+                  {isLoadingPopularBots && (
+                    <>
+                      <SkeletonBot />
+                      <SkeletonBot />
+                    </>
+                  )}
+                  {popularBots.map((bot, idx) => (
+                    <div className="flex" key={bot.id}>
+                      <div className="mr-2 text-xl font-bold">{idx + 1}.</div>
+                      <div className="grow">
+                        <CardBot
+                          title={bot.title}
+                          description={bot.description}
+                          id={bot.id}
+                          isStarred={bot.isStarred}
+                          onToggleStar={handleToggleStar}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center text-2xl font-bold">
+                  <PiBinoculars className="mr-2" />
+                  {t('store.discover.label')}
+                </div>
+                <div className="mt-1 text-sm text-gray">
+                  {t('store.discover.description')}
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-6">
+                  {isLoadingPickupBots && (
+                    <>
+                      <SkeletonBot />
+                      <SkeletonBot />
+                    </>
+                  )}
+                  {pickupBots.map((bot) => (
+                    <CardBot
+                      key={bot.id}
+                      title={bot.title}
+                      description={bot.description}
+                      id={bot.id}
+                      isStarred={bot.isStarred}
+                      onToggleStar={handleToggleStar}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

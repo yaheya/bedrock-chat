@@ -478,6 +478,11 @@ How would you categorize this email?`,
         'View and search bots that are public or permitted for your access.',
       search: {
         placeholder: 'Search Bots',
+        searching: 'Searching...',
+        results: 'Found {{count}} results for "{{query}}"',
+        noResults: 'No results found for "{{query}}"',
+        tryDifferent: 'Try different keywords.',
+        backToHome: 'Back to Home',
       },
       essential: {
         label: 'Essential',

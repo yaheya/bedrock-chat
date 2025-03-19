@@ -477,6 +477,11 @@ const translation = {
         '全員に共有されているボットとあなたがアクセス許可されているボットのみ、検索・表示されます。',
       search: {
         placeholder: 'ボットを検索する',
+        searching: '検索中...',
+        results: '"{{query}}"の検索結果：{{count}}件',
+        noResults: '"{{query}}"に一致する結果はありません',
+        tryDifferent: '別のキーワードで検索してください。',
+        backToHome: 'ホームに戻る',
       },
       essential: {
         label: '利用推奨ボット',

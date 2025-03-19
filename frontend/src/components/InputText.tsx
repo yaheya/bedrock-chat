@@ -1,4 +1,4 @@
-import React, { HTMLInputTypeAttribute, ReactNode } from 'react';
+import React, { HTMLInputTypeAttribute, KeyboardEvent, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
   errorMessage?: string;
   icon?: ReactNode;
   onChange?: (s: string) => void;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 };
 
 const InputText = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
@@ -38,6 +39,7 @@ const InputText = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
         onChange={(e) => {
           props.onChange ? props.onChange(e.target.value) : null;
         }}
+        onKeyDown={props.onKeyDown}
       />
 
       {props.label && (
