@@ -358,6 +358,7 @@ const translation = {
         pinBot: '管理者認定に登録',
         unpinBot: '管理者認定を解除',
         viewAll: '全て見る',
+        removeFromRecent: '履歴から削除',
       },
       deleteDialog: {
         title: '削除しますか？',

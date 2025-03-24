@@ -356,6 +356,7 @@ How would you categorize this email?`,
         instructionsSamples: 'Samples',
         chooseFiles: 'Choose files',
         viewAll: 'View All',
+        removeFromRecent: 'Remove from History',
       },
       deleteDialog: {
         title: 'Delete?',

@@ -38,6 +38,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
     starredBots: starredBots?.filter((bot) => bot.available),
     mutateStarredBots,
     recentlyUsedBots,
+    mutateRecentlyUsedBots,
     recentlyUsedUnstarredBots: recentlyUsedBots?.filter(
       (bot) => !bot.isStarred && bot.available
     ),

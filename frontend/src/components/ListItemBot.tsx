@@ -3,6 +3,7 @@ import { BaseProps } from '../@types/common';
 import { useTranslation } from 'react-i18next';
 import { BotMeta } from '../@types/bot';
 import PinnedBotIcon from './PinnedBotIcon';
+import { PiUsers } from 'react-icons/pi';
 
 type Props = BaseProps & {
   bot: BotMeta & {
@@ -35,6 +36,12 @@ const ListItemBot: React.FC<Props> = (props) => {
         <div className="flex w-full items-center overflow-hidden text-ellipsis text-sm font-semibold">
           {props.bot.title}
           <PinnedBotIcon bot={props.bot} className="ml-1 text-aws-aqua" />
+
+          {!props.bot.owned && (
+            <div className="ml-1">
+              <PiUsers />
+            </div>
+          )}
         </div>
         {props.bot.description ? (
           <div className="mt-1 overflow-hidden text-ellipsis text-xs">
