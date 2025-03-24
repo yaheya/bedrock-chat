@@ -1,12 +1,13 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PiCheck, PiPencilLine, PiTrash, PiX } from 'react-icons/pi';
+import { PiCheck, PiPencilLine, PiPlus, PiTrash, PiX } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useConversation from '../hooks/useConversation';
 import { ConversationMeta } from '../@types/conversation';
 import ButtonIcon from '../components/ButtonIcon';
 import useChat from '../hooks/useChat';
 import DialogConfirmDeleteChat from '../components/DialogConfirmDeleteChat';
+import Button from '../components/Button';
 
 const ConversationHistoryPage: React.FC = () => {
   const { t } = useTranslation();
@@ -20,8 +21,13 @@ const ConversationHistoryPage: React.FC = () => {
   const [tempTitle, setTempTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { setConversationId } = useChat();
+  const { setConversationId, newChat } = useChat();
   const { conversations, deleteConversation, updateTitle } = useConversation();
+
+  const onClickNewChat = useCallback(() => {
+    newChat();
+    navigate('/');
+  }, [newChat, navigate]);
 
   const onClickDelete = useCallback(
     (e: React.MouseEvent, conversation: ConversationMeta) => {
@@ -117,8 +123,17 @@ const ConversationHistoryPage: React.FC = () => {
       <div className="flex h-full justify-center">
         <div className="w-full max-w-screen-xl px-4 lg:w-4/5">
           <div className="size-full pt-8">
-            <div className="border-b border-gray pb-2 text-2xl font-bold">
-              {t('conversationHistory.pageTitle')}
+            <div className="flex items-center justify-between border-b border-gray pb-2">
+              <div className="text-2xl font-bold">
+                {t('conversationHistory.pageTitle')}
+              </div>
+              <Button
+                className="text-sm"
+                outlined
+                icon={<PiPlus />}
+                onClick={onClickNewChat}>
+                {t('button.newChat')}
+              </Button>
             </div>
             <div className="h-4/5 overflow-x-auto overflow-y-scroll border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color/20">
               <div className="h-full">
