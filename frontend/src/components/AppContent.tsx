@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import ChatListDrawer from './ChatListDrawer';
+import ChatListDrawer from './Drawer';
 import { BaseProps } from '../@types/common';
 import { ConversationMeta } from '../@types/conversation';
 import LazyOutputText from './LazyOutputText';

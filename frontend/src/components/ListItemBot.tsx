@@ -22,7 +22,7 @@ const ListItemBot: React.FC<Props> = (props) => {
         props.className ?? ''
       } relative flex w-full justify-between border-b border-light-gray`}>
       <div
-        className={`h-full grow bg-aws-paper p-2 ${
+        className={`h-full grow rounded bg-aws-paper p-2 ${
           props.bot.available
             ? 'cursor-pointer hover:brightness-90'
             : 'text-aws-font-color/30'
@@ -49,9 +49,9 @@ const ListItemBot: React.FC<Props> = (props) => {
         )}
       </div>
 
-      <div className="absolute right-0 flex h-full justify-between">
+      <div className="absolute right-0 flex h-full justify-between ">
         <div className="w-10 bg-gradient-to-r from-transparent to-aws-paper"></div>
-        <div className="flex items-center gap-2 bg-aws-paper pl-2">
+        <div className="flex items-center gap-2 bg-aws-paper px-2">
           {props.children}
         </div>
       </div>

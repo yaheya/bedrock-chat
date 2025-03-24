@@ -1,5 +1,5 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 const GROUP_PUBLISH_ALLOWED = 'PublishAllowed';
@@ -13,9 +13,15 @@ const useLoginUser = () => {
 
   const { data: session } = useSWR('current-session', () => fetchAuthSession());
 
-  useEffect(() => {
-    const groups = session?.tokens?.idToken?.payload?.['cognito:groups'];
+  const userName = useMemo(() => {
+    return session?.tokens?.idToken?.payload?.['email']?.toString() ?? '';
+  }, [session?.tokens?.idToken?.payload]);
 
+  const groups = useMemo(() => {
+    return session?.tokens?.idToken?.payload?.['cognito:groups'];
+  }, [session?.tokens?.idToken?.payload]);
+
+  useEffect(() => {
     if (Array.isArray(groups)) {
       setIsAllowApiSettings(
         groups.some(
@@ -34,11 +40,16 @@ const useLoginUser = () => {
       setIsAllowCreatingBot(false);
       setIsAdmin(false);
     }
-  }, [session]);
+  }, [groups, session]);
+
   return {
     isAllowApiSettings,
     isAllowCreatingBot,
     isAdmin,
+    userGroups: Array.isArray(groups)
+      ? groups.map((group) => group?.toString() ?? '')
+      : [],
+    userName,
   };
 };
 

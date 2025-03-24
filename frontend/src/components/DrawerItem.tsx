@@ -17,8 +17,8 @@ const DrawerItem: React.FC<Props> = (props) => {
   return (
     <Link
       className={twMerge(
-        'group mx-2 my-1 flex h-10 items-center  rounded px-2',
-        props.isActive ?? true
+        'group mx-2 my-1 flex h-10 items-center rounded px-2',
+        (props.isActive ?? true)
           ? 'bg-aws-sea-blue'
           : 'hover:bg-aws-sea-blue-hover',
         props.className

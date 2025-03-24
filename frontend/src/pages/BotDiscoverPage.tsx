@@ -18,7 +18,7 @@ import BotSearchResults, {
 } from '../components/BotSearchResults';
 import { isPinnedBot } from '../utils/BotUtils';
 
-const BotStorePage: React.FC = () => {
+const BotDiscoverPage: React.FC = () => {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
 
@@ -91,17 +91,17 @@ const BotStorePage: React.FC = () => {
       <div className="mb-32 flex h-full justify-center">
         <div className="flex w-full max-w-screen-xl flex-col gap-3 px-4 pt-8 lg:w-4/5">
           <div className="flex justify-center text-4xl font-bold">
-            {t('store.pageTitle')}
+            {t('discover.pageTitle').toUpperCase()}
           </div>
 
           <div className=" flex w-full flex-col items-center justify-center text-dark-gray">
-            <div>{t('store.description')}</div>
+            <div>{t('discover.description')}</div>
           </div>
 
           <div className="relative mt-6">
             <InputText
               icon={<PiMagnifyingGlass />}
-              placeholder={t('store.search.placeholder')}
+              placeholder={t('discover.search.placeholder')}
               value={inputValue}
               onChange={handleInputChange}
             />
@@ -133,10 +133,10 @@ const BotStorePage: React.FC = () => {
                 )}>
                 <div className="flex items-center text-2xl font-bold">
                   <PiCertificate className="mr-2" />
-                  {t('store.essential.label')}
+                  {t('discover.essential.label')}
                 </div>
                 <div className="mt-1 text-sm text-gray">
-                  {t('store.essential.description')}
+                  {t('discover.essential.description')}
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-6">
@@ -157,10 +157,10 @@ const BotStorePage: React.FC = () => {
               <div className="mt-6">
                 <div className="flex items-center text-2xl font-bold">
                   <PiRanking className="mr-2" />
-                  {t('store.trending.label')}
+                  {t('discover.trending.label')}
                 </div>
                 <div className="mt-1 text-sm text-gray">
-                  {t('store.trending.description')}
+                  {t('discover.trending.description')}
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-9">
@@ -191,10 +191,10 @@ const BotStorePage: React.FC = () => {
               <div className="mt-6">
                 <div className="flex items-center text-2xl font-bold">
                   <PiBinoculars className="mr-2" />
-                  {t('store.discover.label')}
+                  {t('discover.discover.label')}
                 </div>
                 <div className="mt-1 text-sm text-gray">
-                  {t('store.discover.description')}
+                  {t('discover.discover.description')}
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-6">
@@ -225,4 +225,4 @@ const BotStorePage: React.FC = () => {
   );
 };
 
-export default BotStorePage;
+export default BotDiscoverPage;

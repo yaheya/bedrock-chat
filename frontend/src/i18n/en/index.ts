@@ -13,7 +13,8 @@ const translation = {
       recentlyUsedBots: 'Recently Used Bots',
       conversationHistory: 'History',
       chatWaitingSymbol: '▍',
-      adminConsoles: 'Admin Only',
+      adminConsoles: 'Admin Panel',
+      userGroups: 'User Groups',
     },
     model: {
       'claude-v3-haiku': {
@@ -130,7 +131,7 @@ const translation = {
     bot: {
       label: {
         myBots: 'My Bots',
-        recentlyUsedBots: 'Recently Used Shared Bots',
+        recentlyUsedBots: 'Recently Used Bots',
         knowledge: 'Knowledge',
         url: 'URL',
         s3url: 'S3 Data Source',
@@ -143,7 +144,7 @@ const translation = {
         noDescription: 'No Description',
         notAvailable: 'This bot is NOT available.',
         noBots: 'No Bots.',
-        noBotsRecentlyUsed: 'No Recently Used Shared Bots.',
+        noBotsRecentlyUsed: 'No Recently Used Bots.',
         retrievingKnowledge: '[Retrieving Knowledge...]',
         selectParsingModel: 'Select Parsing Model',
         dndFileUpload:
@@ -245,16 +246,15 @@ How would you categorize this email?`,
       edit: {
         pageTitle: 'Edit My Bot',
       },
-
+      my: {
+        label: {
+          pageTitle: 'My Bots',
+        },
+      },
       item: {
         title: 'Name',
         description: 'Description',
         instruction: 'Instructions',
-      },
-      explore: {
-        label: {
-          pageTitle: 'Bot Console',
-        },
       },
       apiSettings: {
         pageTitle: 'Shared Bot Publish API Settings',
@@ -355,6 +355,7 @@ How would you categorize this email?`,
         copied: 'Copied',
         instructionsSamples: 'Samples',
         chooseFiles: 'Choose files',
+        viewAll: 'View All',
       },
       deleteDialog: {
         title: 'Delete?',
@@ -476,8 +477,8 @@ How would you categorize this email?`,
         period: 'Enter both From and To',
       },
     },
-    store: {
-      pageTitle: 'DISCOVER BOT',
+    discover: {
+      pageTitle: 'Discover Bot',
       description:
         'View and search bots that are public or permitted for your access.',
       search: {
@@ -551,7 +552,7 @@ How would you categorize this email?`,
       back: 'Back',
       menu: 'Menu',
       language: 'Language',
-      clearConversation: 'Delete ALL conversations',
+      clearConversation: 'Delete ALL Conversations',
       signOut: 'Sign out',
       close: 'Close',
       add: 'Add',

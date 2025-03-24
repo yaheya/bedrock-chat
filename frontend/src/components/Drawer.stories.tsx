@@ -1,6 +1,6 @@
 import type { Story, StoryDefault } from '@ladle/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import ChatListDrawer from './ChatListDrawer';
+import ChatListDrawer from './Drawer';
 import { BotListItem } from '../@types/bot';
 import { ConversationMeta } from '../@types/conversation';
 

@@ -3,6 +3,8 @@ import Button from './Button';
 import { PiList, PiSignOut, PiTranslate, PiTrash } from 'react-icons/pi';
 import { useTranslation } from 'react-i18next';
 import { BaseProps } from '../@types/common';
+import { twMerge } from 'tailwind-merge';
+import useLoginUser from '../hooks/useLoginUser';
 
 type Props = BaseProps & {
   onSignOut: () => void;
@@ -11,8 +13,9 @@ type Props = BaseProps & {
 };
 
 // 認証時に表示するメニューコンポーネント
-const Menu: React.FC<Props> = (props) => {
+const MenuSettings: React.FC<Props> = (props) => {
   const { t } = useTranslation();
+  const { userGroups, userName } = useLoginUser();
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -44,7 +47,7 @@ const Menu: React.FC<Props> = (props) => {
     <>
       <Button
         ref={buttonRef}
-        className="relative bg-aws-squid-ink"
+        className={twMerge('relative bg-aws-squid-ink', props.className)}
         text
         icon={<PiList />}
         onClick={() => {
@@ -57,6 +60,18 @@ const Menu: React.FC<Props> = (props) => {
         <div
           ref={menuRef}
           className="absolute bottom-10 left-2 w-60 rounded border border-aws-font-color-white bg-aws-sea-blue text-aws-font-color-white">
+          <div className="flex flex-col gap-1 border-b p-2">
+            <div className="font-bold">{userName}</div>
+            <div className="">
+              <div className="italic">{t('app.userGroups')}</div>
+              <ul className="list-disc pl-5">
+                {userGroups.map((group) => (
+                  <li key={group}>{group}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
           <div
             className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover"
             onClick={() => {
@@ -87,4 +102,4 @@ const Menu: React.FC<Props> = (props) => {
   );
 };
 
-export default Menu;
+export default MenuSettings;

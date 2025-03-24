@@ -16,7 +16,8 @@ const translation = {
       recentlyUsedBots: '最近使用したボット',
       conversationHistory: '会話履歴',
       chatWaitingSymbol: '▍',
-      adminConsoles: '管理者用',
+      adminConsoles: '管理者用機能',
+      userGroups: 'ユーザーグループ',
     },
     model: {
       'claude-v3-haiku': {
@@ -246,15 +247,15 @@ const translation = {
       edit: {
         pageTitle: 'ボットを編集',
       },
+      my: {
+        label: {
+          pageTitle: 'マイボット',
+        },
+      },
       item: {
         title: 'ボット名',
         description: '説明文',
         instruction: 'インストラクション',
-      },
-      explore: {
-        label: {
-          pageTitle: 'ボットコンソール',
-        },
       },
       apiSettings: {
         pageTitle: '共有されたボットのAPI公開設定',
@@ -356,6 +357,7 @@ const translation = {
         apiSettings: 'API公開設定',
         pinBot: '管理者認定に登録',
         unpinBot: '管理者認定を解除',
+        viewAll: '全て見る',
       },
       deleteDialog: {
         title: '削除しますか？',
@@ -476,7 +478,7 @@ const translation = {
         period: 'FromとToを両方入力してください。',
       },
     },
-    store: {
+    discover: {
       pageTitle: 'ボットを探す',
       description:
         '全員に共有されているボットとあなたがアクセス許可されているボットのみ、検索・表示されます。',

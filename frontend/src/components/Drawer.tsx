@@ -7,22 +7,22 @@ import React, {
   useState,
 } from 'react';
 import { BaseProps } from '../@types/common';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import useDrawer from '../hooks/useDrawer';
 import ButtonIcon from './ButtonIcon';
 import {
+  PiArrowRight,
   PiChat,
   PiCheck,
   PiCompass,
-  PiGlobe,
+  PiListBullets,
   PiNotePencil,
   PiPencilLine,
+  PiPresentationChart,
   PiRobot,
-  PiShareNetwork,
   PiTrash,
   PiX,
 } from 'react-icons/pi';
-import { PiCircleNotch } from 'react-icons/pi';
 import LazyOutputText from './LazyOutputText';
 import { ConversationMeta } from '../@types/conversation';
 import { BotListItem } from '../@types/bot';
@@ -33,6 +33,9 @@ import Menu from './Menu';
 import DrawerItem from './DrawerItem';
 import ExpandableDrawerGroup from './ExpandableDrawerGroup';
 import { usePageLabel } from '../routes';
+import { twMerge } from 'tailwind-merge';
+import Button from './Button';
+import Skeleton from './Skeleton';
 
 type Props = BaseProps & {
   isAdmin: boolean;
@@ -188,8 +191,9 @@ const Item: React.FC<ItemProps> = (props) => {
   );
 };
 
-const ChatListDrawer: React.FC<Props> = (props) => {
+const Drawer: React.FC<Props> = (props) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { getPageLabel } = usePageLabel();
   const { opened, switchOpen } = useDrawer();
   const { conversations, starredBots, recentlyUsedUnstarredBots } = props;
@@ -222,14 +226,14 @@ const ChatListDrawer: React.FC<Props> = (props) => {
 
   const onClickNewChat = useCallback(() => {
     newChat();
-    closeSamllDrawer();
+    closeSmallDrawer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickNewBotChat = useCallback(
     () => {
       newChat();
-      closeSamllDrawer();
+      closeSmallDrawer();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -237,7 +241,7 @@ const ChatListDrawer: React.FC<Props> = (props) => {
 
   const smallDrawer = useRef<HTMLDivElement>(null);
 
-  const closeSamllDrawer = useCallback(() => {
+  const closeSmallDrawer = useCallback(() => {
     if (smallDrawer.current?.classList.contains('visible')) {
       switchOpen();
     }
@@ -280,31 +284,18 @@ const ChatListDrawer: React.FC<Props> = (props) => {
             />
             <DrawerItem
               isActive={false}
-              icon={<PiCompass />}
-              to="/bot/explore"
-              labelComponent={getPageLabel('/bot/explore')}
-              onClick={closeSamllDrawer}
+              icon={<PiListBullets />}
+              to="/bot/my"
+              labelComponent={getPageLabel('/bot/my')}
+              onClick={closeSmallDrawer}
             />
-            {props.isAdmin && (
-              <ExpandableDrawerGroup
-                label={t('app.adminConsoles')}
-                className="border-t pt-1">
-                <DrawerItem
-                  isActive={false}
-                  icon={<PiShareNetwork />}
-                  to="/admin/shared-bot-analytics"
-                  labelComponent={getPageLabel('/admin/shared-bot-analytics')}
-                  onClick={closeSamllDrawer}
-                />
-                <DrawerItem
-                  isActive={false}
-                  icon={<PiGlobe />}
-                  to="/admin/api-management"
-                  labelComponent={getPageLabel('/admin/api-management')}
-                  onClick={closeSamllDrawer}
-                />
-              </ExpandableDrawerGroup>
-            )}
+            <DrawerItem
+              isActive={false}
+              icon={<PiCompass />}
+              to="/bot/discover"
+              labelComponent={getPageLabel('/bot/discover')}
+              onClick={closeSmallDrawer}
+            />
 
             <ExpandableDrawerGroup
               label={t('app.starredBots')}
@@ -324,8 +315,17 @@ const ChatListDrawer: React.FC<Props> = (props) => {
             <ExpandableDrawerGroup
               label={t('app.recentlyUsedBots')}
               className="border-t pt-1">
+              {recentlyUsedUnstarredBots === undefined && (
+                <div className="flex flex-col gap-2 p-2">
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                </div>
+              )}
               {recentlyUsedUnstarredBots
-                ?.slice(0, 3)
+                ?.slice(0, 15)
                 .map((bot) => (
                   <DrawerItem
                     key={bot.id}
@@ -336,36 +336,73 @@ const ChatListDrawer: React.FC<Props> = (props) => {
                     onClick={onClickNewBotChat}
                   />
                 ))}
+
+              {recentlyUsedUnstarredBots && (
+                <Button
+                  text
+                  rightIcon={<PiArrowRight />}
+                  className="w-full"
+                  onClick={() => {
+                    navigate('/bot/recently-used');
+                  }}>
+                  {t('bot.button.viewAll')}
+                </Button>
+              )}
             </ExpandableDrawerGroup>
 
             <ExpandableDrawerGroup
               label={t('app.conversationHistory')}
               className="border-t pt-1">
               {conversations === undefined && (
-                <div className="flex animate-spin items-center justify-center p-4">
-                  <PiCircleNotch size={24} />
+                <div className="flex flex-col gap-2 p-2">
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
                 </div>
               )}
-              {conversations?.map((conversation, idx) => (
-                <Item
-                  key={idx}
-                  className="grow"
-                  label={conversation.title}
-                  conversationId={conversation.id}
-                  generatedTitle={idx === generateTitleIndex}
-                  updateTitle={props.updateConversationTitle}
-                  onClick={closeSamllDrawer}
-                  onDelete={() => props.onDeleteConversation(conversation)}
-                />
-              ))}
+              {conversations
+                ?.slice(0, 5)
+                .map((conversation, idx) => (
+                  <Item
+                    key={idx}
+                    className="grow"
+                    label={conversation.title}
+                    conversationId={conversation.id}
+                    generatedTitle={idx === generateTitleIndex}
+                    updateTitle={props.updateConversationTitle}
+                    onClick={closeSmallDrawer}
+                    onDelete={() => props.onDeleteConversation(conversation)}
+                  />
+                ))}
+
+              {conversations && (
+                <Button text rightIcon={<PiArrowRight />} className="w-full">
+                  {t('bot.button.viewAll')}
+                </Button>
+              )}
             </ExpandableDrawerGroup>
           </div>
 
           <div
-            className={`${
-              opened ? 'w-64' : 'w-0'
-            } fixed bottom-0 flex h-12 items-center justify-start border-t bg-aws-squid-ink transition-width lg:w-64`}>
+            className={twMerge(
+              opened ? 'w-64' : 'w-0',
+              props.isAdmin ? 'h-20' : 'h-10',
+              'fixed bottom-0 mb-2 flex flex-col items-start border-t bg-aws-squid-ink transition-width lg:w-64'
+            )}>
+            {props.isAdmin && (
+              <DrawerItem
+                className="w-60"
+                isActive={false}
+                icon={<PiPresentationChart />}
+                to="/admin/shared-bot-analytics"
+                labelComponent={t('app.adminConsoles')}
+                onClick={closeSmallDrawer}
+              />
+            )}
             <Menu
+              className="mx-2 flex h-10 w-60 justify-start"
               onSignOut={props.onSignOut}
               onSelectLanguage={props.onSelectLanguage}
               onClearConversations={props.onClearConversations}
@@ -390,4 +427,4 @@ const ChatListDrawer: React.FC<Props> = (props) => {
   );
 };
 
-export default ChatListDrawer;
+export default Drawer;
