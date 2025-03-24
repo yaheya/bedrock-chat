@@ -14,7 +14,7 @@ const translation = {
       inputMessage: 'お手伝いできることはありますか？',
       starredBots: 'スター付きのボット',
       recentlyUsedBots: '最近使用したボット',
-      conversationHistory: '会話履歴',
+      conversationHistory: '最近のチャット',
       chatWaitingSymbol: '▍',
       adminConsoles: '管理者用機能',
       userGroups: 'ユーザーグループ',

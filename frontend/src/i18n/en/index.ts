@@ -11,7 +11,7 @@ const translation = {
       inputMessage: 'Can I Help You?',
       starredBots: 'Starred Bots',
       recentlyUsedBots: 'Recently Used Bots',
-      conversationHistory: 'History',
+      conversationHistory: 'Recent Chats',
       chatWaitingSymbol: '▍',
       adminConsoles: 'Admin Panel',
       userGroups: 'User Groups',
@@ -502,6 +502,12 @@ How would you categorize this email?`,
       discover: {
         label: 'Discover',
         description: 'Random bot showcase.',
+      },
+    },
+    conversationHistory: {
+      pageTitle: 'Chat History',
+      label: {
+        noConversations: 'No Chat History',
       },
     },
     deleteDialog: {

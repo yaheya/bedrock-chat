@@ -17,6 +17,7 @@ import {
 import { useMemo } from 'react';
 import BotDiscoverPage from './pages/BotDiscoverPage.tsx';
 import BotRecentlyUsedPage from './pages/BotRecentlyUsedPage.tsx';
+import ConversationHistoryPage from './pages/ConversationHistoryPage.tsx';
 
 const rootChildren = [
   {
@@ -50,6 +51,10 @@ const rootChildren = [
   {
     path: '/bot/:botId',
     element: <ChatPage />,
+  },
+  {
+    path: '/conversations',
+    element: <ConversationHistoryPage />,
   },
   {
     path: '/admin/shared-bot-analytics',

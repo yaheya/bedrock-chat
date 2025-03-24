@@ -344,6 +344,7 @@ const Drawer: React.FC<Props> = (props) => {
                   className="w-full"
                   onClick={() => {
                     navigate('/bot/recently-used');
+                    closeSmallDrawer();
                   }}>
                   {t('bot.button.viewAll')}
                 </Button>
@@ -378,7 +379,14 @@ const Drawer: React.FC<Props> = (props) => {
                 ))}
 
               {conversations && (
-                <Button text rightIcon={<PiArrowRight />} className="w-full">
+                <Button
+                  text
+                  rightIcon={<PiArrowRight />}
+                  className="w-full"
+                  onClick={() => {
+                    navigate('/conversations');
+                    closeSmallDrawer();
+                  }}>
                   {t('bot.button.viewAll')}
                 </Button>
               )}

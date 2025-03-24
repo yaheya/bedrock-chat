@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import ChatListDrawer from './Drawer';
+import Drawer from './Drawer';
 import { BaseProps } from '../@types/common';
 import { ConversationMeta } from '../@types/conversation';
 import LazyOutputText from './LazyOutputText';
@@ -82,7 +82,7 @@ const AppContent: React.FC<Props> = (props) => {
 
   return (
     <div className="relative flex h-dvh w-screen bg-aws-paper">
-      <ChatListDrawer
+      <Drawer
         isAdmin={isAdmin}
         conversations={conversations}
         starredBots={starredBots}
