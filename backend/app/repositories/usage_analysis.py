@@ -76,14 +76,15 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
     """Find bot metadata by a list of bot ids and return a dict keyed by bot_id."""
     loop = asyncio.get_running_loop()
 
-    tasks = [
-        loop.run_in_executor(None, partial(_query_bot_by_id, bot_id))
-        for bot_id in bot_ids
-    ]
-    results: list[Any] = await asyncio.gather(*tasks)
+    tasks = []
+    for bot_id in bot_ids:
+        tasks.append(loop.run_in_executor(None, _query_bot_by_id, bot_id))
+    
+    results = await asyncio.gather(*tasks)
 
     bots_dict = {}
-    for items in results:
+    for items_result in results:
+        items = await items_result  # Await the coroutine to get the actual items
         for item in items:
             bot_obj = BotMetaWithStackInfo(
                 id=item["BotId"],
