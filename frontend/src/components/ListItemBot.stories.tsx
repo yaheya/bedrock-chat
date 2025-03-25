@@ -211,6 +211,8 @@ export const ApiManagement = () => {
       publishedStackName: 'ApiPublishmentStackBot1',
       publishedDatetime: new Date(),
       available: true,
+      sharedStatus: '',
+      owned: false,
     },
     {
       id: '2',
@@ -219,6 +221,8 @@ export const ApiManagement = () => {
       publishedStackName: 'ApiPublishmentStackBot1',
       publishedDatetime: new Date(),
       available: false,
+      sharedStatus: '',
+      owned: false,
     },
   ];
   return (
@@ -251,6 +255,8 @@ export const Analytics = () => {
       publishedDatetime: new Date(),
       isPublished: true,
       available: true,
+      sharedStatus: '',
+      owned: false,
     },
     {
       id: '2',
@@ -260,6 +266,8 @@ export const Analytics = () => {
       publishedDatetime: new Date(),
       isPublished: false,
       available: true,
+      sharedStatus: '',
+      owned: false,
     },
     {
       id: '3',
@@ -269,6 +277,8 @@ export const Analytics = () => {
       publishedDatetime: new Date(),
       isPublished: true,
       available: false,
+      sharedStatus: '',
+      owned: false,
     },
     {
       id: '4',
@@ -278,6 +288,8 @@ export const Analytics = () => {
       publishedDatetime: new Date(),
       isPublished: false,
       available: false,
+      sharedStatus: '',
+      owned: false,
     },
   ];
   return (

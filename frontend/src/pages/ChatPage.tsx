@@ -440,14 +440,16 @@ const ChatPage: React.FC = () => {
     (bot: BotSummary) => {
       mutateBot(
         produce(bot, (draft) => {
-          draft.sharedStatus = isPinnedBot(bot) ? 'shared' : 'pinned@000';
+          draft.sharedStatus = isPinnedBot(bot.sharedStatus)
+            ? 'shared'
+            : 'pinned@000';
         }),
         {
           revalidate: false,
         }
       );
 
-      isPinnedBot(bot)
+      isPinnedBot(bot.sharedStatus)
         ? unpinBot(bot.id).finally(() => {
             mutateBot();
           })
@@ -470,7 +472,10 @@ const ChatPage: React.FC = () => {
             <div className="p-2">
               <div className="mr-10 flex items-center font-bold">
                 {pageTitle}
-                <PinnedBotIcon bot={bot} className="ml-1 text-aws-aqua" />
+                <PinnedBotIcon
+                  botSharedStatus={bot?.sharedStatus}
+                  className="ml-1 text-aws-aqua"
+                />
               </div>
               <div className="text-xs font-thin text-dark-gray">
                 {description}
@@ -515,14 +520,14 @@ const ChatPage: React.FC = () => {
                         {copyLabel}
                       </PopoverItem>
                     )}
-                    {isAdmin && bot && canBePinned(bot) && (
+                    {isAdmin && bot && canBePinned(bot.sharedScope) && (
                       <PopoverItem
                         onClick={() => {
                           if (bot) {
                             togglePinBot(bot);
                           }
                         }}>
-                        {isPinnedBot(bot) ? (
+                        {isPinnedBot(bot.sharedStatus) ? (
                           <>
                             <PinnedBotIcon
                               showAlways

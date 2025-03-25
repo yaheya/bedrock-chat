@@ -147,7 +147,7 @@ const BotDiscoverPage: React.FC = () => {
                       description={bot.description}
                       id={bot.id}
                       isStarred={bot.isStarred}
-                      isPinned={isPinnedBot(bot)}
+                      isPinned={isPinnedBot(bot.sharedScope)}
                       onToggleStar={handleToggleStar}
                     />
                   ))}
@@ -179,7 +179,7 @@ const BotDiscoverPage: React.FC = () => {
                           description={bot.description}
                           id={bot.id}
                           isStarred={bot.isStarred}
-                          isPinned={isPinnedBot(bot)}
+                          isPinned={isPinnedBot(bot.sharedScope)}
                           onToggleStar={handleToggleStar}
                         />
                       </div>
@@ -211,7 +211,7 @@ const BotDiscoverPage: React.FC = () => {
                       description={bot.description}
                       id={bot.id}
                       isStarred={bot.isStarred}
-                      isPinned={isPinnedBot(bot)}
+                      isPinned={isPinnedBot(bot.sharedScope)}
                       onToggleStar={handleToggleStar}
                     />
                   ))}

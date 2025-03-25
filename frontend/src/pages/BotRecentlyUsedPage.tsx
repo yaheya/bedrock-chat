@@ -111,7 +111,9 @@ const BotRecentlyUsedPage: React.FC = () => {
           if (draft) {
             const target = draft.find((b) => b.id === bot.id);
             if (target) {
-              target.sharedStatus = isPinnedBot(bot) ? 'shared' : 'pinned@000';
+              target.sharedStatus = isPinnedBot(bot.sharedStatus)
+                ? 'shared'
+                : 'pinned@000';
             }
           }
         }),
@@ -120,7 +122,7 @@ const BotRecentlyUsedPage: React.FC = () => {
         }
       );
 
-      isPinnedBot(bot)
+      isPinnedBot(bot.sharedStatus)
         ? unpinBot(bot.id).finally(() => {
             mutateRecentlyUsedBots();
           })
@@ -290,12 +292,12 @@ const BotRecentlyUsedPage: React.FC = () => {
                                   {t('bot.button.apiSettings')}
                                 </PopoverItem>
                               )}
-                              {isAdmin && canBePinned(bot) && (
+                              {isAdmin && canBePinned(bot.sharedScope) && (
                                 <PopoverItem
                                   onClick={() => {
                                     togglePinBot(bot);
                                   }}>
-                                  {isPinnedBot(bot) ? (
+                                  {isPinnedBot(bot.sharedStatus) ? (
                                     <>
                                       <PinnedBotIcon
                                         showAlways
@@ -330,12 +332,12 @@ const BotRecentlyUsedPage: React.FC = () => {
                           )}
                           {!bot.owned && (
                             <>
-                              {isAdmin && canBePinned(bot) && (
+                              {isAdmin && canBePinned(bot.sharedScope) && (
                                 <PopoverItem
                                   onClick={() => {
                                     togglePinBot(bot);
                                   }}>
-                                  {isPinnedBot(bot) ? (
+                                  {isPinnedBot(bot.sharedStatus) ? (
                                     <>
                                       <PinnedBotIcon
                                         showAlways

@@ -112,7 +112,9 @@ const BotExplorePage: React.FC = () => {
           if (draft) {
             const target = draft.find((b) => b.id === bot.id);
             if (target) {
-              target.sharedStatus = isPinnedBot(bot) ? 'shared' : 'pinned@000';
+              target.sharedStatus = isPinnedBot(bot.sharedStatus)
+                ? 'shared'
+                : 'pinned@000';
             }
           }
         }),
@@ -121,7 +123,7 @@ const BotExplorePage: React.FC = () => {
         }
       );
 
-      isPinnedBot(bot)
+      isPinnedBot(bot.sharedStatus)
         ? unpinBot(bot.id).finally(() => {
             mutateMyBots();
           })
@@ -268,12 +270,12 @@ const BotExplorePage: React.FC = () => {
                               {t('bot.button.apiSettings')}
                             </PopoverItem>
                           )}
-                          {isAdmin && canBePinned(bot) && (
+                          {isAdmin && canBePinned(bot.sharedScope) && (
                             <PopoverItem
                               onClick={() => {
                                 togglePinBot(bot);
                               }}>
-                              {isPinnedBot(bot) ? (
+                              {isPinnedBot(bot.sharedScope) ? (
                                 <>
                                   <PinnedBotIcon
                                     showAlways

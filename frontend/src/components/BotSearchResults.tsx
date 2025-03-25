@@ -96,7 +96,9 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
   if (isSearching) {
     return (
       <div className="mt-6">
-        <div className="text-2xl font-bold">{t('store.search.searching')}</div>
+        <div className="text-2xl font-bold">
+          {t('discover.search.searching')}
+        </div>
         <div className="mt-3 grid grid-cols-2 gap-6">
           <SkeletonBot />
           <SkeletonBot />
@@ -108,7 +110,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
             outlined
             onClick={onBackToHome}
             className="flex items-center gap-2">
-            <PiArrowLeft /> {t('store.search.backToHome')}
+            <PiArrowLeft /> {t('discover.search.backToHome')}
           </Button>
         </div>
       </div>
@@ -119,17 +121,17 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
     return (
       <div className="mt-6">
         <div className="text-2xl font-bold">
-          {t('store.search.noResults', { query: searchQuery })}
+          {t('discover.search.noResults', { query: searchQuery })}
         </div>
         <div className="mt-1 text-sm text-gray">
-          {t('store.search.tryDifferent')}
+          {t('discover.search.tryDifferent')}
         </div>
         <div className="mt-4">
           <Button
             outlined
             onClick={onBackToHome}
             className="flex items-center gap-2">
-            <PiArrowLeft /> {t('store.search.backToHome')}
+            <PiArrowLeft /> {t('discover.search.backToHome')}
           </Button>
         </div>
       </div>
@@ -140,7 +142,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
     return (
       <div className="mt-6">
         <div className="text-2xl font-bold">
-          {t('store.search.results', {
+          {t('discover.search.results', {
             count: results.length,
             query: searchQuery,
           })}
@@ -153,7 +155,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
               description={bot.description}
               id={bot.id}
               isStarred={bot.isStarred}
-              isPinned={isPinnedBot(bot)}
+              isPinned={isPinnedBot(bot.sharedStatus)}
               onToggleStar={onToggleStar}
             />
           ))}
@@ -163,7 +165,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
             outlined
             onClick={onBackToHome}
             className="flex items-center gap-2">
-            <PiArrowLeft /> {t('store.search.backToHome')}
+            <PiArrowLeft /> {t('discover.search.backToHome')}
           </Button>
         </div>
       </div>

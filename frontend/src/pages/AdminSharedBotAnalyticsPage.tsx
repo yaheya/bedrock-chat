@@ -96,7 +96,7 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
                   errorMessage={
                     searchDateFrom
                       ? undefined
-                      : validationErrorMessage ?? undefined
+                      : (validationErrorMessage ?? undefined)
                   }
                 />
                 <InputText
@@ -114,7 +114,7 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
                   errorMessage={
                     searchDateTo
                       ? undefined
-                      : validationErrorMessage ?? undefined
+                      : (validationErrorMessage ?? undefined)
                   }
                 />
               </div>
@@ -160,6 +160,9 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
                   bot={{
                     ...bot,
                     available: true,
+                    // the following are fixed values to prevent type errors
+                    sharedStatus: '',
+                    owned: false,
                   }}
                   onClick={() => {
                     onClickViewBot(bot.id);

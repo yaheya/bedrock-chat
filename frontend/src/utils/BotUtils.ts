@@ -1,4 +1,4 @@
-import { BotMeta } from '../@types/bot';
+import { SharedScope } from '../@types/bot';
 import copy from 'copy-to-clipboard';
 
 export const getBotUrl = (botId: string) => {
@@ -11,24 +11,24 @@ export const copyBotUrl = (botId: string) => {
 
 /**
  * Determines if a bot is pinned by an administrator
- * @param bot Bot metadata
+ * @param botSharedStatus Bot shared status
  * @returns true if the bot is pinned, false otherwise
  */
-export const isPinnedBot = (bot: BotMeta): boolean => {
-  return bot.sharedStatus.startsWith('pinned@');
+export const isPinnedBot = (botSharedStatus: string): boolean => {
+  return botSharedStatus.startsWith('pinned@');
 };
 
 /**
  * Gets the order of a pinned bot
- * @param bot Bot metadata
+ * @param botSharedStatus Bot shared status
  * @returns The numerical order of the pinned bot. Returns -1 if the bot is not pinned
  */
-export const getPinOrder = (bot: BotMeta): number => {
-  if (!isPinnedBot(bot)) {
+export const getPinOrder = (botSharedStatus: string): number => {
+  if (!isPinnedBot(botSharedStatus)) {
     return -1;
   }
 
-  const orderStr = bot.sharedStatus.split('@')[1];
+  const orderStr = botSharedStatus.split('@')[1];
   return parseInt(orderStr, 10);
 };
 /**
@@ -36,6 +36,6 @@ export const getPinOrder = (bot: BotMeta): number => {
  * @param bot Bot metadata
  * @returns true if the bot can be pinned, false otherwise
  */
-export const canBePinned = (bot: BotMeta): boolean => {
-  return bot.sharedScope === 'all';
+export const canBePinned = (botSharedScope: SharedScope): boolean => {
+  return botSharedScope === 'all';
 };
