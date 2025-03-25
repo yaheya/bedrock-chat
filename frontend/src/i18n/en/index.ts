@@ -563,7 +563,8 @@ How would you categorize this email?`,
       signOut: 'Sign out',
       close: 'Close',
       add: 'Add',
-      continue: 'Continue to generate',
+      continue: 'Continue to Generate',
+      botManagement: 'Bot Management',
     },
     input: {
       hint: {

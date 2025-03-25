@@ -10,6 +10,7 @@ import {
   PiStarFill,
   PiTrashBold,
   PiUsers,
+  PiWrench,
 } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useBot from '../hooks/useBot';
@@ -332,6 +333,15 @@ const BotRecentlyUsedPage: React.FC = () => {
                           )}
                           {!bot.owned && (
                             <>
+                              {isAdmin && (
+                                <PopoverItem
+                                  onClick={() => {
+                                    navigate(`/admin/bot/${bot.id}`);
+                                  }}>
+                                  <PiWrench />
+                                  {t('button.botManagement')}
+                                </PopoverItem>
+                              )}
                               {isAdmin && canBePinned(bot.sharedScope) && (
                                 <PopoverItem
                                   onClick={() => {

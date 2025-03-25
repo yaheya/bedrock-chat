@@ -559,6 +559,7 @@ const translation = {
       close: '閉じる',
       add: '追加',
       continue: '生成を続ける',
+      botManagement: 'ボットの管理',
     },
     input: {
       hint: {
