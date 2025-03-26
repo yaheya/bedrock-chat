@@ -26,7 +26,7 @@ from botocore.exceptions import ClientError
 from pydantic import TypeAdapter
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 THRESHOLD_LARGE_MESSAGE = 300 * 1024  # 300KB
 LARGE_MESSAGE_BUCKET = os.environ.get("LARGE_MESSAGE_BUCKET")

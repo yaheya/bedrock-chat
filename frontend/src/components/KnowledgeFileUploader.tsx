@@ -172,7 +172,7 @@ const KnowledgeFileUploader: React.FC<Props> = (props) => {
         onDragOver={onDragOver}
         onDrop={onDrop}
         className={twMerge(
-          'flex h-full w-full flex-col items-center justify-center gap-3 rounded border-4 border-gray text-dark-gray',
+          'flex h-full w-full flex-col items-center justify-center gap-3 rounded border-4 border-gray text-dark-gray dark:text-light-gray',
           props.disabled && 'opacity-50 cursor-not-allowed',
           props.className
         )}>
@@ -205,13 +205,13 @@ const KnowledgeFileUploader: React.FC<Props> = (props) => {
               <div className="flex items-center gap-2">
                 <div className="ml-auto whitespace-nowrap">
                   {file.status === 'UPLOADING' && (
-                    <div className="text-sm text-dark-gray">
+                    <div className="text-sm text-dark-gray dark:text-light-gray">
                       {t('bot.label.fileUploadStatus.uploading')}
                       <Progress progress={file.progress ?? 0} />
                     </div>
                   )}
                   {file.status === 'UPLOADED' && (
-                    <div className="text-sm font-bold text-dark-gray">
+                    <div className="text-sm font-bold text-dark-gray dark:text-light-gray">
                       {t('bot.label.fileUploadStatus.uploaded')}
                     </div>
                   )}

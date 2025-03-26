@@ -47,7 +47,10 @@ const MenuSettings: React.FC<Props> = (props) => {
     <>
       <Button
         ref={buttonRef}
-        className={twMerge('relative bg-aws-squid-ink', props.className)}
+        className={twMerge(
+          'relative bg-aws-squid-ink-light dark:bg-aws-squid-ink-dark',
+          props.className
+        )}
         text
         icon={<PiList />}
         onClick={() => {
@@ -59,7 +62,7 @@ const MenuSettings: React.FC<Props> = (props) => {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute bottom-10 left-2 w-60 rounded border border-aws-font-color-white bg-aws-sea-blue text-aws-font-color-white">
+          className="absolute bottom-10 left-2 w-60 rounded border border-aws-font-color-white-light bg-aws-sea-blue-light text-aws-font-color-white-light dark:border-aws-font-color-white-dark dark:bg-aws-ui-color-dark dark:text-aws-font-color-white-dark">
           <div className="flex flex-col gap-1 border-b p-2">
             <div className="font-bold">{userName}</div>
             <div className="">
@@ -73,7 +76,7 @@ const MenuSettings: React.FC<Props> = (props) => {
           </div>
 
           <div
-            className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover"
+            className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark"
             onClick={() => {
               setIsOpen(false);
               props.onSelectLanguage();
@@ -82,7 +85,7 @@ const MenuSettings: React.FC<Props> = (props) => {
             {t('button.language')}
           </div>
           <div
-            className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover"
+            className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark"
             onClick={() => {
               setIsOpen(false);
               props.onClearConversations();
@@ -91,7 +94,7 @@ const MenuSettings: React.FC<Props> = (props) => {
             {t('button.clearConversation')}
           </div>
           <div
-            className="flex w-full cursor-pointer items-center border-t p-2 hover:bg-aws-sea-blue-hover"
+            className="flex w-full cursor-pointer items-center border-t p-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark"
             onClick={props.onSignOut}>
             <PiSignOut className="mr-2" />
             {t('button.signOut')}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Dict,
     List,
@@ -22,7 +23,7 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseOutput,
 )
 from app.routes.schemas.conversation import type_model_name
-from pydantic import Field, create_model, model_validator, validator
+from pydantic import Field, create_model, model_validator, Discriminator, field_validator, validator
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel
@@ -61,25 +62,90 @@ def create_model_activate_output(model_names: List[str]) -> Type[BaseSchema]:
 ActiveModelsOutput = create_model_activate_output(list(get_args(type_model_name)))
 
 
+class ReasoningParams(BaseSchema):
+    budget_tokens: int
+
+
 class GenerationParams(BaseSchema):
     max_tokens: int
     top_k: int
     top_p: float
     temperature: float
     stop_sequences: list[str]
+    reasoning_params: ReasoningParams
 
 
-class AgentTool(BaseSchema):
+class FirecrawlConfig(BaseSchema):
+    api_key: str
+    max_results: int = Field(default=10, ge=1, le=100)
+
+    @field_validator("api_key")
+    def validate_api_key(cls, v):
+        if v == "":
+            raise ValueError("Firecrawl API key is empty")
+        return v
+
+
+class PlainTool(BaseSchema):
+    tool_type: Literal["plain"] = "plain"
     name: str
     description: str
 
 
+class InternetTool(BaseSchema):
+    tool_type: Literal["internet"]
+    name: str
+    description: str
+    search_engine: Optional[Literal["duckduckgo", "firecrawl"]]
+    firecrawl_config: Optional[FirecrawlConfig] | None = None
+
+    @field_validator("search_engine")
+    def validate_search_engine(cls, v):
+        if v not in ["duckduckgo", "firecrawl"]:
+            raise ValueError(f"Invalid search engine: {v}")
+        return v
+
+    @validator("firecrawl_config")
+    def validate_firecrawl_config(cls, v, values):
+        if values.get("search_engine") == "firecrawl" and v is None:
+            raise ValueError(
+                "Firecrawl config is required when search engine is firecrawl"
+            )
+        return v
+
+
+Tool = Annotated[PlainTool | InternetTool, Discriminator("tool_type")]
+
+
 class Agent(BaseSchema):
-    tools: list[AgentTool]
+    tools: list[Tool]
+
+    @field_validator("tools", mode="before")
+    def handle_legacy_tools(cls, v):
+        """For backward compatibility, convert legacy tools to the new format.
+        If the tool is legacy such that it does not have a `tool_type` field,
+        it will be converted to a `plain` tool.
+        """
+        if isinstance(v, list):
+            converted_tools = []
+            for tool in v:
+                if isinstance(tool, dict) and "tool_type" not in tool:
+                    tool["tool_type"] = "plain"
+                converted_tools.append(tool)
+            return converted_tools
+        return v
+
+
+class AgentToolInput(BaseSchema):
+    tool_type: Literal["plain", "internet"]
+    name: str
+    description: str
+    search_engine: Literal["duckduckgo", "firecrawl"] | None = None
+    firecrawl_config: FirecrawlConfig | None = None
 
 
 class AgentInput(BaseSchema):
-    tools: list[str] = Field(..., description="List of tool names")
+    tools: list[AgentToolInput] = Field(..., description="List of tools")
 
 
 class Knowledge(BaseSchema):

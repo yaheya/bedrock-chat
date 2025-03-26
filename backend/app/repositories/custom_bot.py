@@ -2,6 +2,8 @@ import base64
 import json
 import logging
 import os
+from typing import Union
+from datetime import datetime
 from decimal import Decimal as decimal
 
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
@@ -43,6 +45,7 @@ DEFAULT_GENERATION_CONFIG = (
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 
 class BotNotFoundException(Exception):
@@ -672,12 +675,19 @@ def find_bot_by_id(bot_id: str) -> BotModel:
         # Note: IsStarred is set to False for non-starred bots to use sparse index
         is_starred=item.get("IsStarred", False),
         generation_params=GenerationParamsModel.model_validate(
-            item["GenerationParams"]
-            if "GenerationParams" in item
-            else DEFAULT_GENERATION_CONFIG
+            {
+                **item.get("GenerationParams", DEFAULT_GENERATION_CONFIG),
+                # For backward compatibility
+                "reasoning_params": item.get("GenerationParams", {}).get(
+                    "reasoning_params",
+                    {
+                        "budget_tokens": DEFAULT_GENERATION_CONFIG["reasoning_params"]["budget_tokens"],  # type: ignore
+                    },
+                ),
+            }
         ),
         agent=(
-            AgentModel(**item["AgentData"])
+            AgentModel.model_validate(item["AgentData"])
             if "AgentData" in item
             else AgentModel(tools=[])
         ),

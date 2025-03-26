@@ -5,6 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
+import ButtonDownload from './ButtonDownload';
 import ButtonCopy from './ButtonCopy';
 import { RelatedDocument } from '../@types/conversation';
 import { twMerge } from 'tailwind-merge';
@@ -63,7 +64,7 @@ const RelatedDocumentLink: React.FC<{
         className={twMerge(
           'mx-0.5 ',
           props.relatedDocument != null
-            ? 'cursor-pointer text-aws-sea-blue hover:text-aws-sea-blue-hover'
+            ? 'cursor-pointer text-aws-sea-blue-light dark:text-aws-sea-blue-dark hover:text-aws-sea-blue-hover-light dark:hover:text-aws-sea-blue-hover-dark'
             : 'cursor-not-allowed text-gray'
         )}
         onClick={() => {
@@ -132,14 +133,14 @@ const ChatMessageMarkdown: React.FC<Props> = ({
   const rehypePlugins = useMemo(() => {
     const rehypeExternalLinksOptions: Options = {
       target: '_blank',
-      properties: { style: 'word-break: break-all;' },
+      properties: { style: 'word-break: break-word;' },
     };
     return [rehypeKatex, [rehypeExternalLinks, rehypeExternalLinksOptions]];
   }, []);
 
   return (
     <ReactMarkdown
-      className={twMerge(className, 'prose max-w-full break-all')}
+      className={twMerge(className, 'prose dark:prose-invert max-w-full break-words')}
       children={text}
       remarkPlugins={remarkPlugins}
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -160,9 +161,15 @@ const ChatMessageMarkdown: React.FC<Props> = ({
                 children={codeText}
                 style={vscDarkPlus}
                 language={match[1]}
-                x
                 PreTag="div"
                 wrapLongLines={true}
+                customStyle={{
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  maxWidth: '100%'
+                }}
+                className="code-block-wrap"
               />
             </CopyToClipboard>
           ) : (
@@ -242,9 +249,12 @@ const CopyToClipboard = ({
   codeText: string;
 }) => {
   return (
-    <div className="relative">
+    <div className="relative max-w-full overflow-hidden">
       {children}
-      <ButtonCopy text={codeText} className="absolute right-2 top-2" />
+      <div className="absolute right-2 top-2 flex gap-0">
+        <ButtonDownload text={codeText} />
+        <ButtonCopy text={codeText} />
+      </div>
     </div>
   );
 };

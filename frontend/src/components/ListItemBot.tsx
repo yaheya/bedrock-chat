@@ -25,12 +25,12 @@ const ListItemBot: React.FC<Props> = (props) => {
       key={props.bot.id}
       className={`${
         props.className ?? ''
-      } relative flex w-full justify-between border-b border-light-gray`}>
+      } relative flex w-full justify-between border-b border-light-gray dark:border-dark-gray`}>
       <div
-        className={`h-full grow rounded bg-aws-paper p-2 ${
+        className={`h-full grow bg-aws-paper-light p-2 dark:bg-aws-paper-dark ${
           props.bot.available
             ? 'cursor-pointer hover:brightness-90'
-            : 'text-aws-font-color/30'
+            : 'text-aws-font-color-light/30 dark:text-aws-font-color-dark/30'
         }`}
         onClick={() => {
           if (props.bot.available) {
@@ -38,7 +38,14 @@ const ListItemBot: React.FC<Props> = (props) => {
           }
         }}>
         <div className="flex w-full items-center overflow-hidden text-ellipsis text-sm font-semibold">
-          {props.bot.title}
+          <span
+            className={
+              props.bot.available
+                ? 'dark:text-aws-font-color-dark'
+                : 'dark:text-aws-font-color-gray'
+            }>
+            {props.bot.title}
+          </span>
           <PinnedBotIcon
             botSharedStatus={props.bot.sharedStatus}
             className="ml-1 text-aws-aqua"
@@ -51,21 +58,21 @@ const ListItemBot: React.FC<Props> = (props) => {
           )}
         </div>
         {props.bot.description ? (
-          <div className="mt-1 overflow-hidden text-ellipsis text-xs">
+          <div className="mt-1 overflow-hidden text-ellipsis text-xs dark:text-aws-font-color-dark">
             {props.bot.available
               ? props.bot.description
               : t('bot.label.notAvailable')}
           </div>
         ) : (
-          <div className="mt-1 overflow-hidden text-ellipsis text-xs italic text-gray">
+          <div className="mt-1 overflow-hidden text-ellipsis text-xs italic text-gray dark:text-aws-font-color-gray">
             {t('bot.label.noDescription')}
           </div>
         )}
       </div>
 
-      <div className="absolute right-0 flex h-full justify-between ">
-        <div className="w-10 bg-gradient-to-r from-transparent to-aws-paper"></div>
-        <div className="flex items-center gap-2 bg-aws-paper px-2">
+      <div className="absolute right-0 flex h-full justify-between">
+        <div className="w-10 bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
+        <div className="flex items-center gap-2 bg-aws-paper-light pl-2 dark:bg-aws-paper-dark dark:text-aws-font-color-dark">
           {props.children}
         </div>
       </div>

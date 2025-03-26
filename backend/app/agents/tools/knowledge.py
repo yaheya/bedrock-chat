@@ -9,10 +9,13 @@ from pydantic import BaseModel, Field
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class KnowledgeToolInput(BaseModel):
-    query: str = Field(description="User's original question string.")
+    query: str = Field(
+        description="Input suitable for vector search, full text search, and hybrid search. When searching continuously, the query must be designed so that it does not overlap with past contexts."
+    )
 
 
 def search_knowledge(

@@ -16,19 +16,39 @@ import { NodejsBuild } from "deploy-time-build";
 import { Auth } from "./auth";
 import { Idp } from "../utils/identity-provider";
 import { NagSuppressions } from "cdk-nag";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 
 export interface FrontendProps {
   readonly webAclId: string;
   readonly enableMistral: boolean;
   readonly accessLogBucket?: IBucket;
   readonly enableIpV6: boolean;
+  /** 
+   * Alternative domain name for CloudFront distribution (e.g., chat.example.com)
+   * If provided, CloudFront will be accessible via this domain
+   */
+  readonly alternateDomainName?: string;
+  /**
+   * Route53 hosted zone ID where the alternate domain records will be created
+   * Required if alternateDomainName is provided
+   */
+  readonly hostedZoneId?: string;
 }
 
 export class Frontend extends Construct {
   readonly cloudFrontWebDistribution: Distribution;
   readonly assetBucket: Bucket;
+  private readonly certificate?: acm.ICertificate;
+  private readonly hostedZone?: route53.IHostedZone;
+  /** Alternate domain name for the CloudFront distribution */
+  private readonly alternateDomainName?: string;
+
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
+
+    this.alternateDomainName = props.alternateDomainName;
 
     const assetBucket = new Bucket(this, "AssetBucket", {
       encryption: BucketEncryption.S3_MANAGED,
@@ -40,6 +60,20 @@ export class Frontend extends Construct {
       serverAccessLogsPrefix: "AssetBucket",
     });
 
+    if (props.alternateDomainName && props.hostedZoneId) {
+      this.hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+        hostedZoneId: props.hostedZoneId,
+        zoneName: this.getDomainZoneName(props.alternateDomainName),
+      });
+
+      this.certificate = new acm.DnsValidatedCertificate(this, 'Certificate', {
+        domainName: props.alternateDomainName,
+        hostedZone: this.hostedZone,
+        region: 'us-east-1',
+        validation: acm.CertificateValidation.fromDns(this.hostedZone),
+      });
+    }
+
     const distribution = new Distribution(this, "Distribution", {
       defaultRootObject: "index.html",
       defaultBehavior: {
@@ -47,6 +81,10 @@ export class Frontend extends Construct {
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
         cachePolicy: CachePolicy.CACHING_OPTIMIZED,
       },
+      ...(this.alternateDomainName && this.certificate ? {
+        domainNames: [this.alternateDomainName],
+        certificate: this.certificate,
+      } : {}),
       errorResponses: [
         {
           httpStatus: 404,
@@ -69,6 +107,26 @@ export class Frontend extends Construct {
       enableIpv6: props.enableIpV6,
     });
 
+    if (this.alternateDomainName && this.hostedZone) {
+      new route53.ARecord(this, 'AliasRecord', {
+        zone: this.hostedZone,
+        target: route53.RecordTarget.fromAlias(
+          new targets.CloudFrontTarget(distribution)
+        ),
+        recordName: this.alternateDomainName,
+      });
+
+      if (props.enableIpV6) {
+        new route53.AaaaRecord(this, 'AaaaRecord', {
+          zone: this.hostedZone,
+          target: route53.RecordTarget.fromAlias(
+            new targets.CloudFrontTarget(distribution)
+          ),
+          recordName: this.alternateDomainName,
+        });
+      }
+    }
+
     NagSuppressions.addResourceSuppressions(distribution, [
       {
         id: "AwsPrototyping-CloudFrontDistributionGeoRestrictions",
@@ -78,9 +136,35 @@ export class Frontend extends Construct {
 
     this.assetBucket = assetBucket;
     this.cloudFrontWebDistribution = distribution;
+
+    if (this.alternateDomainName) {
+      new CfnOutput(this, 'AlternateDomain', {
+        value: this.alternateDomainName,
+        description: 'Alternate domain name for the CloudFront distribution',
+      });
+    }
+    if (this.certificate) {
+      new CfnOutput(this, 'CertificateArn', {
+        value: this.certificate.certificateArn,
+        description: 'ARN of the ACM certificate',
+      });
+    }
+  }
+
+  /**
+   * Extracts the parent domain from a full domain name
+   * e.g., 'chat.example.com' -> 'example.com'
+   */
+  private getDomainZoneName(domainName: string): string {
+    const parts = domainName.split('.');
+    if (parts.length <= 2) return domainName;
+    return parts.slice(-2).join('.');
   }
 
   getOrigin(): string {
+    if (this.alternateDomainName) {
+      return `https://${this.alternateDomainName}`;
+    }
     return `https://${this.cloudFrontWebDistribution.distributionDomainName}`;
   }
 

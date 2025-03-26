@@ -16,13 +16,19 @@ from app.repositories.custom_bot import alias_exists, store_alias
 from app.repositories.models.conversation import (
     ConversationModel,
     MessageModel,
+    ReasoningContentModel,
     RelatedDocumentModel,
     SimpleMessageModel,
     TextContentModel,
     ToolResultContentModel,
     ToolUseContentModel,
 )
-from app.repositories.models.custom_bot import BotAliasModel, BotModel
+from app.repositories.models.custom_bot import (
+    BotAliasModel,
+    BotModel,
+    ConversationQuickStarterModel,
+    GenerationParamsModel,
+)
 from app.routes.schemas.conversation import (
     ChatInput,
     ChatOutput,
@@ -45,7 +51,7 @@ from app.vector_search import (
 from ulid import ULID
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def prepare_conversation(
@@ -201,6 +207,7 @@ def chat(
     on_stop: Callable[[OnStopInput], None] | None = None,
     on_thinking: Callable[[OnThinking], None] | None = None,
     on_tool_result: Callable[[ToolRunResult], None] | None = None,
+    on_reasoning: Callable[[str], None] | None = None,
 ) -> tuple[ConversationModel, MessageModel]:
     user_msg_id, conversation, bot = prepare_conversation(user, chat_input)
 
@@ -226,6 +233,7 @@ def chat(
     search_results: list[SearchResult] = []
     if bot is not None:
         if bot.is_agent_enabled():
+            # If it have a knowledge base, always process it in agent mode
             if bot.has_knowledge():
                 # Add knowledge tool
                 knowledge_tool = create_knowledge_tool(bot=bot)
@@ -235,51 +243,6 @@ def chat(
                 instructions.append(
                     get_prompt_to_cite_tool_results(
                         model=chat_input.message.model,
-                    )
-                )
-
-        elif bot.has_knowledge():
-            # Fetch most related documents from vector store
-            # NOTE: Currently embedding not support multi-modal. For now, use the last content.
-            content = conversation.message_map[user_msg_id].content[-1]
-            if isinstance(content, TextContentModel):
-                pseudo_tool_use_id = "new-message-assistant"
-
-                if on_thinking:
-                    on_thinking(
-                        {
-                            "tool_use_id": pseudo_tool_use_id,
-                            "name": "knowledge_base_tool",
-                            "input": {
-                                "query": content.body,
-                            },
-                        }
-                    )
-
-                search_results = search_related_docs(bot=bot, query=content.body)
-                logger.info(f"Search results from vector store: {search_results}")
-
-                if on_tool_result:
-                    on_tool_result(
-                        {
-                            "tool_use_id": pseudo_tool_use_id,
-                            "status": "success",
-                            "related_documents": [
-                                search_result_to_related_document(
-                                    search_result=result,
-                                    source_id_base=pseudo_tool_use_id,
-                                )
-                                for result in search_results
-                            ],
-                        }
-                    )
-
-                # Insert contexts to instruction
-                instructions.append(
-                    build_rag_prompt(
-                        search_results=search_results,
-                        model=chat_input.message.model,
-                        display_citation=display_citation,
                     )
                 )
 
@@ -327,6 +290,7 @@ def chat(
         tools=tools,
         on_stream=on_stream,
         on_thinking=on_thinking,
+        on_reasoning=on_reasoning,
     )
 
     thinking_log: list[SimpleMessageModel] = []
@@ -335,6 +299,7 @@ def chat(
             messages=messages,
             grounding_source=grounding_source,
             message_for_continue_generate=message_for_continue_generate,
+            enable_reasoning=chat_input.enable_reasoning,
         )
 
         message = result["message"]
@@ -343,11 +308,40 @@ def chat(
         conversation.total_price += result["price"]
         conversation.should_continue = stop_reason == "max_tokens"
 
-        if stop_reason != "tool_use":
+        if stop_reason != "tool_use":  # Tool use converged
             message.parent = user_msg_id
 
-            if len(thinking_log) > 0:
-                message.thinking_log = thinking_log
+            # If there is a thinking_log that includes reasoning, add it to the beginning of the content.
+            reasoning_log = next(
+                (
+                    log
+                    for log in thinking_log
+                    if any(
+                        isinstance(content, ReasoningContentModel)
+                        for content in log.content
+                    )
+                ),
+                None,
+            )
+            if reasoning_log:
+                reasoning_content = next(
+                    content
+                    for content in reasoning_log.content
+                    if isinstance(content, ReasoningContentModel)
+                )
+                message.content.insert(0, reasoning_content)
+
+            # Retain tool use and its result logs
+            tool_logs = [
+                log
+                for log in thinking_log
+                if any(
+                    isinstance(content, (ToolUseContentModel, ToolResultContentModel))
+                    for content in log.content
+                )
+            ]
+            if tool_logs:
+                message.thinking_log = tool_logs
 
             if chat_input.continue_generate:
                 # For continue generate
@@ -530,6 +524,7 @@ def propose_conversation_title(
             if not any(
                 isinstance(content, ToolUseContentModel)
                 or isinstance(content, ToolResultContentModel)
+                or isinstance(content, ReasoningContentModel)
                 for content in message.content
             )
         ],

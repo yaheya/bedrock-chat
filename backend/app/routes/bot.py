@@ -1,10 +1,13 @@
+import logging
 from typing import Any, Dict, Literal
 
 from app.dependencies import check_creating_bot_allowed
 from app.repositories.custom_bot import find_bot_by_id
 from app.routes.schemas.bot import (
     ActiveModelsOutput,
-    AgentTool,
+    Agent,
+    BedrockGuardrailsOutput,
+    BedrockKnowledgeBaseOutput,
     BotInput,
     BotMetaOutput,
     BotModifyInput,
@@ -13,6 +16,11 @@ from app.routes.schemas.bot import (
     BotStarredInput,
     BotSummaryOutput,
     BotSwitchVisibilityInput,
+    ConversationQuickStarter,
+    FirecrawlConfig,
+    GenerationParams,
+    Knowledge,
+    PlainTool,
 )
 from app.routes.schemas.conversation import type_model_name
 from app.usecases.bot import (
@@ -30,6 +38,9 @@ from app.usecases.bot import (
 )
 from app.user import User
 from fastapi import APIRouter, Depends, Request
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 router = APIRouter(tags=["bot"])
 
@@ -148,8 +159,11 @@ def delete_bot_uploaded_file(request: Request, bot_id: str, filename: str):
     remove_uploaded_file(current_user, bot_id, filename)
 
 
-@router.get("/bot/{bot_id}/agent/available-tools", response_model=list[AgentTool])
+@router.get("/bot/{bot_id}/agent/available-tools", response_model=list[PlainTool])
 def get_bot_available_tools(request: Request, bot_id: str):
     """Get available tools for bot"""
     tools = fetch_available_agent_tools()
-    return [AgentTool(name=tool.name, description=tool.description) for tool in tools]
+    return [
+        PlainTool(tool_type="plain", name=tool.name, description=tool.description)
+        for tool in tools
+    ]

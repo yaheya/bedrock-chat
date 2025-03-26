@@ -15,6 +15,7 @@ from app.routes.schemas.conversation import (
     ImageToolResult,
     JsonToolResult,
     MessageInput,
+    ReasoningContent,
     RelatedDocument,
     SimpleMessage,
     TextContent,
@@ -547,12 +548,52 @@ class ToolResultContentModel(BaseModel):
         ]
 
 
+class ReasoningContentModel(BaseModel):
+    content_type: Literal["reasoning"]
+    text: str
+    signature: str
+    redacted_content: Base64EncodedBytes
+
+    def to_content(self) -> Content:
+        return ReasoningContent(
+            content_type="reasoning",
+            text=self.text,
+            signature=self.signature,
+            redacted_content=self.redacted_content,
+        )
+
+    def to_contents_for_converse(self) -> list[ContentBlockTypeDef]:
+        # Ref: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html
+        # Ref: https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking
+
+        if self.text:
+            return [
+                {
+                    "reasoningContent": {  # type: ignore
+                        "reasoningText": {
+                            "text": self.text,
+                            "signature": self.signature,
+                        },
+                    }
+                }
+            ]
+        else:
+            return [
+                {
+                    "reasoningContent": {  # type: ignore
+                        "redactedContent": {"data": self.redacted_content},
+                    }
+                }
+            ]
+
+
 ContentModel = Annotated[
     TextContentModel
     | ImageContentModel
     | AttachmentContentModel
     | ToolUseContentModel
-    | ToolResultContentModel,
+    | ToolResultContentModel
+    | ReasoningContentModel,
     Discriminator("content_type"),
 ]
 

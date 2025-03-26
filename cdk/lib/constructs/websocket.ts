@@ -84,6 +84,19 @@ export class WebSocket extends Construct {
         resources: [props.auth.userPool.userPoolArn],
       })
     );
+
+    // get api key from secrets manager
+    handlerRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [
+          `arn:aws:secretsmanager:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:secret:firecrawl/*/*`,
+        ],
+      })
+    );
+
     largePayloadSupportBucket.grantRead(handlerRole);
     props.websocketSessionTable.grantReadWriteData(handlerRole);
     props.largeMessageBucket.grantReadWrite(handlerRole);

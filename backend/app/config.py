@@ -1,4 +1,4 @@
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 
 class GenerationParams(TypedDict):
@@ -7,6 +7,7 @@ class GenerationParams(TypedDict):
     top_p: float
     temperature: float
     stop_sequences: list[str]
+    reasoning_params: NotRequired[dict[str, int]]
 
 
 class EmbeddingConfig(TypedDict):
@@ -20,11 +21,15 @@ class EmbeddingConfig(TypedDict):
 # Adjust the values according to your application.
 # See: https://docs.anthropic.com/claude/reference/complete_post
 DEFAULT_GENERATION_CONFIG: GenerationParams = {
-    "max_tokens": 2000,
+    # Minimum (Haiku) is 4096
+    # Ref: https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-comparison
+    "max_tokens": 4096,
     "top_k": 250,
     "top_p": 0.999,
-    "temperature": 0.6,
+    "temperature": 1.0,
     "stop_sequences": ["Human: ", "Assistant: "],
+    # Budget tokens must NOT exceeds max_tokens
+    "reasoning_params": {"budget_tokens": 1024},
 }
 
 # Ref: https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html#model-parameters-mistral-request-response
@@ -55,6 +60,7 @@ BEDROCK_PRICING = {
         "claude-v3-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet-v2": {"input": 0.00300, "output": 0.01500},
+        "claude-v3.7-sonnet": {"input": 0.00300, "output": 0.01500},
         "mistral-7b-instruct": {"input": 0.00015, "output": 0.0002},
         "mixtral-8x7b-instruct": {"input": 0.00045, "output": 0.0007},
         "mistral-large": {"input": 0.008, "output": 0.024},
@@ -72,6 +78,7 @@ BEDROCK_PRICING = {
             "output": 0.00240,
         },
         "claude-v3-sonnet": {"input": 0.00300, "output": 0.01500},
+        "claude-v3.7-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3-opus": {"input": 0.01500, "output": 0.07500},
         "mistral-7b-instruct": {"input": 0.00015, "output": 0.0002},
         "mixtral-8x7b-instruct": {"input": 0.00045, "output": 0.0007},
@@ -104,6 +111,7 @@ BEDROCK_PRICING = {
         "claude-v3-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet-v2": {"input": 0.00300, "output": 0.01500},
+        "claude-v3.7-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3-opus": {"input": 0.01500, "output": 0.07500},
         "mistral-7b-instruct": {"input": 0.00015, "output": 0.0002},
         "mixtral-8x7b-instruct": {"input": 0.00045, "output": 0.0007},

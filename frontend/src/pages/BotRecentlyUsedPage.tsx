@@ -167,7 +167,7 @@ const BotRecentlyUsedPage: React.FC = () => {
             <div className="border-b border-gray pb-2 text-2xl font-bold">
               {t('bot.label.recentlyUsedBots')}
             </div>
-            <div className="h-4/5 overflow-x-auto overflow-y-scroll border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color/20">
+            <div className="h-4/5 overflow-x-auto overflow-y-scroll border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color-light/20 dark:scrollbar-thumb-aws-font-color-dark/20">
               <div className="h-full">
                 {recentlyUsedBots?.length === 0 && (
                   <div className="flex size-full items-center justify-center italic text-dark-gray">

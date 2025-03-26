@@ -34,6 +34,96 @@ from app.repositories.models.conversation import (
     ToolUseContentModel,
     ToolUseContentModelBody,
 )
+from app.repositories.models.custom_bot import (
+    ActiveModelsModel,
+    AgentModel,
+    BotModel,
+    ConversationQuickStarterModel,
+    GenerationParamsModel,
+    KnowledgeModel,
+    ToolModel,
+)
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
+
+# class TestRowLevelAccess(unittest.TestCase):
+#     def setUp(self) -> None:
+#         self.conversation_user_1 = ConversationModel(
+#             id="1",
+#             create_time=1627984879.9,
+#             title="Test Conversation",
+#             message_map={
+#                 "a": MessageModel(
+#                     role="user",
+#                     content=TextContentModel(content_type="text", body="Hello"),
+#                     model="model",
+#                     children=["x", "y"],
+#                     parent="z",
+#                     create_time=1627984879.9,
+#                 )
+#             },
+#             last_message_id="x",
+#         )
+#         store_conversation("user1", self.conversation_user_1)
+
+#         self.conversation_user_2 = ConversationModel(
+#             id="2",
+#             create_time=1627984879.9,
+#             title="Test Conversation",
+#             message_map={
+#                 "a": MessageModel(
+#                     role="user",
+#                     content=TextContentModel(content_type="text", body="Hello"),
+#                     model="model",
+#                     children=["x", "y"],
+#                     parent="z",
+#                     create_time=1627984879.9,
+#                 )
+#             },
+#             last_message_id="x",
+#         )
+#         store_conversation("user2", self.conversation_user_2)
+
+#     def test_find_conversation_by_user_id(self):
+#         # Create table client for user1
+#         table = _get_table_client("user1")
+
+#         table.query(
+#             KeyConditionExpression=Key("PK").eq(
+#                 compose_conv_id("user1", self.conversation_user_1.id)
+#             )
+#         )
+
+#         with self.assertRaises(ClientError):
+#             # Raise `AccessDeniedException` because user1 cannot access user2's data
+#             table.query(
+#                 KeyConditionExpression=Key("PK").eq(
+#                     compose_conv_id("user2", self.conversation_user_2.id)
+#                 )
+#             )
+
+#     def test_find_conversation_by_id(self):
+#         # Create table client for user1
+#         table = _get_table_client("user1")
+
+#         table.query(
+#             IndexName="SKIndex",
+#             KeyConditionExpression=Key("SK").eq(
+#                 compose_conv_id("user1", self.conversation_user_1.id)
+#             ),
+#         )
+#         with self.assertRaises(ClientError):
+#             # Raise `AccessDeniedException` because user1 cannot access user2's data
+#             table.query(
+#                 IndexName="SKIndex",
+#                 KeyConditionExpression=Key("SK").eq(
+#                     compose_conv_id("user2", self.conversation_user_2.id)
+#                 ),
+#             )
+
+#     def tearDown(self) -> None:
+#         delete_conversation_by_user_id("user1")
+#         delete_conversation_by_user_id("user2")
 
 
 class TestConversationRepository(unittest.TestCase):
@@ -431,6 +521,257 @@ class TestConversationRepository(unittest.TestCase):
         delete_conversation_by_user_id(user_id="user")
         conversations = find_conversation_by_user_id(user_id="user")
         self.assertEqual(len(conversations), 0)
+
+
+class TestConversationBotRepository(unittest.TestCase):
+    def setUp(self):
+        self.patcher = patch("boto3.resource")
+        self.mock_boto3_resource = self.patcher.start()
+
+        self.mock_table = MagicMock()
+        self.mock_boto3_resource.return_value.Table.return_value = self.mock_table
+
+        # Set up environment variables
+        os.environ["CONVERSATION_TABLE_NAME"] = "test-table"
+        os.environ["CONVERSATION_BUCKET_NAME"] = "test-bucket"
+
+        self.active_models = ActiveModelsModel(
+            claude3_sonnet_v1=True,
+            claude3_haiku_v1=True,
+            claude3_opus_v1=True,
+            claude3_5_sonnet_v1=True,
+            claude3_5_sonnet_v2=True,
+            claude3_5_haiku_v1=True,
+        )
+
+        self.conversation1 = ConversationModel(
+            id="1",
+            create_time=1627984879.9,
+            title="Test Conversation",
+            total_price=100,
+            message_map={
+                "a": MessageModel(
+                    role="user",
+                    content=[
+                        TextContentModel(
+                            content_type="text",
+                            body="Hello",
+                        ),
+                        ImageContentModel(
+                            content_type="image",
+                            body=base64.b64decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                            ),
+                            media_type="image/png",
+                        ),
+                    ],
+                    model="claude-instant-v1",
+                    children=["x", "y"],
+                    parent="z",
+                    create_time=1627984879.9,
+                    feedback=None,
+                    used_chunks=None,
+                    thinking_log=None,
+                )
+            },
+            last_message_id="x",
+            bot_id=None,
+            should_continue=False,
+        )
+
+        self.conversation2 = ConversationModel(
+            id="2",
+            create_time=1627984879.9,
+            title="Test Conversation",
+            total_price=100,
+            message_map={
+                "a": MessageModel(
+                    role="user",
+                    content=[
+                        TextContentModel(
+                            content_type="text",
+                            body="Hello",
+                        ),
+                        ImageContentModel(
+                            content_type="image",
+                            body=base64.b64decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                            ),
+                            media_type="image/png",
+                        ),
+                    ],
+                    model="claude-instant-v1",
+                    children=["x", "y"],
+                    parent="z",
+                    create_time=1627984879.9,
+                    feedback=None,
+                    used_chunks=None,
+                    thinking_log=None,
+                )
+            },
+            last_message_id="x",
+            bot_id="1",
+            should_continue=False,
+        )
+
+        self.bot1 = BotModel(
+            id="1",
+            title="Test Bot",
+            instruction="Test Bot Prompt",
+            description="Test Bot Description",
+            create_time=1627984879.9,
+            last_used_time=1627984879.9,
+            public_bot_id="1",
+            is_pinned=False,
+            owner_user_id="user",
+            generation_params=GenerationParamsModel(
+                max_tokens=2000,
+                top_k=250,
+                top_p=0.999,
+                temperature=0.6,
+                stop_sequences=["Human: ", "Assistant: "],
+            ),
+            agent=AgentModel(
+                tools=[
+                    ToolModel(name="tool1", description="tool1 description"),
+                    ToolModel(name="tool2", description="tool2 description"),
+                ]
+            ),
+            knowledge=KnowledgeModel(
+                source_urls=["https://aws.amazon.com/"],
+                sitemap_urls=["https://aws.amazon.sitemap.xml"],
+                filenames=["aws.pdf"],
+                s3_urls=["s3://example/path/"],
+            ),
+            sync_status="RUNNING",
+            sync_status_reason="reason",
+            sync_last_exec_id="",
+            published_api_codebuild_id="",
+            published_api_datetime=0,
+            published_api_stack_name="",
+            display_retrieved_chunks=True,
+            conversation_quick_starters=[
+                ConversationQuickStarterModel(title="QS title", example="QS example")
+            ],
+            bedrock_knowledge_base=None,
+            bedrock_guardrails=None,
+            active_models=self.active_models,
+        )
+
+        self.bot2 = BotModel(
+            id="2",
+            title="Test Bot",
+            instruction="Test Bot Prompt",
+            description="Test Bot Description",
+            create_time=1627984879.9,
+            last_used_time=1627984879.9,
+            public_bot_id="2",
+            is_pinned=False,
+            owner_user_id="user",
+            generation_params=GenerationParamsModel(
+                max_tokens=2000,
+                top_k=250,
+                top_p=0.999,
+                temperature=0.6,
+                stop_sequences=["Human: ", "Assistant: "],
+            ),
+            agent=AgentModel(
+                tools=[
+                    ToolModel(name="tool1", description="tool1 description"),
+                    ToolModel(name="tool2", description="tool2 description"),
+                ]
+            ),
+            knowledge=KnowledgeModel(
+                source_urls=["https://aws.amazon.com/"],
+                sitemap_urls=["https://aws.amazon.sitemap.xml"],
+                filenames=["aws.pdf"],
+                s3_urls=[],
+            ),
+            sync_status="RUNNING",
+            sync_status_reason="reason",
+            sync_last_exec_id="",
+            published_api_codebuild_id="",
+            published_api_datetime=0,
+            published_api_stack_name="",
+            display_retrieved_chunks=True,
+            conversation_quick_starters=[
+                ConversationQuickStarterModel(title="QS title", example="QS example")
+            ],
+            bedrock_knowledge_base=None,
+            bedrock_guardrails=None,
+            active_models=self.active_models,  # Added the missing field
+        )
+
+        store_conversation("user", self.conversation1)
+        store_bot("user", self.bot1)
+        store_bot("user", self.bot2)
+        store_conversation("user", self.conversation2)
+
+    def tearDown(self):
+        self.patcher.stop()
+        os.environ.pop("CONVERSATION_TABLE_NAME", None)
+        os.environ.pop("CONVERSATION_BUCKET_NAME", None)
+
+    def test_only_conversation_is_fetched(self):
+        self.mock_table.query.return_value = {
+            "Items": [
+                {
+                    "PK": "user",
+                    "SK": "user#CONV#1",
+                    "Title": "Test Conversation",
+                    "CreateTime": 1627984879.9,
+                    "MessageMap": json.dumps(
+                        {
+                            "system": {
+                                "role": "system",
+                                "content": [
+                                    {
+                                        "content_type": "text",
+                                        "body": "Hello",
+                                        "media_type": None,
+                                    }
+                                ],
+                                "model": "claude-instant-v1",
+                                "children": [],
+                                "parent": None,
+                                "create_time": 1627984879.9,
+                                "feedback": None,
+                                "used_chunks": None,
+                                "thinking_log": None,
+                            }
+                        }
+                    ),
+                    "BotId": None,
+                }
+            ]
+        }
+        conversations = find_conversation_by_user_id("user")
+        self.assertEqual(len(conversations), 1)
+
+    def test_only_bot_is_fetched(self):
+        self.mock_table.query.return_value = {
+            "Items": [
+                {
+                    "PK": "user",
+                    "SK": "user#BOT#1",
+                    "Title": "Test Bot",
+                    "Description": "Test Bot Description",
+                    "CreateTime": 1627984879.9,
+                    "LastBotUsed": 1627984879.9,
+                    "IsPinned": False,
+                    "SyncStatus": "RUNNING",
+                    "BedrockKnowledgeBase": None,
+                }
+            ]
+        }
+        bots = find_private_bots_by_user_id("user")
+        self.assertEqual(len(bots), 1)
+
+
+def tearDown(self) -> None:
+    delete_conversation_by_user_id("user")
+    delete_bot_by_id("user", "1")
+    delete_bot_by_id("user", "2")
 
 
 if __name__ == "__main__":

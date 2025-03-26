@@ -27,6 +27,8 @@ import { BotStore, Language } from "./constructs/bot-store";
 import { Duration } from "aws-cdk-lib";
 
 export interface BedrockChatStackProps extends StackProps {
+  readonly envName: string;
+  readonly envPrefix: string;
   readonly bedrockRegion: string;
   readonly webAclId: string;
   readonly identityProviders: TIdentityProvider[];
@@ -45,6 +47,8 @@ export interface BedrockChatStackProps extends StackProps {
   readonly enableBotStore: boolean;
   readonly botStoreLanguage: Language;
   readonly tokenValidMinutes: number;
+  readonly alternateDomainName?: string;
+  readonly hostedZoneId?: string;
 }
 
 export class BedrockChatStack extends cdk.Stack {
@@ -54,6 +58,7 @@ export class BedrockChatStack extends cdk.Stack {
       ...props,
     });
 
+    const sepHyphen = props.envPrefix ? "-" : "";
     const idp = identityProvider(props.identityProviders);
 
     const accessLogBucket = new Bucket(this, "AccessLogBucket", {
@@ -113,6 +118,9 @@ export class BedrockChatStack extends cdk.Stack {
       "ApiPublishCodebuild",
       {
         sourceBucket,
+        envName: props.envName,
+        envPrefix: props.envPrefix,
+        bedrockRegion: props.bedrockRegion,
       }
     );
     // CodeBuild used for KnowledgeBase
@@ -121,6 +129,9 @@ export class BedrockChatStack extends cdk.Stack {
       "BedrockKnowledgeBaseCodebuild",
       {
         sourceBucket,
+        envName: props.envName,
+        envPrefix: props.envPrefix,
+        bedrockRegion: props.bedrockRegion,
       }
     );
 
@@ -129,6 +140,8 @@ export class BedrockChatStack extends cdk.Stack {
       webAclId: props.webAclId,
       enableMistral: props.enableMistral,
       enableIpV6: props.enableIpV6,
+      alternateDomainName: props.alternateDomainName,
+      hostedZoneId: props.hostedZoneId,
     });
 
     const auth = new Auth(this, "Auth", {
@@ -167,11 +180,14 @@ export class BedrockChatStack extends cdk.Stack {
     }
 
     const usageAnalysis = new UsageAnalysis(this, "UsageAnalysis", {
+      envPrefix: props.envPrefix,
       accessLogBucket,
       sourceDatabase: database,
     });
 
     const backendApi = new Api(this, "BackendApi", {
+      envName: props.envName,
+      envPrefix: props.envPrefix,
       database,
       auth,
       bedrockRegion: props.bedrockRegion,
@@ -243,6 +259,7 @@ export class BedrockChatStack extends cdk.Stack {
       this,
       "WebAclForPublishedApi",
       {
+        envPrefix: props.envPrefix,
         allowedIpV4AddressRanges: props.publishedApiAllowedIpV4AddressRanges,
         allowedIpV6AddressRanges: props.publishedApiAllowedIpV6AddressRanges,
       }
@@ -258,11 +275,11 @@ export class BedrockChatStack extends cdk.Stack {
     // Outputs for API publication
     new CfnOutput(this, "PublishedApiWebAclArn", {
       value: webAclForPublishedApi.webAclArn,
-      exportName: "PublishedApiWebAclArn",
+      exportName: `${props.envPrefix}${sepHyphen}PublishedApiWebAclArn`,
     });
     new CfnOutput(this, "ConversationTableName", {
       value: database.conversationTable.tableName,
-      exportName: "BedrockClaudeChatConversationTableName",
+      exportName: `${props.envPrefix}${sepHyphen}BedrockClaudeChatConversationTableName`,
     });
     new CfnOutput(this, "BotTableName", {
       value: database.botTable.tableName,
@@ -270,11 +287,11 @@ export class BedrockChatStack extends cdk.Stack {
     });
     new CfnOutput(this, "TableAccessRoleArn", {
       value: database.tableAccessRole.roleArn,
-      exportName: "BedrockClaudeChatTableAccessRoleArn",
+      exportName: `${props.envPrefix}${sepHyphen}BedrockClaudeChatTableAccessRoleArn`,
     });
     new CfnOutput(this, "LargeMessageBucketName", {
       value: largeMessageBucket.bucketName,
-      exportName: "BedrockClaudeChatLargeMessageBucketName",
+      exportName: `${props.envPrefix}${sepHyphen}BedrockClaudeChatLargeMessageBucketName`,
     });
   }
 }

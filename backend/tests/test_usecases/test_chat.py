@@ -1,6 +1,10 @@
+import os
 import sys
 
 from ulid import ULID
+
+os.environ["BEDROCK_REGION"] = "us-west-2"
+os.environ["ENABLE_BEDROCK_CROSS_REGION_INFERENCE"] = "true"
 
 sys.path.insert(0, ".")
 import unittest
@@ -57,7 +61,8 @@ from tests.test_usecases.utils.user_factory import (
     create_test_user,
 )
 
-MODEL: type_model_name = "claude-v3-haiku"
+# MODEL: type_model_name = "claude-v3-haiku"
+MODEL: type_model_name = "claude-v3.7-sonnet"
 MISTRAL_MODEL: type_model_name = "mistral-7b-instruct"
 
 
@@ -198,6 +203,7 @@ class TestStartChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -224,6 +230,39 @@ class TestStartChat(unittest.TestCase):
         self.assertEqual(first_message.children, [second_key])
         self.assertEqual(conv.last_message_id, second_key)
         self.assertNotEqual(conv.total_price, 0)
+
+    def test_chat_with_reasoning(self):
+        chat_input = ChatInput(
+            conversation_id="test_conversation_id",
+            message=MessageInput(
+                role="user",
+                content=[
+                    TextContent(
+                        content_type="text",
+                        body="あなたの名前は何ですか？",
+                    )
+                ],
+                model=MODEL,
+                parent_message_id=None,
+                message_id=None,
+            ),
+            bot_id=None,
+            continue_generate=False,
+            enable_reasoning=True,
+        )
+        conversation, message = chat(user_id="user1", chat_input=chat_input)
+        output = chat_output_from_message(conversation=conversation, message=message)
+        self.output = output
+
+        pprint(output.model_dump())
+        # The output should contain 2 content (reasoning and text)
+        self.assertEqual(len(self.output.message.content), 2)
+
+        conv = find_conversation_by_id(
+            user_id="user1", conversation_id=output.conversation_id
+        )
+        # Stored message content should have 2 as well
+        self.assertEqual(len(conv.message_map[conv.last_message_id].content), 2)
 
     # def test_chat_mistral(self):
     #     prompt = "あなたの名前は何ですか?"
@@ -304,6 +343,7 @@ class TestAttachmentChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -340,6 +380,7 @@ class TestMultimodalChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         message = MessageModel.from_message_input(chat_input.message)
         print(message.content[0].body)
@@ -421,6 +462,7 @@ class TestContinueChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -546,6 +588,7 @@ class TestRegenerateChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -573,6 +616,7 @@ class TestRegenerateChat(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -607,6 +651,7 @@ class TestProposeTitle(unittest.TestCase):
             ),
             bot_id=None,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -682,6 +727,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="private1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -709,6 +755,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="private1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -731,6 +778,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="private1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -758,6 +806,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="public1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -781,6 +830,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="private1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -807,6 +857,7 @@ class TestChatWithCustomizedBot(unittest.TestCase):
             ),
             bot_id="private1",
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.first_user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)
@@ -837,10 +888,15 @@ def on_stop(on_stop_input: OnStopInput):
     pprint(on_stop_input)
 
 
+def on_reasoning(x: str):
+    print(f"Reasoning: {x}")
+
+
 class TestAgentChat(unittest.TestCase):
     user = create_test_user("user1")
     bot_id = "bot1"
-    model: type_model_name = "claude-v3-sonnet"
+    # model: type_model_name = "claude-v3-sonnet"
+    model: type_model_name = "claude-v3.7-sonnet"
 
     def setUp(self) -> None:
         private_bot = create_test_private_bot(
@@ -873,6 +929,7 @@ class TestAgentChat(unittest.TestCase):
             ),
             bot_id=self.bot_id,
             continue_generate=False,
+            enable_reasoning=True,
         )
         conversation, message = chat(
             self.user,
@@ -880,9 +937,10 @@ class TestAgentChat(unittest.TestCase):
             on_thinking=on_thinking,
             on_tool_result=on_tool_result,
             on_stop=on_stop,
+            on_reasoning=on_reasoning,
         )
         output = chat_output_from_message(conversation=conversation, message=message)
-        print(output.message.content[0].body)
+        print(output.message.content[-1].body)
 
         conv = find_conversation_by_id(self.user.id, output.conversation_id)
         # Assert if thinking log is not empty
@@ -968,6 +1026,7 @@ class TestGuardrailChat(unittest.TestCase):
             ),
             bot_id=self.bot_id,
             continue_generate=False,
+            enable_reasoning=False,
         )
         conversation, message = chat(self.user, chat_input=chat_input)
         output = chat_output_from_message(conversation=conversation, message=message)

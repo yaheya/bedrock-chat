@@ -44,7 +44,7 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
 
   return (
     <div
-      className="relative cursor-pointer rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray"
+      className="relative cursor-pointer rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray dark:border-dark-gray dark:bg-aws-squid-ink-dark"
       onClick={handleClick}>
       {props.id && props.onToggleStar && (
         <div className="absolute right-1 top-1">

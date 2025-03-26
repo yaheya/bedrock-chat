@@ -39,6 +39,10 @@ const translation = {
         description:
           'Claude 3.5の最新バージョン。v1をさらに強化し、より高い精度とパフォーマンスを提供',
       },
+      'claude-v3.7-sonnet': {
+        label: 'Claude 3.7 Sonnet',
+        description: '迅速な応答と深い分析能力を両立するハイブリッド推論モデル',
+      },
       'claude-v3.5-haiku': {
         label: 'Claude 3.5 (Haiku) v1',
         description: 'Haiku最新バージョン。精度を保ち、高速な応答を実現',
@@ -122,10 +126,26 @@ const translation = {
         internet_search: {
           name: 'インターネット検索',
           description: 'インターネットで情報を検索します。',
+          settings: '検索設定',
+          engine: '検索エンジン',
+          engines: {
+            duckduckgo: {
+              'label': 'DuckDuckGo (For Trial)',
+              'hint': "リミットレートが厳しいが無料で使用可能。小規模利用向け",
+            },
+            firecrawl: {
+              'label': 'Firecrawl (For Business)',
+              'hint': "レートリミットの拡張可能。ビジネス利用向け。APIキーが必要. https://www.firecrawl.dev/",
+            }
+          },
         },
         knowledge_base_tool: {
           name: 'ナレッジの取得',
           description: 'ナレッジから情報を取得します。',
+        },
+        firecrawl: {
+          apiKey: 'Firecrawl APIキー',
+          maxResults: '最大結果数'
         },
       },
     },
@@ -639,6 +659,10 @@ const translation = {
         label: '停止シーケンス',
         hint: '指定したキーワードを含む場合、モデルは生成を停止します。複数の単語を設定する場合は、カンマ区切りで入力してください。',
       },
+      budgetTokens: {
+        label: '思考予算トークン',
+        hint: '深い思考に割り当てるトークンの最大数。より大きな値は、より複雑な思考を可能にしますが、応答時間が長くなる可能性があります。',
+      },
     },
     searchSettings: {
       title: '検索設定',
@@ -889,6 +913,14 @@ const translation = {
           label: '関連性',
           hint: 'モデル応答がユーザーの質問に関連しているかどうかを確認し、関連性の閾値を下回る応答をブロックします。0: 何もブロックしない, 0.99: ほぼすべてをブロックする',
         },
+      },
+    },
+    reasoning: {
+      button: {
+        label: '深い思考',
+      },
+      card: {
+        label: '思考過程',
       },
     },
   },

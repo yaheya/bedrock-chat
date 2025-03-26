@@ -157,6 +157,15 @@ class NotificationSender:
                 ).encode("utf-8")
             )
 
+    def on_reasoning(self, token: str):
+        payload = json.dumps(
+            dict(
+                status="REASONING",
+                completion=token,
+            )
+        ).encode("utf-8")
+        self.notify(payload=payload)
+
 
 def process_chat_input(
     user: User,
@@ -181,6 +190,9 @@ def process_chat_input(
             ),
             on_tool_result=lambda run_result: notificator.on_agent_tool_result(
                 run_result=run_result
+            ),
+            on_reasoning=lambda token: notificator.on_reasoning(
+                token=token,
             ),
         )
 

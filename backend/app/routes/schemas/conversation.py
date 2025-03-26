@@ -11,6 +11,7 @@ type_model_name = Literal[
     "claude-v3-sonnet",
     "claude-v3.5-sonnet",
     "claude-v3.5-sonnet-v2",
+    "claude-v3.7-sonnet",
     "claude-v3.5-haiku",
     "claude-v3-haiku",
     "claude-v3-opus",
@@ -134,8 +135,22 @@ class ToolResultContent(BaseSchema):
     body: ToolResultContentBody
 
 
+class ReasoningContent(BaseSchema):
+    content_type: Literal["reasoning"] = Field(
+        ..., description="Content type. Note that image is only available for claude 3."
+    )
+    text: str
+    signature: str
+    redacted_content: Base64EncodedBytes
+
+
 Content = Annotated[
-    TextContent | ImageContent | AttachmentContent | ToolUseContent | ToolResultContent,
+    TextContent
+    | ImageContent
+    | AttachmentContent
+    | ToolUseContent
+    | ToolResultContent
+    | ReasoningContent,
     Discriminator("content_type"),
 ]
 
@@ -171,6 +186,7 @@ class ChatInput(BaseSchema):
     message: MessageInput
     bot_id: str | None = Field(None)
     continue_generate: bool = Field(False)
+    enable_reasoning: bool = Field(False)
 
 
 class ChatOutput(BaseSchema):

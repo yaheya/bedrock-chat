@@ -3,32 +3,29 @@ import logging
 from typing import Callable, TypedDict, TypeGuard
 
 from app.agents.tools.agent_tool import AgentTool
-from app.bedrock import calculate_price, compose_args_for_converse_api
+from app.bedrock import (
+    BedrockThrottlingException,
+    calculate_price,
+    compose_args_for_converse_api,
+)
 from app.repositories.models.conversation import (
-    SimpleMessageModel,
     ContentModel,
     MessageModel,
+    ReasoningContentModel,
+    SimpleMessageModel,
     TextContentModel,
     ToolUseContentModel,
     ToolUseContentModelBody,
 )
-from app.repositories.models.custom_bot import (
-    GenerationParamsModel,
-)
-from app.repositories.models.custom_bot_guardrails import (
-    BedrockGuardrailsModel,
-)
+from app.repositories.models.custom_bot import GenerationParamsModel
+from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.routes.schemas.conversation import type_model_name
 from app.utils import get_bedrock_runtime_client, get_current_time
-
+from botocore.exceptions import ClientError
+from mypy_boto3_bedrock_runtime.literals import ConversationRoleType, StopReasonType
+from mypy_boto3_bedrock_runtime.type_defs import GuardrailConverseContentBlockTypeDef
 from pydantic import JsonValue
-from mypy_boto3_bedrock_runtime.type_defs import (
-    GuardrailConverseContentBlockTypeDef,
-)
-from mypy_boto3_bedrock_runtime.literals import (
-    ConversationRoleType,
-    StopReasonType,
-)
+from retry import retry
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -62,21 +59,37 @@ class _PartialToolUseContent(TypedDict):
     tool_use: _PartialToolUseContentBody
 
 
+class _PartialReasoningContent(TypedDict):
+    text: str
+    signature: str
+    redacted_content: bytes
+
+
 class _PartialMessage(TypedDict):
     role: ConversationRoleType
-    contents: dict[int, _PartialTextContent | _PartialToolUseContent]
+    contents: dict[
+        int, _PartialTextContent | _PartialToolUseContent | _PartialReasoningContent
+    ]
 
 
 def _is_text_content(
-    content: _PartialTextContent | _PartialToolUseContent,
+    content: _PartialTextContent | _PartialToolUseContent | _PartialReasoningContent,
 ) -> TypeGuard[_PartialTextContent]:
-    return "text" in content
+    return "text" in content and (
+        "signature" not in content and "redacted_content" not in content
+    )
 
 
 def _is_tool_use_content(
-    content: _PartialTextContent | _PartialToolUseContent,
+    content: _PartialTextContent | _PartialToolUseContent | _PartialReasoningContent,
 ) -> TypeGuard[_PartialToolUseContent]:
     return "tool_use" in content
+
+
+def _is_reasoning_content(
+    content: _PartialTextContent | _PartialToolUseContent | _PartialReasoningContent,
+) -> TypeGuard[_PartialReasoningContent]:
+    return "signature" in content or "redacted_content" in content
 
 
 def _content_model_from_partial_content(
@@ -98,13 +111,21 @@ def _content_model_from_partial_content(
             ),
         )
 
+    elif _is_reasoning_content(content=content):
+        return ReasoningContentModel(
+            content_type="reasoning",
+            text=content["text"],
+            signature=content["signature"],
+            redacted_content=content["redacted_content"],
+        )
+
     else:
         raise ValueError(f"Unknown content type")
 
 
 def _content_model_to_partial_content(
     content: ContentModel,
-) -> _PartialTextContent | _PartialToolUseContent:
+) -> _PartialTextContent | _PartialToolUseContent | _PartialReasoningContent:
     if isinstance(content, TextContentModel):
         return {
             "text": content.body,
@@ -117,6 +138,12 @@ def _content_model_to_partial_content(
                 "name": content.body.name,
                 "input": json.dumps(content.body.input),
             },
+        }
+    elif isinstance(content, ReasoningContentModel):
+        return {
+            "text": content.text,
+            "signature": content.signature,
+            "redacted_content": content.redacted_content,
         }
 
     else:
@@ -137,6 +164,7 @@ class ConverseApiStreamHandler:
         tools: dict[str, AgentTool] | None = None,
         on_stream: Callable[[str], None] | None = None,
         on_thinking: Callable[[OnThinking], None] | None = None,
+        on_reasoning: Callable[[str], None] | None = None,
     ):
         """Base class for stream handlers.
         :param model: Model name.
@@ -150,12 +178,22 @@ class ConverseApiStreamHandler:
         self.tools = tools
         self.on_stream = on_stream
         self.on_thinking = on_thinking
+        self.on_reasoning = on_reasoning
 
+    @retry(
+        exceptions=(BedrockThrottlingException,),
+        tries=3,
+        delay=60,
+        backoff=2,
+        jitter=(0, 2),
+        logger=logger,
+    )
     def run(
         self,
         messages: list[SimpleMessageModel],
         grounding_source: GuardrailConverseContentBlockTypeDef | None = None,
         message_for_continue_generate: SimpleMessageModel | None = None,
+        enable_reasoning: bool = False,
     ) -> OnStopInput:
         try:
             # Create payload to invoke Bedrock
@@ -167,11 +205,19 @@ class ConverseApiStreamHandler:
                 guardrail=self.guardrail,
                 grounding_source=grounding_source,
                 tools=self.tools,
+                enable_reasoning=enable_reasoning,
             )
             logger.info(f"args for converse_stream: {args}")
 
             client = get_bedrock_runtime_client()
-            response = client.converse_stream(**args)
+            try:
+                response = client.converse_stream(**args)
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "ThrottlingException":
+                    raise BedrockThrottlingException(
+                        "Bedrock API is throttling requests"
+                    ) from e
+                raise
 
             current_message = _PartialMessage(
                 role="assistant",
@@ -218,7 +264,38 @@ class ConverseApiStreamHandler:
                     content_block_delta = event["contentBlockDelta"]
                     index = content_block_delta["contentBlockIndex"]
                     delta = content_block_delta["delta"]
-                    if "toolUse" in delta:
+
+                    if "reasoningContent" in delta:
+                        reasoning = delta["reasoningContent"]
+                        if index in current_message["contents"]:
+                            content = current_message["contents"][index]
+                            if _is_reasoning_content(content=content):
+                                content["text"] += reasoning.get("text", "")
+                                if "signature" in reasoning:
+                                    content["signature"] = reasoning["signature"]
+                                if "redactedContent" in reasoning:
+                                    content["redacted_content"] = reasoning[
+                                        "redactedContent"
+                                    ]
+                            else:
+                                # Should not happen
+                                logger.warning(
+                                    f"Unexpected reasoning content: {content}"
+                                )
+                        else:
+                            # If the block is not started, create a new block
+                            current_message["contents"][index] = {
+                                "text": reasoning.get("text", ""),
+                                "signature": reasoning.get("signature", ""),
+                                "redacted_content": reasoning.get(
+                                    "redactedContent", b""
+                                ),
+                            }
+                        if self.on_reasoning:
+                            # Only text is streamed
+                            self.on_reasoning(reasoning.get("text", ""))
+
+                    elif "toolUse" in delta:
                         input = delta["toolUse"]["input"]
                         if index in current_message["contents"]:
                             content = current_message["contents"][index]

@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { BaseProps } from '../@types/common';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { IoMoonSharp, IoSunnyOutline } from 'react-icons/io5';
 import useDrawer from '../hooks/useDrawer';
 import ButtonIcon from './ButtonIcon';
 import {
@@ -28,6 +29,7 @@ import { ConversationMeta } from '../@types/conversation';
 import { BotListItem } from '../@types/bot';
 import { isMobile } from 'react-device-detect';
 import useChat from '../hooks/useChat';
+import useLocalStorage from '../hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import Menu from './Menu';
 import DrawerItem from './DrawerItem';
@@ -36,6 +38,7 @@ import { usePageLabel } from '../routes';
 import { twMerge } from 'tailwind-merge';
 import Button from './Button';
 import Skeleton from './Skeleton';
+import Toggle from '../components/Toggle.tsx';
 
 type Props = BaseProps & {
   isAdmin: boolean;
@@ -201,9 +204,13 @@ const Drawer: React.FC<Props> = (props) => {
   const [prevConversations, setPrevConversations] =
     useState<typeof conversations>();
   const [generateTitleIndex, setGenerateTitleIndex] = useState(-1);
+  // If you want to add a theme, change the type from boolean to string and change the UI from toggle to pulldown.
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   const { newChat, conversationId } = useChat();
   const { botId } = useParams();
+
+  const [theme, setTheme] = useLocalStorage('theme', 'light');
 
   useEffect(() => {
     setPrevConversations(conversations);
@@ -224,6 +231,12 @@ const Drawer: React.FC<Props> = (props) => {
     }
   }, [conversations, prevConversations]);
 
+  useEffect(() => {
+    if (theme === 'dark') {
+      setIsDarkTheme(true);
+    }
+  }, [theme]);
+
   const onClickNewChat = useCallback(() => {
     newChat();
     closeSmallDrawer();
@@ -238,6 +251,17 @@ const Drawer: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  const changeTheme = (isDarkTheme: boolean) => {
+    setIsDarkTheme(isDarkTheme);
+    if (isDarkTheme) {
+      document.documentElement.className = 'dark';
+      setTheme('dark');
+    } else {
+      document.documentElement.className = 'light';
+      setTheme('light');
+    }
+  };
 
   const smallDrawer = useRef<HTMLDivElement>(null);
 
@@ -269,7 +293,7 @@ const Drawer: React.FC<Props> = (props) => {
 
   return (
     <>
-      <div className="relative h-full overflow-y-auto bg-aws-squid-ink scrollbar-thin scrollbar-track-white scrollbar-thumb-aws-squid-ink/30 ">
+      <div className="relative h-full overflow-y-auto bg-aws-squid-ink-light scrollbar-thin scrollbar-track-white scrollbar-thumb-aws-squid-ink-light/30 dark:bg-aws-ui-color-dark dark:scrollbar-thumb-aws-ui-color-dark/30">
         <nav
           className={`lg:visible lg:w-64 ${
             opened ? 'visible w-64' : 'invisible w-0'
@@ -317,11 +341,11 @@ const Drawer: React.FC<Props> = (props) => {
               className="border-t pt-1">
               {recentlyUsedUnstarredBots === undefined && (
                 <div className="flex flex-col gap-2 p-2">
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
                 </div>
               )}
               {recentlyUsedUnstarredBots
@@ -356,11 +380,11 @@ const Drawer: React.FC<Props> = (props) => {
               className="border-t pt-1">
               {conversations === undefined && (
                 <div className="flex flex-col gap-2 p-2">
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
-                  <Skeleton className="h-10 w-full bg-aws-sea-blue/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
                 </div>
               )}
               {conversations
@@ -397,7 +421,7 @@ const Drawer: React.FC<Props> = (props) => {
             className={twMerge(
               opened ? 'w-64' : 'w-0',
               props.isAdmin ? 'h-20' : 'h-10',
-              'fixed bottom-0 mb-2 flex flex-col items-start border-t bg-aws-squid-ink transition-width lg:w-64'
+              'fixed bottom-0 mb-2 flex flex-col items-start border-t bg-aws-squid-ink-light transition-width dark:bg-aws-ui-color-dark lg:w-64'
             )}>
             {props.isAdmin && (
               <DrawerItem
@@ -415,6 +439,22 @@ const Drawer: React.FC<Props> = (props) => {
               onSelectLanguage={props.onSelectLanguage}
               onClearConversations={props.onClearConversations}
             />
+
+            <div className="flex items-center gap-2">
+              {isDarkTheme ? (
+                <>
+                  <IoMoonSharp />
+                </>
+              ) : (
+                <>
+                  <IoSunnyOutline />
+                </>
+              )}
+              <Toggle
+                value={isDarkTheme}
+                onChange={(isDarkTheme) => changeTheme(isDarkTheme)}
+              />
+            </div>
           </div>
         </nav>
       </div>

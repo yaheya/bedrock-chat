@@ -20,21 +20,10 @@ import {
   Role,
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
+import { z } from "zod";
+import { BotStoreLanguageSchema } from "../utils/parameter-models";
 
-export type Language =
-  | "en"
-  | "de"
-  | "fr"
-  | "es"
-  | "ja"
-  | "ko"
-  | "zhhans"
-  | "zhhant"
-  | "it"
-  | "nb"
-  | "th"
-  | "id"
-  | "ms";
+export type Language = z.infer<typeof BotStoreLanguageSchema>;
 
 export interface BotStoreProps {
   readonly botTable: dynamodb.ITable;

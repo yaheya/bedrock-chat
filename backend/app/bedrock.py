@@ -2,33 +2,32 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TypeGuard, Dict, Any, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, TypeGuard
 
 from app.config import BEDROCK_PRICING
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
-
 from app.repositories.models.custom_bot import GenerationParamsModel
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.routes.schemas.conversation import type_model_name
 from app.utils import get_bedrock_runtime_client
+from botocore.exceptions import ClientError
+from retry import retry
 
 if TYPE_CHECKING:
     from app.agents.tools.agent_tool import AgentTool
-    from app.repositories.models.conversation import (
-        SimpleMessageModel,
-        ContentModel,
-    )
+    from app.repositories.models.conversation import ContentModel, SimpleMessageModel
+    from mypy_boto3_bedrock_runtime.literals import ConversationRoleType
     from mypy_boto3_bedrock_runtime.type_defs import (
-        ConverseStreamRequestRequestTypeDef,
-        MessageTypeDef,
-        ConverseResponseTypeDef,
         ContentBlockTypeDef,
+        ConverseResponseTypeDef,
+        ConverseStreamRequestTypeDef,
         GuardrailConverseContentBlockTypeDef,
         InferenceConfigurationTypeDef,
+        MessageTypeDef,
         SystemContentBlockTypeDef,
     )
-    from mypy_boto3_bedrock_runtime.literals import ConversationRoleType
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -45,6 +44,9 @@ ENABLE_BEDROCK_CROSS_REGION_INFERENCE = (
 )
 
 client = get_bedrock_runtime_client()
+
+
+class BedrockThrottlingException(Exception): ...
 
 
 def _is_conversation_role(role: str) -> TypeGuard[ConversationRoleType]:
@@ -109,7 +111,8 @@ def compose_args_for_converse_api(
     grounding_source: GuardrailConverseContentBlockTypeDef | None = None,
     tools: dict[str, AgentTool] | None = None,
     stream: bool = True,
-) -> ConverseStreamRequestRequestTypeDef:
+    enable_reasoning: bool = False,
+) -> ConverseStreamRequestTypeDef:
     def process_content(c: ContentModel, role: str) -> list[ContentBlockTypeDef]:
         if c.content_type == "text":
             if (
@@ -146,6 +149,7 @@ def compose_args_for_converse_api(
     inference_config: InferenceConfigurationTypeDef
     additional_model_request_fields: dict[str, Any]
     system_prompts: list[SystemContentBlockTypeDef]
+
     if is_nova_model(model):
         # Special handling for Nova models
         inference_config, additional_model_request_fields = _prepare_nova_model_params(
@@ -163,35 +167,76 @@ def compose_args_for_converse_api(
 
     else:
         # Standard handling for non-Nova models
-        inference_config = {
-            "maxTokens": (
+        if enable_reasoning:
+            budget_tokens = (
+                generation_params.reasoning_params.budget_tokens
+                if generation_params and generation_params.reasoning_params
+                else DEFAULT_GENERATION_CONFIG["reasoning_params"]["budget_tokens"]  # type: ignore
+            )
+            max_tokens = (
                 generation_params.max_tokens
                 if generation_params
                 else DEFAULT_GENERATION_CONFIG["max_tokens"]
-            ),
-            "temperature": (
-                generation_params.temperature
-                if generation_params
-                else DEFAULT_GENERATION_CONFIG["temperature"]
-            ),
-            "topP": (
-                generation_params.top_p
-                if generation_params
-                else DEFAULT_GENERATION_CONFIG["top_p"]
-            ),
-            "stopSequences": (
-                generation_params.stop_sequences
-                if generation_params
-                else DEFAULT_GENERATION_CONFIG.get("stop_sequences", [])
-            ),
-        }
-        additional_model_request_fields = {
-            "top_k": (
-                generation_params.top_k
-                if generation_params
-                else DEFAULT_GENERATION_CONFIG["top_k"]
             )
-        }
+
+            if max_tokens <= budget_tokens:
+                logger.warning(
+                    f"max_tokens ({max_tokens}) must be greater than budget_tokens ({budget_tokens}). "
+                    f"Setting max_tokens to {budget_tokens + 1024}"
+                )
+                max_tokens = budget_tokens + 1024
+
+            inference_config = {
+                "maxTokens": max_tokens,
+                "temperature": 1.0,  # Force temperature to 1.0 when reasoning is enabled
+                "topP": (
+                    generation_params.top_p
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG["top_p"]
+                ),
+                "stopSequences": (
+                    generation_params.stop_sequences
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG.get("stop_sequences", [])
+                ),
+            }
+            additional_model_request_fields = {
+                # top_k cannot be used with reasoning
+                "thinking": {
+                    "type": "enabled",
+                    "budget_tokens": budget_tokens,
+                },
+            }
+        else:
+            inference_config = {
+                "maxTokens": (
+                    generation_params.max_tokens
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG["max_tokens"]
+                ),
+                "temperature": (
+                    generation_params.temperature
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG["temperature"]
+                ),
+                "topP": (
+                    generation_params.top_p
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG["top_p"]
+                ),
+                "stopSequences": (
+                    generation_params.stop_sequences
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG.get("stop_sequences", [])
+                ),
+            }
+            additional_model_request_fields = {
+                "top_k": (
+                    generation_params.top_k
+                    if generation_params
+                    else DEFAULT_GENERATION_CONFIG["top_k"]
+                ),
+            }
         system_prompts = [
             {
                 "text": instruction,
@@ -201,7 +246,7 @@ def compose_args_for_converse_api(
         ]
 
     # Construct the base arguments
-    args: ConverseStreamRequestRequestTypeDef = {
+    args: ConverseStreamRequestTypeDef = {
         "inferenceConfig": inference_config,
         "modelId": get_model_id(model),
         "messages": arg_messages,
@@ -233,12 +278,26 @@ def compose_args_for_converse_api(
     return args
 
 
+@retry(
+    exceptions=(BedrockThrottlingException,),
+    tries=3,
+    delay=60,
+    backoff=2,
+    jitter=(0, 2),
+    logger=logger,
+)
 def call_converse_api(
-    args: ConverseStreamRequestRequestTypeDef,
+    args: ConverseStreamRequestTypeDef,
 ) -> ConverseResponseTypeDef:
     client = get_bedrock_runtime_client()
-
-    return client.converse(**args)
+    try:
+        return client.converse(**args)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ThrottlingException":
+            raise BedrockThrottlingException(
+                "Bedrock API is throttling requests"
+            ) from e
+        raise
 
 
 def calculate_price(
@@ -275,6 +334,7 @@ def get_model_id(
         "claude-v3-opus": "anthropic.claude-3-opus-20240229-v1:0",
         "claude-v3.5-sonnet": "anthropic.claude-3-5-sonnet-20240620-v1:0",
         "claude-v3.5-sonnet-v2": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "claude-v3.7-sonnet": "anthropic.claude-3-7-sonnet-20250219-v1:0",
         "claude-v3.5-haiku": "anthropic.claude-3-5-haiku-20241022-v1:0",
         "mistral-7b-instruct": "mistral.mistral-7b-instruct-v0:2",
         "mixtral-8x7b-instruct": "mistral.mixtral-8x7b-instruct-v0:1",
@@ -285,25 +345,151 @@ def get_model_id(
         "amazon-nova-micro": "amazon.nova-micro-v1:0",
     }
 
+    # Made this list by scripts/cross_region_inference/get_supported_cross_region_inferences.py
     # Ref: https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference-support.html
-    cross_region_inference_models = {
-        "claude-v3-sonnet",
-        "claude-v3-haiku",
-        "claude-v3-opus",
-        "claude-v3.5-sonnet",
-        "claude-v3.5-sonnet-v2",
-        "claude-v3.5-haiku",
-        "amazon-nova-pro",
-        "amazon-nova-lite",
-        "amazon-nova-micro",
-    }
-
-    supported_region_prefixes = {
-        "us-east-1": "us",
-        "us-west-2": "us",
-        "eu-west-1": "eu",
-        "eu-central-1": "eu",
-        "eu-west-3": "eu",
+    supported_regions = {
+        "us-east-1": {
+            "area": "us",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-opus",
+                "claude-v3-sonnet",
+                "claude-v3.5-haiku",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+                "claude-v3.7-sonnet",
+            ],
+        },
+        "us-east-2": {
+            "area": "us",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3.5-haiku",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+                "claude-v3.7-sonnet",
+            ],
+        },
+        "us-west-2": {
+            "area": "us",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-opus",
+                "claude-v3-sonnet",
+                "claude-v3.5-haiku",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+                "claude-v3.7-sonnet",
+            ],
+        },
+        "eu-central-1": {
+            "area": "eu",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+            ],
+        },
+        "eu-west-1": {
+            "area": "eu",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+            ],
+        },
+        "eu-west-2": {"area": "eu", "models": []},
+        "eu-west-3": {
+            "area": "eu",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+            ],
+        },
+        "eu-north-1": {
+            "area": "eu",
+            "models": ["amazon-nova-lite", "amazon-nova-micro", "amazon-nova-pro"],
+        },
+        "ap-south-1": {
+            "area": "apac",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+            ],
+        },
+        "ap-northeast-1": {
+            "area": "apac",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+            ],
+        },
+        "ap-northeast-2": {
+            "area": "apac",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+            ],
+        },
+        "ap-northeast-3": {"area": "apac", "models": ["claude-v3.5-sonnet-v2"]},
+        "ap-southeast-1": {
+            "area": "apac",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+            ],
+        },
+        "ap-southeast-2": {
+            "area": "apac",
+            "models": [
+                "amazon-nova-lite",
+                "amazon-nova-micro",
+                "amazon-nova-pro",
+                "claude-v3-haiku",
+                "claude-v3-sonnet",
+                "claude-v3.5-sonnet",
+                "claude-v3.5-sonnet-v2",
+            ],
+        },
     }
 
     base_model_id = base_model_ids.get(model)
@@ -311,9 +497,13 @@ def get_model_id(
         raise ValueError(f"Unsupported model: {model}")
 
     model_id = base_model_id
-    if enable_cross_region and model in cross_region_inference_models:
-        region_prefix = supported_region_prefixes.get(bedrock_region)
-        if region_prefix:
+
+    if enable_cross_region:
+        if (
+            bedrock_region in supported_regions
+            and model in supported_regions[bedrock_region]["models"]
+        ):
+            region_prefix = supported_regions[bedrock_region]["area"]
             model_id = f"{region_prefix}.{base_model_id}"
             logger.info(
                 f"Using cross-region model ID: {model_id} for model '{model}' in region '{BEDROCK_REGION}'"

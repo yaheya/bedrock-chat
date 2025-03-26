@@ -7,13 +7,13 @@ from app.agents.tools.internet_search import internet_search_tool
 from app.repositories.models.custom_bot import (
     ActiveModelsModel,
     AgentModel,
-    AgentToolModel,
     BedrockGuardrailsModel,
     BedrockKnowledgeBaseModel,
     BotAliasModel,
     BotModel,
     ConversationQuickStarterModel,
     GenerationParamsModel,
+    InternetToolModel,
     KnowledgeModel,
     UsageStatsModel,
 )
@@ -22,6 +22,8 @@ from app.repositories.models.custom_bot_kb import (
     OpenSearchParamsModel,
     SearchParamsModel,
     WebCrawlingFiltersModel,
+    PlainToolModel,
+    ReasoningParamsModel,
 )
 from app.routes.schemas.bot import type_sync_status
 
@@ -70,18 +72,17 @@ def _create_test_bot_model(
             top_p=0.999,
             temperature=0.6,
             stop_sequences=["Human: ", "Assistant: "],
+            reasoning_params=ReasoningParamsModel(budget_tokens=1024),
         ),
         agent=AgentModel(
-            tools=(
-                []
-                if not include_internet_tool
-                else [
-                    AgentToolModel(
-                        name=internet_search_tool.name,
-                        description=internet_search_tool.description,
-                    )
-                ]
-            ),
+            tools=[
+                PlainToolModel(
+                    tool_type="plain", name="tool1", description="tool1 description"
+                ),
+                PlainToolModel(
+                    tool_type="plain", name="tool2", description="tool2 description"
+                ),
+            ]
         ),
         knowledge=(
             KnowledgeModel(

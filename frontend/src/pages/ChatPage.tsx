@@ -75,6 +75,7 @@ const ChatPage: React.FC = () => {
 
   const {
     agentThinking,
+    reasoningThinking,
     conversationError,
     postingMessage,
     newChat,
@@ -92,6 +93,9 @@ const ChatPage: React.FC = () => {
     getShouldContinue,
     relatedDocuments,
     giveFeedback,
+    reasoningEnabled,
+    setReasoningEnabled,
+    supportReasoning,
   } = useChat();
 
   // Error Handling
@@ -177,6 +181,7 @@ const ChatPage: React.FC = () => {
   const onSend = useCallback(
     (
       content: string,
+      enableReasoning: boolean,
       base64EncodedImages?: string[],
       attachments?: AttachmentType[]
     ) => {
@@ -185,6 +190,7 @@ const ChatPage: React.FC = () => {
         base64EncodedImages,
         attachments,
         bot: inputBotParams,
+        enableReasoning,
       });
     },
     [inputBotParams, postChat]
@@ -203,23 +209,29 @@ const ChatPage: React.FC = () => {
         retryPostChat({
           content,
           bot: inputBotParams,
+          enableReasoning: reasoningEnabled,
         });
       } else {
         regenerate({
           messageId,
           content,
           bot: inputBotParams,
+          enableReasoning: reasoningEnabled,
         });
       }
     },
-    [hasError, inputBotParams, regenerate, retryPostChat]
+    [hasError, inputBotParams, regenerate, retryPostChat, reasoningEnabled]
   );
 
-  const onRegenerate = useCallback(() => {
-    regenerate({
-      bot: inputBotParams,
-    });
-  }, [inputBotParams, regenerate]);
+  const onRegenerate = useCallback(
+    (enableReasoning: boolean) => {
+      regenerate({
+        bot: inputBotParams,
+        enableReasoning,
+      });
+    },
+    [inputBotParams, regenerate]
+  );
 
   const onContinueGenerate = useCallback(() => {
     continueGenerate({ bot: inputBotParams });
@@ -343,6 +355,14 @@ const ChatPage: React.FC = () => {
   }> = React.memo((props) => {
     const { chatContent: message } = props;
 
+    const isReasoningActive = reasoningThinking.matches('active');
+    const reasoning = useMemo(
+      () => ({
+        content: isReasoningActive ? reasoningThinking.context.content : '',
+      }),
+      [isReasoningActive]
+    );
+
     const isAgentThinking = useMemo(
       () =>
         [AgentState.THINKING, AgentState.LEAVING].some(
@@ -417,6 +437,7 @@ const ChatPage: React.FC = () => {
     return (
       <ChatMessage
         tools={tools}
+        reasoning={reasoning}
         chatContent={message}
         isStreaming={props.isStreaming}
         relatedDocuments={relatedDocumentsForCitation}
@@ -467,7 +488,7 @@ const ChatPage: React.FC = () => {
       onDrop={endDnd}
       onDragEnd={endDnd}>
       <div className="flex-1 overflow-hidden">
-        <div className="sticky top-0 z-10 mb-1.5 flex h-14 w-full items-center justify-between border-b border-gray bg-aws-paper p-2">
+        <div className="sticky top-0 z-10 mb-1.5 flex h-14 w-full items-center justify-between border-b border-gray bg-aws-paper-light p-2 dark:bg-aws-paper-dark">
           <div className="flex w-full justify-between">
             <div className="p-2">
               <div className="mr-10 flex items-center font-bold">
@@ -477,15 +498,15 @@ const ChatPage: React.FC = () => {
                   className="ml-1 text-aws-aqua"
                 />
               </div>
-              <div className="text-xs font-thin text-dark-gray">
+              <div className="text-xs font-thin text-dark-gray dark:text-light-gray">
                 {description}
               </div>
             </div>
 
             {isAvailabilityBot && (
               <div className="absolute -top-1 right-0 flex h-full items-center">
-                <div className="h-full w-5 bg-gradient-to-r from-transparent to-aws-paper"></div>
-                <div className="flex items-center bg-aws-paper">
+                <div className="h-full bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
+                <div className="flex items-center bg-aws-paper-light dark:bg-aws-paper-dark">
                   {bot?.owned && (
                     <StatusSyncBot
                       syncStatus={bot.syncStatus}
@@ -549,7 +570,7 @@ const ChatPage: React.FC = () => {
             )}
           </div>
           {getPostedModel() && (
-            <div className="absolute right-2 top-10 text-xs text-dark-gray">
+            <div className="absolute right-2 top-10 text-xs text-dark-gray dark:text-light-gray">
               model: {getPostedModel()}
             </div>
           )}
@@ -576,7 +597,9 @@ const ChatPage: React.FC = () => {
                     <div
                       key={idx}
                       className={`${
-                        message.role === 'assistant' ? 'bg-aws-squid-ink/5' : ''
+                        message.role === 'assistant'
+                          ? 'bg-aws-squid-ink-light/5 dark:bg-aws-squid-ink-dark/35'
+                          : ''
                       }`}>
                       <ChatMessageWithRelatedDocuments
                         chatContent={message}
@@ -589,7 +612,7 @@ const ChatPage: React.FC = () => {
                           }
                         }}
                       />
-                      <div className="w-full border-b border-aws-squid-ink/10"></div>
+                      <div className="w-full border-b border-aws-squid-ink-light/10 dark:border-aws-squid-ink-dark/10"></div>
                     </div>
                   ))}
                 </>
@@ -607,6 +630,7 @@ const ChatPage: React.FC = () => {
                     outlined
                     onClick={() => {
                       retryPostChat({
+                        enableReasoning: reasoningEnabled,
                         bot: inputBotParams,
                       });
                     }}>
@@ -635,9 +659,9 @@ const ChatPage: React.FC = () => {
             {bot?.conversationQuickStarters?.map((qs, idx) => (
               <div
                 key={idx}
-                className="w-[calc(33.333%-0.5rem)] cursor-pointer rounded-2xl border border-aws-squid-ink/20 bg-white p-2  text-sm text-dark-gray  hover:shadow-lg hover:shadow-gray"
+                className="w-[calc(33.333%-0.5rem)] cursor-pointer rounded-2xl border border-aws-squid-ink-light/20 bg-white p-2 text-sm  text-dark-gray hover:shadow-lg hover:shadow-gray  dark:border-aws-squid-ink-dark/20 dark:text-light-gray"
                 onClick={() => {
-                  onSend(qs.example);
+                  onSend(qs.example, reasoningEnabled);
                 }}>
                 <div>
                   <PiPenNib />
@@ -667,6 +691,9 @@ const ChatPage: React.FC = () => {
           onRegenerate={onRegenerate}
           continueGenerate={onContinueGenerate}
           ref={focusInputRef}
+          supportReasoning={supportReasoning}
+          reasoningEnabled={reasoningEnabled}
+          onChangeReasoning={setReasoningEnabled}
         />
       </div>
       <BottomHelper />

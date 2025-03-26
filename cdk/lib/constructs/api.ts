@@ -29,6 +29,8 @@ import { Database } from "./database";
 
 export interface ApiProps {
   readonly database: Database;
+  readonly envName: string;
+  readonly envPrefix: string;
   readonly corsAllowOrigins?: string[];
   readonly auth: Auth;
   readonly bedrockRegion: string;
@@ -199,6 +201,29 @@ export class Api extends Construct {
         ],
       })
     );
+    // For Firecrawl api key
+    handlerRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "secretsmanager:CreateSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:RestoreSecret",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:UpdateSecretVersionStage",
+          "secretsmanager:DeleteSecret",
+          "secretsmanager:RotateSecret",
+          "secretsmanager:CancelRotateSecret",
+          "secretsmanager:UpdateSecret",
+          "secretsmanager:TagResource",
+        ],
+        resources: [
+          `arn:aws:secretsmanager:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:secret:firecrawl/*/*`,
+        ],
+      })
+    );
     props.usageAnalysis?.resultOutputBucket.grantReadWrite(handlerRole);
     props.usageAnalysis?.ddbBucket.grantRead(handlerRole);
     props.largeMessageBucket.grantReadWrite(handlerRole);
@@ -217,6 +242,8 @@ export class Api extends Construct {
       environment: {
         CONVERSATION_TABLE_NAME: database.conversationTable.tableName,
         BOT_TABLE_NAME: database.botTable.tableName,
+        ENV_NAME: props.envName,
+        ENV_PREFIX: props.envPrefix,
         CORS_ALLOW_ORIGINS: allowOrigins.join(","),
         USER_POOL_ID: props.auth.userPool.userPoolId,
         CLIENT_ID: props.auth.client.userPoolClientId,

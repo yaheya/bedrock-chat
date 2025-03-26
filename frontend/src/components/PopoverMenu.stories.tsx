@@ -10,12 +10,14 @@ export const ChatHeader = () => {
   const { t } = useTranslation();
   const [IsStarred, togglePinned] = useReducer((current) => !current, true);
   return (
-    <div className="flex items-center bg-aws-paper">
+    <div className="flex items-center bg-aws-paper-light dark:bg-aws-paper-dark">
       <StatusSyncBot syncStatus="SUCCEEDED" onClickError={() => {}} />
       <ButtonIcon onClick={togglePinned}>
         {IsStarred ? <PiStarFill className="text-aws-aqua" /> : <PiStar />}
       </ButtonIcon>
-      <ButtonPopover className="mx-1" target="bottom-right">
+      <ButtonPopover
+        className="mx-1 dark:text-aws-font-color-dark"
+        target="bottom-right">
         <PopoverItem onClick={() => {}}>
           <PiPencilLine />
           {t('bot.titleSubmenu.edit')}

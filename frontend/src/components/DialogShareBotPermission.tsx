@@ -181,7 +181,7 @@ const DialogShareBotPermission: React.FC<Props> = (props) => {
           {displaySearchedUsers.map((user, idx) => (
             <div
               key={idx}
-              className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-light-gray"
+              className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-light-gray dark:hover:bg-dark-gray"
               onClick={() => {
                 if (user.type === 'user') {
                   setAddedTargetUsers((prev) => {

@@ -1,10 +1,17 @@
 # Bedrock Claude Chat (Nova)
 
-![](https://github.com/aws-samples/bedrock-claude-chat/actions/workflows/cdk.yml/badge.svg)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-> [!Warning] > **V2 released. To update, please carefully review the [migration guide](./docs/migration/V1_TO_V2.md).** Without any care, **BOTS FROM V1 WILL BECOME UNUSABLE.**
+[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
 
-This repository is a sample chatbot using the Anthropic company's LLM [Claude](https://www.anthropic.com/), one of the foundational models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
+> [!Warning]
+>
+> **V2 released. To update, please carefully review the [migration guide](./docs/migration/V1_TO_V2.md).** Without any care, **BOTS FROM V1 WILL BECOME UNUSABLE.**
+
+A multilingual chatbot using LLM models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
 ### Watch Overview and Installation on YouTube
 
@@ -48,22 +55,6 @@ By using the [Agent functionality](./docs/AGENT.md), your chatbot can automatica
 
 </details>
 
-## 📚 Supported Languages
-
-- English 💬
-- 日本語 💬 (ドキュメントは[こちら](./docs/README_ja.md))
-- 한국어 💬
-- 中文 💬
-- Français 💬
-- Deutsch 💬
-- Español 💬
-- Italian 💬
-- Norsk 💬
-- ไทย 💬
-- Bahasa Indonesia 💬
-- Bahasa Melayu 💬
-- Tiếng Việt 💬
-
 ## 🚀 Super-easy Deployment
 
 - In the us-east-1 region, open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` > Check all of `Anthropic / Claude 3`, all of `Amazon / Nova`, `Amazon / Titan Text Embeddings V2` and `Cohere / Embed Multilingual` then `Save changes`.
@@ -98,7 +89,37 @@ You can specify the following parameters during deployment to enhance security a
 - **--disable-ipv6**: Disable connections over IPv6. (default: enabled)
 - **--allowed-signup-email-domains**: Comma-separated list of allowed email domains for sign-up. (default: no domain restriction)
 - **--bedrock-region**: Define the region where bedrock is available. (default: us-east-1)
+- **--repo-url**: The custom repo of Bedrock Claude Chat to deploy, if forked or custom source control. (default: https://github.com/aws-samples/bedrock-claude-chat.git)
 - **--version**: The version of Bedrock Claude Chat to deploy. (default: latest version in development)
+- **--cdk-json-override**: You can override any CDK context values during deployment using the override JSON block. This allows you to modify the configuration without editing the cdk.json file directly.
+
+Example usage:
+
+```bash
+./bin.sh --cdk-json-override '{
+  "context": {
+    "selfSignUpEnabled": false,
+    "enableLambdaSnapStart": true,
+    "allowedIpV4AddressRanges": ["192.168.1.0/24"],
+    "allowedSignUpEmailDomains": ["example.com"]
+  }
+}'
+```
+
+The override JSON must follow the same structure as cdk.json. You can override any context values including:
+
+- `selfSignUpEnabled`
+- `enableLambdaSnapStart`
+- `allowedIpV4AddressRanges`
+- `allowedIpV6AddressRanges`
+- `allowedSignUpEmailDomains`
+- `bedrockRegion`
+- `enableRagReplicas`
+- `enableBedrockCrossRegionInference`
+- And other context values defined in cdk.json
+
+> [!Note]
+> The override values will be merged with the existing cdk.json configuration during the deployment time in the AWS code build. Values specified in the override will take precedence over the values in cdk.json.
 
 #### Example command with parameters:
 
@@ -194,6 +215,109 @@ BedrockChatStack.AuthUserPoolIdXXXXXX = ap-northeast-1_XXXX
 BedrockChatStack.BackendApiBackendApiUrlXXXXX = https://xxxxx.execute-api.ap-northeast-1.amazonaws.com
 BedrockChatStack.FrontendURL = https://xxxxx.cloudfront.net
 ```
+
+### Defining Parameters
+
+You can define parameters for your deployment in two ways: using `cdk.json` or using the type-safe `parameter.ts` file.
+
+#### Using cdk.json (Traditional Method)
+
+The traditional way to configure parameters is by editing the `cdk.json` file. This approach is simple but lacks type checking:
+
+```json
+{
+  "app": "npx ts-node --prefer-ts-exts bin/bedrock-chat.ts",
+  "context": {
+    "bedrockRegion": "us-east-1",
+    "allowedIpV4AddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
+    "enableMistral": false,
+    "selfSignUpEnabled": true
+  }
+}
+```
+
+#### Using parameter.ts (Recommended Type-Safe Method)
+
+For better type safety and developer experience, you can use the `parameter.ts` file to define your parameters:
+
+```typescript
+// Define parameters for the default environment
+bedrockChatParams.set("default", {
+  bedrockRegion: "us-east-1",
+  allowedIpV4AddressRanges: ["192.168.0.0/16"],
+  enableMistral: false,
+  selfSignUpEnabled: true,
+});
+
+// Define parameters for additional environments
+bedrockChatParams.set("dev", {
+  bedrockRegion: "us-west-2",
+  allowedIpV4AddressRanges: ["10.0.0.0/8"],
+  enableRagReplicas: false, // Cost-saving for dev environment
+});
+
+bedrockChatParams.set("prod", {
+  bedrockRegion: "us-east-1",
+  allowedIpV4AddressRanges: ["172.16.0.0/12"],
+  enableLambdaSnapStart: true,
+  enableRagReplicas: true, // Enhanced availability for production
+});
+```
+
+> [!Note]
+> Existing users can continue using `cdk.json` without any changes. The `parameter.ts` approach is recommended for new deployments or when you need to manage multiple environments.
+
+### Deploying Multiple Environments
+
+You can deploy multiple environments from the same codebase using the `parameter.ts` file and the `-c envName` option.
+
+#### Prerequisites
+
+1. Define your environments in `parameter.ts` as shown above
+2. Each environment will have its own set of resources with environment-specific prefixes
+
+#### Deployment Commands
+
+To deploy a specific environment:
+
+```bash
+# Deploy the dev environment
+npx cdk deploy --all -c envName=dev
+
+# Deploy the prod environment
+npx cdk deploy --all -c envName=prod
+```
+
+If no environment is specified, the "default" environment is used:
+
+```bash
+# Deploy the default environment
+npx cdk deploy --all
+```
+
+#### Important Notes
+
+1. **Stack Naming**:
+
+   - The main stacks for each environment will be prefixed with the environment name (e.g., `dev-BedrockChatStack`, `prod-BedrockChatStack`)
+   - However, custom bot stacks (`BrChatKbStack*`) and API publishing stacks (`ApiPublishmentStack*`) do not receive environment prefixes as they are created dynamically at runtime
+
+2. **Resource Naming**:
+
+   - Only some resources receive environment prefixes in their names (e.g., `dev_ddb_export` table, `dev-FrontendWebAcl`)
+   - Most resources maintain their original names but are isolated by being in different stacks
+
+3. **Environment Identification**:
+
+   - All resources are tagged with a `CDKEnvironment` tag containing the environment name
+   - You can use this tag to identify which environment a resource belongs to
+   - Example: `CDKEnvironment: dev` or `CDKEnvironment: prod`
+
+4. **Default Environment Override**: If you define a "default" environment in `parameter.ts`, it will override the settings in `cdk.json`. To continue using `cdk.json`, don't define a "default" environment in `parameter.ts`.
+
+5. **Environment Requirements**: To create environments other than "default", you must use `parameter.ts`. The `-c envName` option alone is not sufficient without corresponding environment definitions.
+
+6. **Resource Isolation**: Each environment creates its own set of resources, allowing you to have development, testing, and production environments in the same AWS account without conflicts.
 
 ## Others
 
@@ -293,6 +417,29 @@ This is an account/region-level setting, affecting the entire application rather
 ```json
 "enableLambdaSnapStart": false
 ```
+
+### Configure Custom Domain
+
+You can configure a custom domain for the CloudFront distribution by setting the following parameters in [cdk.json](./cdk/cdk.json):
+
+```json
+{
+  "alternateDomainName": "chat.example.com",
+  "hostedZoneId": "Z0123456789ABCDEF"
+}
+```
+
+- `alternateDomainName`: The custom domain name for your chat application (e.g., chat.example.com)
+- `hostedZoneId`: The ID of your Route 53 hosted zone where the domain records will be created
+
+When these parameters are provided, the deployment will automatically:
+
+- Create an ACM certificate with DNS validation in us-east-1 region
+- Create the necessary DNS records in your Route 53 hosted zone
+- Configure CloudFront to use your custom domain
+
+> [!Note]
+> The domain must be managed by Route 53 in your AWS account. The hosted zone ID can be found in the Route 53 console.
 
 ### Local Development
 

@@ -30,12 +30,12 @@ from app.repositories.custom_bot import (
 from app.repositories.models.custom_bot import (
     ActiveModelsModel,
     AgentModel,
-    AgentToolModel,
     BotAliasModel,
     BotModel,
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    ReasoningParamsModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
@@ -45,10 +45,8 @@ from app.routes.schemas.admin import (
     PushBotInputUnpinned,
 )
 from app.routes.schemas.bot import (
-    ActiveModelsInput,
     ActiveModelsOutput,
     Agent,
-    AgentTool,
     AllVisibilityInput,
     BotInput,
     BotMetaOutput,
@@ -76,10 +74,11 @@ from app.utils import (
     delete_files_with_prefix_from_s3,
     generate_presigned_url,
     move_file_in_s3,
+    store_api_key_to_secret_manager,
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 DOCUMENT_BUCKET = os.environ.get("DOCUMENT_BUCKET", "bedrock-documents")
 ENABLE_MISTRAL = os.environ.get("ENABLE_MISTRAL", "") == "true"
@@ -188,30 +187,19 @@ def modify_owned_bot(
             + modify_input.knowledge.unchanged_filenames
         )
 
-    generation_params: GenerationParamsDict = (
-        {
-            "max_tokens": modify_input.generation_params.max_tokens,
-            "top_k": modify_input.generation_params.top_k,
-            "top_p": modify_input.generation_params.top_p,
-            "temperature": modify_input.generation_params.temperature,
-            "stop_sequences": modify_input.generation_params.stop_sequences,
-        }
-        if modify_input.generation_params
-        else DEFAULT_GENERATION_CONFIG
-    )
-
-    agent = (
-        AgentModel(
-            tools=[
-                AgentToolModel(name=t.name, description=t.description)
-                for t in [
-                    get_tool_by_name(tool_name)
-                    for tool_name in modify_input.agent.tools
-                ]
-            ]
+    generation_params = (
+        GenerationParamsModel(
+            max_tokens=modify_input.generation_params.max_tokens,
+            top_k=modify_input.generation_params.top_k,
+            top_p=modify_input.generation_params.top_p,
+            temperature=modify_input.generation_params.temperature,
+            stop_sequences=modify_input.generation_params.stop_sequences,
+            reasoning_params=ReasoningParamsModel(
+                budget_tokens=modify_input.generation_params.reasoning_params.budget_tokens
+            ),
         )
-        if modify_input.agent
-        else AgentModel(tools=[])
+        if modify_input.generation_params
+        else GenerationParamsModel.model_validate(DEFAULT_GENERATION_CONFIG)
     )
 
     # if knowledge is not updated, skip embeding process.
@@ -248,8 +236,8 @@ def modify_owned_bot(
         title=modify_input.title,
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
-        generation_params=GenerationParamsModel(**generation_params),
-        agent=agent,
+        generation_params=generation_params,
+        agent=AgentModel.from_agent_input(modify_input.agent, user_id, bot_id),
         knowledge=KnowledgeModel(
             source_urls=source_urls,
             sitemap_urls=sitemap_urls,
@@ -286,12 +274,13 @@ def modify_owned_bot(
         title=modify_input.title,
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
-        generation_params=GenerationParams(**generation_params),
-        agent=Agent(
-            tools=[
-                AgentTool(name=tool.name, description=tool.description)
-                for tool in agent.tools
-            ]
+        generation_params=GenerationParams.model_validate(
+            generation_params.model_dump()
+        ),
+        agent=(
+            Agent.model_validate(modify_input.agent.model_dump())
+            if modify_input.agent
+            else Agent.model_validate({"tool": []})
         ),
         knowledge=Knowledge(
             source_urls=source_urls,

@@ -8,7 +8,7 @@ const translation = {
     app: {
       name: 'Bedrock Claude Chat',
       nameWithoutClaude: 'Bedrock Chat',
-      inputMessage: 'Can I Help You?',
+      inputMessage: 'How can I Help You?',
       starredBots: 'Starred Bots',
       recentlyUsedBots: 'Recently Used Bots',
       conversationHistory: 'Recent Chats',
@@ -35,6 +35,11 @@ const translation = {
         label: 'Claude 3.5 (Sonnet) v2',
         description:
           'The latest version of Claude 3.5. An enhanced model that builds on v1 with higher accuracy and performance.',
+      },
+      'claude-v3.7-sonnet': {
+        label: 'Claude 3.7 Sonnet',
+        description:
+          'Hybrid reasoning model balancing quick responses and deep analytical capabilities.',
       },
       'claude-v3.5-haiku': {
         label: 'Claude 3.5 (Haiku) v1',
@@ -121,10 +126,26 @@ const translation = {
         internet_search: {
           name: 'Internet Search',
           description: 'Search the internet for information.',
+          settings: 'Search Settings',
+          engine: 'Search Engine',
+          engines: {
+            duckduckgo: {
+              'label': 'DuckDuckGo (For Trial)',
+              'hint': "Limited rate, but free to use. Designed for trial use.",
+            },
+            firecrawl: {
+              'label': 'Firecrawl (For Business)',
+              'hint': "Rate limits can be expanded. Designed for business use. API key is required. https://www.firecrawl.dev/",
+            }
+          },
         },
         knowledge_base_tool: {
           name: 'Retrieve Knowledge',
           description: 'Retrieve information from knowledge.',
+        },
+        firecrawl: {
+          apiKey: 'Firecrawl API Key',
+          maxResults: 'Maximum Results'
         },
       },
     },
@@ -644,6 +665,10 @@ How would you categorize this email?`,
         label: 'End token/end sequence',
         hint: 'Specify sequences of characters that stop the model from generating further tokens. Use commas to separate multiple words',
       },
+      budgetTokens: {
+        label: 'Reasoning Budget Tokens',
+        hint: 'The maximum number of tokens to allocate for reasoning steps. Larger values allow for more complex reasoning but may increase response time',
+      },
     },
     searchSettings: {
       title: 'Search Settings',
@@ -842,6 +867,9 @@ How would you categorize this email?`,
       minRange: {
         message: 'The minimum value that can be set is {{size}}',
       },
+      maxBudgetTokens: {
+        message: 'The maxBudgetToken cannot exceed the maxTokens {{size}}',
+      },
       chunkOverlapLessThanChunkSize: {
         message: 'Chunk overlap must be set to less than Chunk size',
       },
@@ -922,6 +950,14 @@ How would you categorize this email?`,
           label: 'Relevance',
           hint: "Validate if the model responses are relevant to the user's query and block responses that are below the defined threshold of relevance. 0: blocks nothing, 0.99: blocks almost everything",
         },
+      },
+    },
+    reasoning: {
+      button: {
+        label: 'Reasoning',
+      },
+      card: {
+        label: 'Reasoning Process',
       },
     },
   },

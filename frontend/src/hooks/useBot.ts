@@ -142,7 +142,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
       const idx = recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
       mutateRecentlyUsedBots(
         produce(recentlyUsedBots, (draft) => {
-          if (draft) {
+          if (draft && idx > -1) {
             draft[idx].isStarred = isStarred;
           }
         }),
@@ -153,7 +153,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
 
       mutateStarredBots(
         produce(starredBots, (draft) => {
-          if (recentlyUsedBots && isStarred) {
+          if (recentlyUsedBots && isStarred && idx !== -1) {
             draft?.unshift({
               ...recentlyUsedBots[idx],
             });
