@@ -84,7 +84,7 @@ const baseConfig: BaseConfig = {
   envPrefix: params.envPrefix,
   bedrockRegion: params.bedrockRegion,
   ownerUserId: params.pk,
-  botId: params.sk.split("#")[2],
+  botId: params.sk.split("#")[1],
   documentBucketName: params.documentBucketName,
   useStandbyReplicas: params.useStandByReplicas === true,
 };
