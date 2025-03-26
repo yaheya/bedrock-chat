@@ -454,8 +454,6 @@ class BotModel(BaseModel):
         cls, bot_input: BotInput, owner_user_id: str, knowledge: KnowledgeModel
     ) -> Self:
         """Create a BotModel instance. This is used when creating a new bot."""
-        from app.agents.utils import get_tool_by_name
-
         current_time = get_current_time()
 
         generation_params: GenerationParamsDict = (
@@ -465,23 +463,18 @@ class BotModel(BaseModel):
                 "top_p": bot_input.generation_params.top_p,
                 "temperature": bot_input.generation_params.temperature,
                 "stop_sequences": bot_input.generation_params.stop_sequences,
+                "reasoning_params": {
+                    "budget_tokens": bot_input.generation_params.reasoning_params.budget_tokens
+                }
             }
             if bot_input.generation_params
             else DEFAULT_GENERATION_CONFIG
         )
 
-        agent = (
-            AgentModel(
-                tools=[
-                    AgentToolModel(name=t.name, description=t.description)
-                    for t in [
-                        get_tool_by_name(tool_name)
-                        for tool_name in bot_input.agent.tools
-                    ]
-                ]
-            )
-            if bot_input.agent
-            else AgentModel(tools=[])
+        agent = AgentModel.from_agent_input(
+            agent_input=bot_input.agent if bot_input.agent else None,
+            user_id=owner_user_id,
+            bot_id=bot_input.id
         )
 
         sync_status: type_sync_status = (
@@ -672,7 +665,6 @@ class BotMeta(BaseModel):
     last_used_time: Float
     is_starred: bool
     sync_status: type_sync_status
-    has_knowledge: bool
     has_bedrock_knowledge_base: bool
     # Whether the bot is owned by the user
     owned: bool
