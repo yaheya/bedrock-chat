@@ -32,7 +32,7 @@ const ListPageLayout: React.FC<Props> = (props) => {
             </div>
 
             {props.searchCondition && (
-              <div className="my-2 ">{props.searchCondition}</div>
+              <div className="my-2">{props.searchCondition}</div>
             )}
             {props.pageTitleActions && (
               <div
