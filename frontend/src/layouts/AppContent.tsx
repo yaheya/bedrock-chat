@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import Drawer from './Drawer';
+import Drawer from '../components/Drawer';
 import { BaseProps } from '../@types/common';
 import { ConversationMeta } from '../@types/conversation';
-import LazyOutputText from './LazyOutputText';
+import LazyOutputText from '../components/LazyOutputText';
 import { PiList, PiPlus } from 'react-icons/pi';
-import ButtonIcon from './ButtonIcon';
+import ButtonIcon from '../components/ButtonIcon';
 import SnackbarProvider from '../providers/SnackbarProvider';
 import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -15,9 +15,9 @@ import useBot from '../hooks/useBot';
 import useChat from '../hooks/useChat';
 import { usePageLabel, usePageTitlePathPattern } from '../routes';
 import useLoginUser from '../hooks/useLoginUser';
-import DialogConfirmDeleteChat from './DialogConfirmDeleteChat';
-import DialogConfirmClearConversations from './DialogConfirmClearConversations';
-import DialogSelectLanguage from './DialogSelectLanguage';
+import DialogConfirmDeleteChat from '../components/DialogConfirmDeleteChat';
+import DialogConfirmClearConversations from '../components/DialogConfirmClearConversations';
+import DialogSelectLanguage from '../components/DialogSelectLanguage';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 type Props = BaseProps & {

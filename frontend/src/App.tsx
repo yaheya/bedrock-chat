@@ -9,7 +9,7 @@ import { Authenticator } from '@aws-amplify/ui-react';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 import { validateSocialProvider } from './utils/SocialProviderUtils';
-import AppContent from './components/AppContent';
+import AppContent from './layouts/AppContent';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from './pages/ErrorFallback';
 

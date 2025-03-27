@@ -8,6 +8,7 @@ import ButtonIcon from '../components/ButtonIcon';
 import useChat from '../hooks/useChat';
 import DialogConfirmDeleteChat from '../components/DialogConfirmDeleteChat';
 import Button from '../components/Button';
+import ListPageLayout from '../layouts/ListPageLayout';
 
 const ConversationHistoryPage: React.FC = () => {
   const { t } = useTranslation();
@@ -120,93 +121,78 @@ const ConversationHistoryPage: React.FC = () => {
           setIsOpenDeleteDialog(false);
         }}
       />
-      <div className="flex h-full justify-center">
-        <div className="w-full max-w-screen-xl px-4 lg:w-4/5">
-          <div className="size-full pt-8">
-            <div className="flex items-center justify-between border-b border-gray pb-2">
-              <div className="text-2xl font-bold">
-                {t('conversationHistory.pageTitle')}
-              </div>
-              <Button
-                className="text-sm"
-                outlined
-                icon={<PiPlus />}
-                onClick={onClickNewChat}>
-                {t('button.newChat')}
-              </Button>
-            </div>
-            <div className="h-4/5 overflow-x-auto overflow-y-scroll border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color/20">
-              <div className="h-full">
-                {conversations?.length === 0 && (
-                  <div className="flex size-full items-center justify-center italic text-dark-gray">
-                    {t('conversationHistory.label.noConversations')}
+
+      <ListPageLayout
+        pageTitle={t('conversationHistory.pageTitle')}
+        pageTitleActions={
+          <Button
+            className="text-sm"
+            outlined
+            icon={<PiPlus />}
+            onClick={onClickNewChat}>
+            {t('button.newChat')}
+          </Button>
+        }
+        isEmpty={conversations?.length === 0}
+        emptyMessage={t('conversationHistory.label.noConversations')}>
+        {conversations?.map((conversation) => (
+          <div
+            key={conversation.id}
+            className="group flex cursor-pointer items-center justify-between border-b border-gray p-2 hover:bg-light-gray"
+            onClick={() => onClickConversation(conversation.id)}>
+            <div className="flex flex-col">
+              {editingConversationId === conversation.id ? (
+                <div
+                  className="flex items-center"
+                  onClick={(e) => e.stopPropagation()}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    className="w-64 bg-transparent text-base"
+                    value={tempTitle}
+                    onChange={(e) => setTempTitle(e.target.value)}
+                  />
+                  <ButtonIcon
+                    className="text-base"
+                    onClick={() => onUpdateTitle(conversation.id, tempTitle)}
+                    disabled={
+                      !tempTitle.trim() ||
+                      tempTitle.trim() === conversation.title
+                    }>
+                    <PiCheck />
+                  </ButtonIcon>
+                  <ButtonIcon
+                    className="text-base"
+                    onClick={() => setEditingConversationId(null)}>
+                    <PiX />
+                  </ButtonIcon>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <div className="text-base font-medium">
+                    {conversation.title}
                   </div>
-                )}
-                {conversations?.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className="group flex cursor-pointer items-center justify-between border-b border-gray p-2 hover:bg-light-gray"
-                    onClick={() => onClickConversation(conversation.id)}>
-                    <div className="flex flex-col">
-                      {editingConversationId === conversation.id ? (
-                        <div
-                          className="flex items-center"
-                          onClick={(e) => e.stopPropagation()}>
-                          <input
-                            ref={inputRef}
-                            type="text"
-                            className="w-64 bg-transparent text-base"
-                            value={tempTitle}
-                            onChange={(e) => setTempTitle(e.target.value)}
-                          />
-                          <ButtonIcon
-                            className="text-base"
-                            onClick={() =>
-                              onUpdateTitle(conversation.id, tempTitle)
-                            }
-                            disabled={
-                              !tempTitle.trim() ||
-                              tempTitle.trim() === conversation.title
-                            }>
-                            <PiCheck />
-                          </ButtonIcon>
-                          <ButtonIcon
-                            className="text-base"
-                            onClick={() => setEditingConversationId(null)}>
-                            <PiX />
-                          </ButtonIcon>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <div className="text-base font-medium">
-                            {conversation.title}
-                          </div>
-                          <ButtonIcon
-                            className="-my-2 mr-6 opacity-0 group-hover:opacity-100"
-                            onClick={(e) => onClickEdit(e, conversation)}>
-                            <PiPencilLine />
-                          </ButtonIcon>
-                        </div>
-                      )}
-                      <div className="text-xs text-gray">
-                        {formatDate(conversation.createTime)}
-                      </div>
-                    </div>
-                    {editingConversationId !== conversation.id && (
-                      <div className="flex items-center opacity-0 group-hover:opacity-100">
-                        <ButtonIcon
-                          onClick={(e) => onClickDelete(e, conversation)}>
-                          <PiTrash />
-                        </ButtonIcon>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  <ButtonIcon
+                    className="-my-2 mr-6 opacity-0 group-hover:opacity-100"
+                    onClick={(e) => onClickEdit(e, conversation)}>
+                    <PiPencilLine />
+                  </ButtonIcon>
+                </div>
+              )}
+              <div className="text-xs text-gray">
+                {formatDate(conversation.createTime)}
               </div>
             </div>
+            {editingConversationId !== conversation.id && (
+              <div className="flex items-center opacity-0 group-hover:opacity-100">
+                <ButtonIcon onClick={(e) => onClickDelete(e, conversation)}>
+                  <PiTrash />
+                </ButtonIcon>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        ))}
+      </ListPageLayout>
     </>
   );
 };

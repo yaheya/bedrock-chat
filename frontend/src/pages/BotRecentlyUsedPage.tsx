@@ -28,6 +28,7 @@ import { produce } from 'immer';
 import PopoverMenu from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
 import PinnedBotIcon from '../components/PinnedBotIcon';
+import ListPageLayout from '../layouts/ListPageLayout';
 
 const BotRecentlyUsedPage: React.FC = () => {
   const { t } = useTranslation();
@@ -161,227 +162,210 @@ const BotRecentlyUsedPage: React.FC = () => {
           setIsOpenShareDialog(false);
         }}
       />
-      <div className="flex h-full justify-center">
-        <div className="w-full max-w-screen-xl px-4 lg:w-4/5">
-          <div className="size-full pt-8">
-            <div className="border-b border-gray pb-2 text-2xl font-bold">
-              {t('bot.label.recentlyUsedBots')}
-            </div>
-            <div className="h-4/5 overflow-x-auto overflow-y-scroll border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color-light/20 dark:scrollbar-thumb-aws-font-color-dark/20">
-              <div className="h-full">
-                {recentlyUsedBots?.length === 0 && (
-                  <div className="flex size-full items-center justify-center italic text-dark-gray">
-                    {t('bot.label.noBotsRecentlyUsed')}
-                  </div>
-                )}
-                {recentlyUsedBots?.map((bot) => (
-                  <ListItemBot key={bot.id} bot={bot} onClick={onClickBot}>
+      <ListPageLayout
+        pageTitle={t('bot.label.recentlyUsedBots')}
+        isEmpty={recentlyUsedBots?.length === 0}
+        emptyMessage={t('bot.label.noBotsRecentlyUsed')}>
+        {recentlyUsedBots?.map((bot) => (
+          <ListItemBot key={bot.id} bot={bot} onClick={onClickBot}>
+            <div className="flex items-center">
+              {bot.owned && (
+                <div className="mr-5 flex justify-end">
+                  {bot.sharedScope === 'all' ||
+                  bot.sharedScope === 'partial' ? (
                     <div className="flex items-center">
-                      {bot.owned && (
-                        <div className="mr-5 flex justify-end">
-                          {bot.sharedScope === 'all' ||
-                          bot.sharedScope === 'partial' ? (
-                            <div className="flex items-center">
-                              <PiUsers className="mr-1" />
-                              <ButtonIcon
-                                className="-mr-3"
-                                onClick={() => {
-                                  onClickShare(bot.id);
-                                }}>
-                                <PiLink />
-                              </ButtonIcon>
-                            </div>
-                          ) : (
-                            <div className="ml-7">
-                              <PiLockKey />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="mr-5">
-                        {bot.isStarred ? (
-                          <ButtonIcon
-                            disabled={!bot.available}
-                            onClick={() => {
-                              // Optimistic update
-                              const newIsStarred = false;
-                              mutateRecentlyUsedBots(
-                                produce(recentlyUsedBots, (draft) => {
-                                  if (draft) {
-                                    const target = draft.find(
-                                      (b) => b.id === bot.id
-                                    );
-                                    if (target) {
-                                      target.isStarred = newIsStarred;
-                                    }
-                                  }
-                                }),
-                                {
-                                  revalidate: false,
-                                }
-                              );
-
-                              // Actual API call
-                              (bot.owned
-                                ? updateMyBotStarred(bot.id, newIsStarred)
-                                : updateSharedBotStarred(bot.id, newIsStarred)
-                              ).finally(() => {
-                                mutateRecentlyUsedBots();
-                              });
-                            }}>
-                            <PiStarFill className="text-aws-aqua" />
-                          </ButtonIcon>
-                        ) : (
-                          <ButtonIcon
-                            disabled={!bot.available}
-                            onClick={() => {
-                              // Optimistic update
-                              const newIsStarred = true;
-                              mutateRecentlyUsedBots(
-                                produce(recentlyUsedBots, (draft) => {
-                                  if (draft) {
-                                    const target = draft.find(
-                                      (b) => b.id === bot.id
-                                    );
-                                    if (target) {
-                                      target.isStarred = newIsStarred;
-                                    }
-                                  }
-                                }),
-                                {
-                                  revalidate: false,
-                                }
-                              );
-
-                              // Actual API call
-                              (bot.owned
-                                ? updateMyBotStarred(bot.id, newIsStarred)
-                                : updateSharedBotStarred(bot.id, newIsStarred)
-                              ).finally(() => {
-                                mutateRecentlyUsedBots();
-                              });
-                            }}>
-                            <PiStar />
-                          </ButtonIcon>
-                        )}
-                      </div>
-                      <div className="relative">
-                        <PopoverMenu className="h-8" target="bottom-right">
-                          {bot.owned && (
-                            <>
-                              <PopoverItem
-                                onClick={() => {
-                                  onClickEditBot(bot.id);
-                                }}>
-                                <PiPencil />
-                                {t('bot.button.edit')}
-                              </PopoverItem>
-                              <PopoverItem
-                                onClick={() => {
-                                  onClickShare(bot.id);
-                                }}>
-                                <PiUsers />
-                                {t('bot.button.share')}
-                              </PopoverItem>
-                              {isAllowApiSettings && (
-                                <PopoverItem
-                                  onClick={() => {
-                                    onClickApiSettings(bot.id);
-                                  }}>
-                                  <PiGlobe />
-                                  {t('bot.button.apiSettings')}
-                                </PopoverItem>
-                              )}
-                              {isAdmin && canBePinned(bot.sharedScope) && (
-                                <PopoverItem
-                                  onClick={() => {
-                                    togglePinBot(bot);
-                                  }}>
-                                  {isPinnedBot(bot.sharedStatus) ? (
-                                    <>
-                                      <PinnedBotIcon
-                                        showAlways
-                                        className="text-aws-aqua"
-                                      />
-                                      {t('bot.button.unpinBot')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <PinnedBotIcon showAlways outlined />
-                                      {t('bot.button.pinBot')}
-                                    </>
-                                  )}
-                                </PopoverItem>
-                              )}
-                              <PopoverItem
-                                onClick={() => {
-                                  deleteRecentlyUsedBot(bot.id);
-                                }}>
-                                <PiEraser />
-                                {t('bot.button.removeFromRecent')}
-                              </PopoverItem>
-                              <PopoverItem
-                                className="font-bold text-red"
-                                onClick={() => {
-                                  onClickDelete(bot);
-                                }}>
-                                <PiTrashBold />
-                                {t('bot.button.delete')}
-                              </PopoverItem>
-                            </>
-                          )}
-                          {!bot.owned && (
-                            <>
-                              {isAdmin && (
-                                <PopoverItem
-                                  onClick={() => {
-                                    navigate(`/admin/bot/${bot.id}`);
-                                  }}>
-                                  <PiWrench />
-                                  {t('button.botManagement')}
-                                </PopoverItem>
-                              )}
-                              {isAdmin && canBePinned(bot.sharedScope) && (
-                                <PopoverItem
-                                  onClick={() => {
-                                    togglePinBot(bot);
-                                  }}>
-                                  {isPinnedBot(bot.sharedStatus) ? (
-                                    <>
-                                      <PinnedBotIcon
-                                        showAlways
-                                        className="text-aws-aqua"
-                                      />
-                                      {t('bot.button.unpinBot')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <PinnedBotIcon showAlways outlined />
-                                      {t('bot.button.pinBot')}
-                                    </>
-                                  )}
-                                </PopoverItem>
-                              )}
-                              <PopoverItem
-                                onClick={() => {
-                                  deleteRecentlyUsedBot(bot.id);
-                                }}>
-                                <PiEraser />
-                                {t('bot.button.removeFromRecent')}
-                              </PopoverItem>
-                            </>
-                          )}
-                        </PopoverMenu>
-                      </div>
+                      <PiUsers className="mr-1" />
+                      <ButtonIcon
+                        className="-mr-3"
+                        onClick={() => {
+                          onClickShare(bot.id);
+                        }}>
+                        <PiLink />
+                      </ButtonIcon>
                     </div>
-                  </ListItemBot>
-                ))}
+                  ) : (
+                    <div className="ml-7">
+                      <PiLockKey />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mr-5">
+                {bot.isStarred ? (
+                  <ButtonIcon
+                    disabled={!bot.available}
+                    onClick={() => {
+                      // Optimistic update
+                      const newIsStarred = false;
+                      mutateRecentlyUsedBots(
+                        produce(recentlyUsedBots, (draft) => {
+                          if (draft) {
+                            const target = draft.find((b) => b.id === bot.id);
+                            if (target) {
+                              target.isStarred = newIsStarred;
+                            }
+                          }
+                        }),
+                        {
+                          revalidate: false,
+                        }
+                      );
+
+                      // Actual API call
+                      (bot.owned
+                        ? updateMyBotStarred(bot.id, newIsStarred)
+                        : updateSharedBotStarred(bot.id, newIsStarred)
+                      ).finally(() => {
+                        mutateRecentlyUsedBots();
+                      });
+                    }}>
+                    <PiStarFill className="text-aws-aqua" />
+                  </ButtonIcon>
+                ) : (
+                  <ButtonIcon
+                    disabled={!bot.available}
+                    onClick={() => {
+                      // Optimistic update
+                      const newIsStarred = true;
+                      mutateRecentlyUsedBots(
+                        produce(recentlyUsedBots, (draft) => {
+                          if (draft) {
+                            const target = draft.find((b) => b.id === bot.id);
+                            if (target) {
+                              target.isStarred = newIsStarred;
+                            }
+                          }
+                        }),
+                        {
+                          revalidate: false,
+                        }
+                      );
+
+                      // Actual API call
+                      (bot.owned
+                        ? updateMyBotStarred(bot.id, newIsStarred)
+                        : updateSharedBotStarred(bot.id, newIsStarred)
+                      ).finally(() => {
+                        mutateRecentlyUsedBots();
+                      });
+                    }}>
+                    <PiStar />
+                  </ButtonIcon>
+                )}
+              </div>
+              <div className="relative">
+                <PopoverMenu className="h-8" target="bottom-right">
+                  {bot.owned && (
+                    <>
+                      <PopoverItem
+                        onClick={() => {
+                          onClickEditBot(bot.id);
+                        }}>
+                        <PiPencil />
+                        {t('bot.button.edit')}
+                      </PopoverItem>
+                      <PopoverItem
+                        onClick={() => {
+                          onClickShare(bot.id);
+                        }}>
+                        <PiUsers />
+                        {t('bot.button.share')}
+                      </PopoverItem>
+                      {isAllowApiSettings && (
+                        <PopoverItem
+                          onClick={() => {
+                            onClickApiSettings(bot.id);
+                          }}>
+                          <PiGlobe />
+                          {t('bot.button.apiSettings')}
+                        </PopoverItem>
+                      )}
+                      {isAdmin && canBePinned(bot.sharedScope) && (
+                        <PopoverItem
+                          onClick={() => {
+                            togglePinBot(bot);
+                          }}>
+                          {isPinnedBot(bot.sharedStatus) ? (
+                            <>
+                              <PinnedBotIcon
+                                showAlways
+                                className="text-aws-aqua"
+                              />
+                              {t('bot.button.unpinBot')}
+                            </>
+                          ) : (
+                            <>
+                              <PinnedBotIcon showAlways outlined />
+                              {t('bot.button.pinBot')}
+                            </>
+                          )}
+                        </PopoverItem>
+                      )}
+                      <PopoverItem
+                        onClick={() => {
+                          deleteRecentlyUsedBot(bot.id);
+                        }}>
+                        <PiEraser />
+                        {t('bot.button.removeFromRecent')}
+                      </PopoverItem>
+                      <PopoverItem
+                        className="font-bold text-red"
+                        onClick={() => {
+                          onClickDelete(bot);
+                        }}>
+                        <PiTrashBold />
+                        {t('bot.button.delete')}
+                      </PopoverItem>
+                    </>
+                  )}
+                  {!bot.owned && (
+                    <>
+                      {isAdmin && (
+                        <PopoverItem
+                          onClick={() => {
+                            navigate(`/admin/bot/${bot.id}`);
+                          }}>
+                          <PiWrench />
+                          {t('button.botManagement')}
+                        </PopoverItem>
+                      )}
+                      {isAdmin && canBePinned(bot.sharedScope) && (
+                        <PopoverItem
+                          onClick={() => {
+                            togglePinBot(bot);
+                          }}>
+                          {isPinnedBot(bot.sharedStatus) ? (
+                            <>
+                              <PinnedBotIcon
+                                showAlways
+                                className="text-aws-aqua"
+                              />
+                              {t('bot.button.unpinBot')}
+                            </>
+                          ) : (
+                            <>
+                              <PinnedBotIcon showAlways outlined />
+                              {t('bot.button.pinBot')}
+                            </>
+                          )}
+                        </PopoverItem>
+                      )}
+                      <PopoverItem
+                        onClick={() => {
+                          deleteRecentlyUsedBot(bot.id);
+                        }}>
+                        <PiEraser />
+                        {t('bot.button.removeFromRecent')}
+                      </PopoverItem>
+                    </>
+                  )}
+                </PopoverMenu>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </ListItemBot>
+        ))}
+      </ListPageLayout>
     </>
   );
 };
