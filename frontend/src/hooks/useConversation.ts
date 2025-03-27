@@ -4,11 +4,13 @@ import useConversationApi from './useConversationApi';
 const useConversation = () => {
   const conversationApi = useConversationApi();
 
-  const { data: conversations } = conversationApi.getConversations();
+  const { data: conversations, isLoading: isLoadingConversations } =
+    conversationApi.getConversations();
   const mutate = conversationApi.mutateConversations;
 
   return {
     conversations,
+    isLoadingConversations,
     mutateConversations: mutate,
     syncConversations: () => {
       return mutate(conversations);
@@ -34,9 +36,10 @@ const useConversation = () => {
         }),
         { revalidate: false }
       );
-      
+
       // Actual API call
-      return conversationApi.deleteConversation(conversationId)
+      return conversationApi
+        .deleteConversation(conversationId)
         .catch((error) => {
           console.error('Failed to delete conversation:', error);
           // Revert to original state on error
@@ -65,7 +68,8 @@ const useConversation = () => {
       );
 
       // Actual API call
-      return conversationApi.updateTitle(conversationId, title)
+      return conversationApi
+        .updateTitle(conversationId, title)
         .catch((error) => {
           console.error('Failed to update title:', error);
           // Revert to original state on error

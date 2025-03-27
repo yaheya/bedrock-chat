@@ -23,7 +23,12 @@ const ConversationHistoryPage: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { setConversationId, newChat } = useChat();
-  const { conversations, deleteConversation, updateTitle } = useConversation();
+  const {
+    conversations,
+    deleteConversation,
+    updateTitle,
+    isLoadingConversations,
+  } = useConversation();
 
   const onClickNewChat = useCallback(() => {
     newChat();
@@ -133,6 +138,7 @@ const ConversationHistoryPage: React.FC = () => {
             {t('button.newChat')}
           </Button>
         }
+        isLoading={isLoadingConversations}
         isEmpty={conversations?.length === 0}
         emptyMessage={t('conversationHistory.label.noConversations')}>
         {conversations?.map((conversation) => (

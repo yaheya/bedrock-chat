@@ -5,7 +5,11 @@ import { produce } from 'immer';
 const useBot = (shouldAutoRefreshMyBots?: boolean) => {
   const api = useBotApi();
 
-  const { data: myBots, mutate: mutateMyBots } = api.bots(
+  const {
+    data: myBots,
+    mutate: mutateMyBots,
+    isLoading: isLoadingMyBots,
+  } = api.bots(
     {
       kind: 'private',
     },
@@ -27,7 +31,11 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
     starred: true,
   });
 
-  const { data: recentlyUsedBots, mutate: mutateRecentlyUsedBots } = api.bots({
+  const {
+    data: recentlyUsedBots,
+    mutate: mutateRecentlyUsedBots,
+    isLoading: isLoadingRecentlyUsedBots,
+  } = api.bots({
     kind: 'mixed',
     limit: 30,
   });
@@ -35,9 +43,11 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
   return {
     myBots,
     mutateMyBots,
+    isLoadingMyBots,
     starredBots: starredBots?.filter((bot) => bot.available),
     mutateStarredBots,
     recentlyUsedBots,
+    isLoadingRecentlyUsedBots,
     mutateRecentlyUsedBots,
     recentlyUsedUnstarredBots: recentlyUsedBots?.filter(
       (bot) => !bot.isStarred && bot.available

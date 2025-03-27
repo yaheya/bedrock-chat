@@ -45,6 +45,7 @@ const BotRecentlyUsedPage: React.FC = () => {
   const { newChat } = useChat();
   const {
     recentlyUsedBots,
+    isLoadingRecentlyUsedBots,
     deleteMyBot,
     deleteRecentlyUsedBot,
     updateMyBotStarred,
@@ -164,6 +165,7 @@ const BotRecentlyUsedPage: React.FC = () => {
       />
       <ListPageLayout
         pageTitle={t('bot.label.recentlyUsedBots')}
+        isLoading={isLoadingRecentlyUsedBots}
         isEmpty={recentlyUsedBots?.length === 0}
         emptyMessage={t('bot.label.noBotsRecentlyUsed')}>
         {recentlyUsedBots?.map((bot) => (

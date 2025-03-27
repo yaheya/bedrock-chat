@@ -14,6 +14,7 @@ const translation = {
       conversationHistory: 'Recent Chats',
       chatWaitingSymbol: '▍',
       adminConsoles: 'Admin Panel',
+      backChat: 'Back to Chat',
       userGroups: 'User Groups',
     },
     model: {

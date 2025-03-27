@@ -12,9 +12,12 @@ import useDrawer from '../hooks/useDrawer';
 import ButtonIcon from './ButtonIcon';
 import {
   PiArrowRight,
+  PiChartLine,
   PiChat,
+  PiChatCenteredDotsDuotone,
   PiCheck,
   PiCompass,
+  PiGlobe,
   PiListBullets,
   PiNotePencil,
   PiPencilLine,
@@ -198,6 +201,8 @@ const Drawer: React.FC<Props> = (props) => {
   const { opened, switchOpen } = useDrawer();
   const { conversations, starredBots, recentlyUsedUnstarredBots } = props;
 
+  const location = useLocation();
+
   const [prevConversations, setPrevConversations] =
     useState<typeof conversations>();
   const [generateTitleIndex, setGenerateTitleIndex] = useState(-1);
@@ -267,6 +272,10 @@ const Drawer: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened]);
 
+  const isAdminPanel = useMemo(() => {
+    return location.pathname.startsWith('/admin');
+  }, [location.pathname]);
+
   return (
     <>
       <div className="relative h-full overflow-y-auto bg-aws-squid-ink-light scrollbar-thin scrollbar-track-white scrollbar-thumb-aws-squid-ink-light/30 dark:bg-aws-ui-color-dark dark:scrollbar-thumb-aws-ui-color-dark/30">
@@ -274,138 +283,175 @@ const Drawer: React.FC<Props> = (props) => {
           className={`lg:visible lg:w-64 ${
             opened ? 'visible w-64' : 'invisible w-0'
           } text-sm  text-white transition-width`}>
-          <div className="h-32 bg-aws-squid-ink-light dark:bg-aws-squid-ink-dark">
-            <DrawerItem
-              isActive={false}
-              icon={<PiNotePencil />}
-              to="/"
-              onClick={onClickNewChat}
-              labelComponent={t('button.newChat')}
-            />
-            <DrawerItem
-              isActive={false}
-              icon={<PiListBullets />}
-              to="/bot/my"
-              labelComponent={getPageLabel('/bot/my')}
-              onClick={closeSmallDrawer}
-            />
-            <DrawerItem
-              isActive={false}
-              icon={<PiCompass />}
-              to="/bot/discover"
-              labelComponent={getPageLabel('/bot/discover')}
-              onClick={closeSmallDrawer}
-            />
-          </div>
-
-          <ExpandableDrawerGroup
-            label={t('app.starredBots')}
-            className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark">
-            {starredBots?.map((bot) => (
+          {!isAdminPanel && (
+            <>
               <DrawerItem
-                key={bot.id}
-                isActive={botId === bot.id && !conversationId}
-                to={`/bot/${bot.id}`}
-                icon={<PiRobot />}
-                labelComponent={bot.title}
-                onClick={onClickNewBotChat}
+                isActive={false}
+                icon={<PiNotePencil />}
+                to="/"
+                onClick={onClickNewChat}
+                labelComponent={t('button.newChat')}
               />
-            ))}
-          </ExpandableDrawerGroup>
+              <DrawerItem
+                isActive={false}
+                icon={<PiListBullets />}
+                to="/bot/my"
+                labelComponent={getPageLabel('/bot/my')}
+                onClick={closeSmallDrawer}
+              />
+              <DrawerItem
+                isActive={false}
+                icon={<PiCompass />}
+                to="/bot/discover"
+                labelComponent={getPageLabel('/bot/discover')}
+                onClick={closeSmallDrawer}
+              />
 
-          <ExpandableDrawerGroup
-            label={t('app.recentlyUsedBots')}
-            className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark ">
-            {recentlyUsedUnstarredBots === undefined && (
-              <div className="flex flex-col gap-2 p-2">
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-              </div>
-            )}
-            {recentlyUsedUnstarredBots
-              ?.slice(0, 15)
-              .map((bot) => (
-                <DrawerItem
-                  key={bot.id}
-                  isActive={false}
-                  to={`/bot/${bot.id}`}
-                  icon={<PiRobot />}
-                  labelComponent={bot.title}
-                  onClick={onClickNewBotChat}
-                />
-              ))}
+              <ExpandableDrawerGroup
+                label={t('app.starredBots')}
+                className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark">
+                {starredBots?.map((bot) => (
+                  <DrawerItem
+                    key={bot.id}
+                    isActive={botId === bot.id && !conversationId}
+                    to={`/bot/${bot.id}`}
+                    icon={<PiRobot />}
+                    labelComponent={bot.title}
+                    onClick={onClickNewBotChat}
+                  />
+                ))}
+              </ExpandableDrawerGroup>
 
-            {recentlyUsedUnstarredBots && (
-              <Button
-                text
-                rightIcon={<PiArrowRight />}
-                className="w-full"
-                onClick={() => {
-                  navigate('/bot/recently-used');
-                  closeSmallDrawer();
-                }}>
-                {t('bot.button.viewAll')}
-              </Button>
-            )}
-          </ExpandableDrawerGroup>
+              <ExpandableDrawerGroup
+                label={t('app.recentlyUsedBots')}
+                className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark ">
+                {recentlyUsedUnstarredBots === undefined && (
+                  <div className="flex flex-col gap-2 p-2">
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  </div>
+                )}
+                {recentlyUsedUnstarredBots
+                  ?.slice(0, 15)
+                  .map((bot) => (
+                    <DrawerItem
+                      key={bot.id}
+                      isActive={false}
+                      to={`/bot/${bot.id}`}
+                      icon={<PiRobot />}
+                      labelComponent={bot.title}
+                      onClick={onClickNewBotChat}
+                    />
+                  ))}
 
-          <ExpandableDrawerGroup
-            label={t('app.conversationHistory')}
-            className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark">
-            {conversations === undefined && (
-              <div className="flex flex-col gap-2 p-2">
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-                <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
-              </div>
-            )}
-            {conversations
-              ?.slice(0, 5)
-              .map((conversation, idx) => (
-                <Item
-                  key={idx}
-                  className="grow"
-                  label={conversation.title}
-                  conversationId={conversation.id}
-                  generatedTitle={idx === generateTitleIndex}
-                  updateTitle={props.updateConversationTitle}
-                  onClick={closeSmallDrawer}
-                  onDelete={() => props.onDeleteConversation(conversation)}
-                />
-              ))}
+                {recentlyUsedUnstarredBots && (
+                  <Button
+                    text
+                    rightIcon={<PiArrowRight />}
+                    className="w-full"
+                    onClick={() => {
+                      navigate('/bot/recently-used');
+                      closeSmallDrawer();
+                    }}>
+                    {t('bot.button.viewAll')}
+                  </Button>
+                )}
+              </ExpandableDrawerGroup>
 
-            {conversations && (
-              <Button
-                text
-                rightIcon={<PiArrowRight />}
-                className="w-full"
-                onClick={() => {
-                  navigate('/conversations');
-                  closeSmallDrawer();
-                }}>
-                {t('bot.button.viewAll')}
-              </Button>
-            )}
-          </ExpandableDrawerGroup>
+              <ExpandableDrawerGroup
+                label={t('app.conversationHistory')}
+                className={twMerge(
+                  'border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark',
+                  props.isAdmin ? 'mb-20' : 'mb-10'
+                )}>
+                {conversations === undefined && (
+                  <div className="flex flex-col gap-2 p-2">
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  </div>
+                )}
+                {conversations
+                  ?.slice(0, 5)
+                  .map((conversation, idx) => (
+                    <Item
+                      key={idx}
+                      className="grow"
+                      label={conversation.title}
+                      conversationId={conversation.id}
+                      generatedTitle={idx === generateTitleIndex}
+                      updateTitle={props.updateConversationTitle}
+                      onClick={closeSmallDrawer}
+                      onDelete={() => props.onDeleteConversation(conversation)}
+                    />
+                  ))}
+
+                {conversations && (
+                  <Button
+                    text
+                    rightIcon={<PiArrowRight />}
+                    className="w-full"
+                    onClick={() => {
+                      navigate('/conversations');
+                      closeSmallDrawer();
+                    }}>
+                    {t('bot.button.viewAll')}
+                  </Button>
+                )}
+              </ExpandableDrawerGroup>
+            </>
+          )}
+
+          {isAdminPanel && (
+            <>
+              <div className="px-2 py-1 italic">{t('app.adminConsoles')}</div>
+              <DrawerItem
+                className="w-60"
+                isActive={location.pathname === '/admin/shared-bot-analytics'}
+                icon={<PiChartLine />}
+                to="/admin/shared-bot-analytics"
+                labelComponent={getPageLabel('/admin/shared-bot-analytics')}
+                onClick={closeSmallDrawer}
+              />
+              <DrawerItem
+                className="w-60"
+                isActive={location.pathname === '/admin/api-management'}
+                icon={<PiGlobe />}
+                to="/admin/api-management"
+                labelComponent={getPageLabel('/admin/api-management')}
+                onClick={closeSmallDrawer}
+              />
+            </>
+          )}
 
           <div
             className={twMerge(
               opened ? 'w-64' : 'w-0',
               props.isAdmin ? 'h-20' : 'h-10',
-              'sticky bottom-0 z-50 mb-2 flex flex-col items-start border-t bg-aws-squid-ink-light transition-width dark:bg-aws-ui-color-dark lg:w-64'
+              'fixed -bottom-2 z-50 mb-2 flex flex-col items-start border-t bg-aws-squid-ink-light transition-width dark:bg-aws-ui-color-dark lg:w-64'
             )}>
-            {props.isAdmin && (
+            {props.isAdmin && !isAdminPanel && (
               <DrawerItem
                 className="w-60"
                 isActive={false}
                 icon={<PiPresentationChart />}
                 to="/admin/shared-bot-analytics"
                 labelComponent={t('app.adminConsoles')}
+                onClick={closeSmallDrawer}
+              />
+            )}
+            {isAdminPanel && (
+              <DrawerItem
+                className="w-60"
+                isActive={false}
+                icon={<PiChatCenteredDotsDuotone />}
+                to="/"
+                labelComponent={t('app.backChat')}
                 onClick={closeSmallDrawer}
               />
             )}

@@ -43,8 +43,13 @@ const BotExplorePage: React.FC = () => {
   const { pinBot, unpinBot } = useBotPinning();
 
   const { newChat } = useChat();
-  const { myBots, deleteMyBot, updateMyBotStarred, mutateMyBots } =
-    useBot(true);
+  const {
+    myBots,
+    deleteMyBot,
+    updateMyBotStarred,
+    mutateMyBots,
+    isLoadingMyBots,
+  } = useBot(true);
 
   const {
     sharedScope,
@@ -173,6 +178,7 @@ const BotExplorePage: React.FC = () => {
             {t('bot.button.newBot')}
           </Button>
         }
+        isLoading={isLoadingMyBots}
         isEmpty={myBots?.length === 0}
         emptyMessage={t('bot.label.noBots')}>
         {myBots?.map((bot) => (

@@ -8,10 +8,9 @@ import { addDate, formatDate } from '../utils/DateUtils';
 import InputText from '../components/InputText';
 import Button from '../components/Button';
 import { PiArrowDown } from 'react-icons/pi';
-import Skeleton from '../components/Skeleton';
 import { twMerge } from 'tailwind-merge';
 import { useNavigate } from 'react-router-dom';
-import { TooltipDirection } from '../constants';
+import ListPageLayout from '../layouts/ListPageLayout';
 
 const DATA_FORMAT = 'YYYYMMDD';
 
@@ -54,143 +53,109 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
   );
 
   return (
-    <>
-      <div className="flex h-full justify-center">
-        <div className="w-2/3">
-          <div className="size-full pt-8">
-            <div className="flex items-end justify-between">
-              <div className="flex items-center gap-2">
-                <div className="text-xl font-bold">
-                  {t('admin.sharedBotAnalytics.label.pageTitle')}
-                </div>
-                <Help
-                  direction={TooltipDirection.RIGHT}
-                  message={t('admin.sharedBotAnalytics.help.overview')}
-                />
-              </div>
-            </div>
+    <ListPageLayout
+      pageTitle={t('admin.sharedBotAnalytics.label.pageTitle')}
+      pageTitleHelp={t('admin.sharedBotAnalytics.help.overview')}
+      pageTitleActions={
+        <Button
+          outlined
+          rightIcon={
+            <PiArrowDown
+              className={twMerge(
+                'transition',
+                isDescCost ? 'rotate-0' : 'rotate-180'
+              )}
+            />
+          }
+          onClick={() => {
+            setIsDescCost(!isDescCost);
+          }}>
+          {t('admin.sharedBotAnalytics.label.sortByCost')}
+        </Button>
+      }
+      searchCondition={
+        <div className="rounded border p-2">
+          <div className="flex items-center gap-1 text-sm font-bold">
+            {t('admin.sharedBotAnalytics.label.SearchCondition.title')}
+            <Help
+              message={t('admin.sharedBotAnalytics.help.calculationPeriod')}
+            />
+          </div>
 
-            <div className="my-2 rounded border p-2">
-              <div className="flex items-center gap-1 text-sm font-bold">
-                {t('admin.sharedBotAnalytics.label.SearchCondition.title')}
-                <Help
-                  message={t('admin.sharedBotAnalytics.help.calculationPeriod')}
-                />
-              </div>
-
-              <div className="flex gap-2 sm:w-full md:w-3/4">
-                <InputText
-                  className="w-full"
-                  type="date"
-                  label={t(
-                    'admin.sharedBotAnalytics.label.SearchCondition.from'
-                  )}
-                  value={formatDate(searchDateFrom, 'YYYY-MM-DD')}
-                  onChange={(val) => {
-                    if (val === '') {
-                      setSearchDateFrom(null);
-                      return;
-                    }
-                    setSearchDateFrom(formatDate(val, DATA_FORMAT));
-                  }}
-                  errorMessage={
-                    searchDateFrom
-                      ? undefined
-                      : (validationErrorMessage ?? undefined)
-                  }
-                />
-                <InputText
-                  className="w-full"
-                  type="date"
-                  label={t('admin.sharedBotAnalytics.label.SearchCondition.to')}
-                  value={formatDate(searchDateTo, 'YYYY-MM-DD')}
-                  onChange={(val) => {
-                    if (val === '') {
-                      setSearchDateTo(null);
-                      return;
-                    }
-                    setSearchDateTo(formatDate(val, DATA_FORMAT));
-                  }}
-                  errorMessage={
-                    searchDateTo
-                      ? undefined
-                      : (validationErrorMessage ?? undefined)
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="my-2 flex justify-end">
-              <Button
-                outlined
-                rightIcon={
-                  <PiArrowDown
-                    className={twMerge(
-                      'transition',
-                      isDescCost ? 'rotate-0' : 'rotate-180'
-                    )}
-                  />
+          <div className="flex gap-2 sm:w-full md:w-3/4">
+            <InputText
+              className="w-full"
+              type="date"
+              label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
+              value={formatDate(searchDateFrom, 'YYYY-MM-DD')}
+              onChange={(val) => {
+                if (val === '') {
+                  setSearchDateFrom(null);
+                  return;
                 }
-                onClick={() => {
-                  setIsDescCost(!isDescCost);
-                }}>
-                {t('admin.sharedBotAnalytics.label.sortByCost')}
-              </Button>
-            </div>
-
-            <div className="mt-2 border-b border-gray"></div>
-
-            <div className="h-4/5 overflow-x-hidden overflow-y-scroll border-b border-gray pr-1 scrollbar-thin scrollbar-thumb-aws-font-color-light/20 dark:scrollbar-thumb-aws-font-color-dark/20">
-              {isLoadingPublicBots && (
-                <div className="flex flex-col gap-2">
-                  {new Array(15).fill('').map((_, idx) => {
-                    return <Skeleton key={idx} className="h-12 w-full" />;
-                  })}
-                </div>
-              )}
-
-              {publicBots?.length === 0 && (
-                <div className="flex size-full items-center justify-center italic text-dark-gray dark:text-light-gray">
-                  {t('admin.sharedBotAnalytics.label.noPublicBotUsages')}
-                </div>
-              )}
-              {sortedBots?.map((bot, idx) => (
-                <ListItemBot
-                  key={idx}
-                  bot={{
-                    ...bot,
-                    available: true,
-                    // the following are fixed values to prevent type errors
-                    sharedStatus: '',
-                    owned: false,
-                  }}
-                  onClick={() => {
-                    onClickViewBot(bot.id);
-                  }}>
-                  <div className="relative flex h-full items-center">
-                    <div className="text-lg font-bold">
-                      {(Math.floor(bot.totalPrice * 100) / 100).toFixed(2)} USD
-                    </div>
-
-                    <div className="absolute bottom-0 right-0 flex origin-bottom-right whitespace-nowrap text-xs font-light">
-                      {bot.isPublished ? (
-                        <>
-                          {bot.isPublished
-                            ? t('admin.sharedBotAnalytics.label.published')
-                            : null}
-                        </>
-                      ) : (
-                        <div></div>
-                      )}
-                    </div>
-                  </div>
-                </ListItemBot>
-              ))}
-            </div>
+                setSearchDateFrom(formatDate(val, DATA_FORMAT));
+              }}
+              errorMessage={
+                searchDateFrom
+                  ? undefined
+                  : (validationErrorMessage ?? undefined)
+              }
+            />
+            <InputText
+              className="w-full"
+              type="date"
+              label={t('admin.sharedBotAnalytics.label.SearchCondition.to')}
+              value={formatDate(searchDateTo, 'YYYY-MM-DD')}
+              onChange={(val) => {
+                if (val === '') {
+                  setSearchDateTo(null);
+                  return;
+                }
+                setSearchDateTo(formatDate(val, DATA_FORMAT));
+              }}
+              errorMessage={
+                searchDateTo ? undefined : (validationErrorMessage ?? undefined)
+              }
+            />
           </div>
         </div>
-      </div>
-    </>
+      }
+      isLoading={isLoadingPublicBots}
+      isEmpty={publicBots?.length === 0}
+      emptyMessage={t('admin.sharedBotAnalytics.label.noPublicBotUsages')}>
+      {sortedBots?.map((bot, idx) => (
+        <ListItemBot
+          key={idx}
+          bot={{
+            ...bot,
+            available: true,
+            // the following are fixed values to prevent type errors
+            sharedStatus: '',
+            owned: false,
+          }}
+          onClick={() => {
+            onClickViewBot(bot.id);
+          }}>
+          <div className="relative flex h-full items-center">
+            <div className="text-lg font-bold">
+              {(Math.floor(bot.totalPrice * 100) / 100).toFixed(2)} USD
+            </div>
+
+            <div className="absolute bottom-0 right-0 flex origin-bottom-right whitespace-nowrap text-xs font-light">
+              {bot.isPublished ? (
+                <>
+                  {bot.isPublished
+                    ? t('admin.sharedBotAnalytics.label.published')
+                    : null}
+                </>
+              ) : (
+                <div></div>
+              )}
+            </div>
+          </div>
+        </ListItemBot>
+      ))}
+    </ListPageLayout>
   );
 };
 
