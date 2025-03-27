@@ -11,8 +11,21 @@ type Props = {
 };
 
 const Toggle: React.FC<Props> = (props) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    if (props.onChange) {
+      props.onChange(!props.value);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className="my-2 flex flex-col pr-3">
+    <div
+      className={twMerge('my-2 flex flex-col pr-3', props.className)}
+      onClick={handleClick}>
       <label
         className={twMerge(
           'relative inline-flex items-center',
@@ -23,13 +36,11 @@ const Toggle: React.FC<Props> = (props) => {
           className="peer sr-only"
           checked={props.value}
           disabled={props.disabled}
-          onChange={() => {
-            props.onChange ? props.onChange(!props.value) : null;
-          }}
+          onChange={handleChange}
         />
         <div
           className={twMerge(
-            "peer h-6 w-11 rounded-full bg-light-gray dark:bg-aws-font-color-gray after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray after:bg-white dark:after:bg-aws-ui-color-dark after:transition-all after:content-[''] peer-checked:bg-aws-sea-blue-light dark:peer-checked:bg-white peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full",
+            "peer h-6 w-11 rounded-full bg-light-gray after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray after:bg-white after:transition-all after:content-[''] peer-checked:bg-aws-sea-blue-light peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-aws-font-color-gray dark:after:bg-aws-ui-color-dark dark:peer-checked:bg-white rtl:peer-checked:after:-translate-x-full",
             props.disabled ? 'opacity-20' : ''
           )}></div>
         {props.label && (
@@ -39,7 +50,9 @@ const Toggle: React.FC<Props> = (props) => {
         )}
       </label>
       {props.hint && (
-        <div className="ml-11 w-full pl-2 text-xs text-gray dark:text-aws-font-color-dark">{props.hint}</div>
+        <div className="ml-11 w-full pl-2 text-xs text-gray dark:text-aws-font-color-dark">
+          {props.hint}
+        </div>
       )}
     </div>
   );

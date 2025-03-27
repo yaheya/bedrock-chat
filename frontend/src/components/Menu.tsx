@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { BaseProps } from '../@types/common';
 import { twMerge } from 'tailwind-merge';
 import useLoginUser from '../hooks/useLoginUser';
+import { IoMoonSharp, IoSunnyOutline } from 'react-icons/io5';
+import useLocalStorage from '../hooks/useLocalStorage';
+import Toggle from './Toggle';
 
 type Props = BaseProps & {
   onSignOut: () => void;
@@ -18,6 +21,9 @@ const MenuSettings: React.FC<Props> = (props) => {
   const { userGroups, userName } = useLoginUser();
 
   const [isOpen, setIsOpen] = useState(false);
+  // If you want to add a theme, change the type from boolean to string and change the UI from pulldown.
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [theme, setTheme] = useLocalStorage('theme', 'light');
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,6 +48,23 @@ const MenuSettings: React.FC<Props> = (props) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [menuRef]);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      setIsDarkTheme(true);
+    }
+  }, [theme]);
+
+  const changeTheme = (isDarkTheme: boolean) => {
+    setIsDarkTheme(isDarkTheme);
+    if (isDarkTheme) {
+      document.documentElement.className = 'dark';
+      setTheme('dark');
+    } else {
+      document.documentElement.className = 'light';
+      setTheme('light');
+    }
+  };
 
   return (
     <>
@@ -84,8 +107,25 @@ const MenuSettings: React.FC<Props> = (props) => {
             <PiTranslate className="mr-2" />
             {t('button.language')}
           </div>
+
+          <div className="flex w-full items-center px-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark">
+            {isDarkTheme ? (
+              <IoMoonSharp className="mr-2" />
+            ) : (
+              <IoSunnyOutline className="mr-2" />
+            )}
+            <div className="flex w-full items-center justify-between">
+              <span>{t('button.mode')}</span>
+              <Toggle
+                value={isDarkTheme}
+                onChange={(isDarkTheme) => {
+                  changeTheme(isDarkTheme);
+                }}
+              />
+            </div>
+          </div>
           <div
-            className="flex w-full cursor-pointer items-center p-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark"
+            className="flex w-full cursor-pointer items-center border-t p-2 hover:bg-aws-sea-blue-hover-light dark:hover:bg-aws-paper-dark"
             onClick={() => {
               setIsOpen(false);
               props.onClearConversations();

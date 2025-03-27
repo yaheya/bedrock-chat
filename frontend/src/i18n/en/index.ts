@@ -130,13 +130,13 @@ const translation = {
           engine: 'Search Engine',
           engines: {
             duckduckgo: {
-              'label': 'DuckDuckGo (For Trial)',
-              'hint': "Limited rate, but free to use. Designed for trial use.",
+              label: 'DuckDuckGo (For Trial)',
+              hint: 'Limited rate, but free to use. Designed for trial use.',
             },
             firecrawl: {
-              'label': 'Firecrawl (For Business)',
-              'hint': "Rate limits can be expanded. Designed for business use. API key is required. https://www.firecrawl.dev/",
-            }
+              label: 'Firecrawl (For Business)',
+              hint: 'Rate limits can be expanded. Designed for business use. API key is required. https://www.firecrawl.dev/',
+            },
           },
         },
         knowledge_base_tool: {
@@ -145,7 +145,7 @@ const translation = {
         },
         firecrawl: {
           apiKey: 'Firecrawl API Key',
-          maxResults: 'Maximum Results'
+          maxResults: 'Maximum Results',
         },
       },
     },
@@ -586,6 +586,7 @@ How would you categorize this email?`,
       add: 'Add',
       continue: 'Continue to Generate',
       botManagement: 'Bot Management',
+      mode: 'Mode',
     },
     input: {
       hint: {

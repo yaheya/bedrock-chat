@@ -1310,7 +1310,7 @@ const BotKbEditPage: React.FC = () => {
       activeModels,
     })
       .then(() => {
-        navigate('/bot/explore');
+        navigate('/bot/my');
       })
       .catch(() => {
         setIsLoading(false);
@@ -1460,7 +1460,7 @@ const BotKbEditPage: React.FC = () => {
         activeModels,
       })
         .then(() => {
-          navigate('/bot/explore');
+          navigate('/bot/my');
         })
         .catch(() => {
           setIsLoading(false);

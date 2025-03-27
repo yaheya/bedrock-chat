@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { BaseProps } from '../@types/common';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { IoMoonSharp, IoSunnyOutline } from 'react-icons/io5';
 import useDrawer from '../hooks/useDrawer';
 import ButtonIcon from './ButtonIcon';
 import {
@@ -29,7 +28,6 @@ import { ConversationMeta } from '../@types/conversation';
 import { BotListItem } from '../@types/bot';
 import { isMobile } from 'react-device-detect';
 import useChat from '../hooks/useChat';
-import useLocalStorage from '../hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import Menu from './Menu';
 import DrawerItem from './DrawerItem';
@@ -38,7 +36,6 @@ import { usePageLabel } from '../routes';
 import { twMerge } from 'tailwind-merge';
 import Button from './Button';
 import Skeleton from './Skeleton';
-import Toggle from '../components/Toggle.tsx';
 
 type Props = BaseProps & {
   isAdmin: boolean;
@@ -204,13 +201,9 @@ const Drawer: React.FC<Props> = (props) => {
   const [prevConversations, setPrevConversations] =
     useState<typeof conversations>();
   const [generateTitleIndex, setGenerateTitleIndex] = useState(-1);
-  // If you want to add a theme, change the type from boolean to string and change the UI from toggle to pulldown.
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   const { newChat, conversationId } = useChat();
   const { botId } = useParams();
-
-  const [theme, setTheme] = useLocalStorage('theme', 'light');
 
   useEffect(() => {
     setPrevConversations(conversations);
@@ -231,12 +224,6 @@ const Drawer: React.FC<Props> = (props) => {
     }
   }, [conversations, prevConversations]);
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      setIsDarkTheme(true);
-    }
-  }, [theme]);
-
   const onClickNewChat = useCallback(() => {
     newChat();
     closeSmallDrawer();
@@ -251,17 +238,6 @@ const Drawer: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
-
-  const changeTheme = (isDarkTheme: boolean) => {
-    setIsDarkTheme(isDarkTheme);
-    if (isDarkTheme) {
-      document.documentElement.className = 'dark';
-      setTheme('dark');
-    } else {
-      document.documentElement.className = 'light';
-      setTheme('light');
-    }
-  };
 
   const smallDrawer = useRef<HTMLDivElement>(null);
 
@@ -439,22 +415,6 @@ const Drawer: React.FC<Props> = (props) => {
               onSelectLanguage={props.onSelectLanguage}
               onClearConversations={props.onClearConversations}
             />
-
-            <div className="flex items-center gap-2">
-              {isDarkTheme ? (
-                <>
-                  <IoMoonSharp />
-                </>
-              ) : (
-                <>
-                  <IoSunnyOutline />
-                </>
-              )}
-              <Toggle
-                value={isDarkTheme}
-                onChange={(isDarkTheme) => changeTheme(isDarkTheme)}
-              />
-            </div>
           </div>
         </nav>
       </div>
