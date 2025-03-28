@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ListItemBot from './ListItemBot';
-import { BotListItem } from '../@types/bot';
+import { BotListItem, SharedScope } from '../@types/bot';
 import {
   PiGlobe,
   PiLink,
@@ -212,6 +212,7 @@ export const ApiManagement = () => {
       publishedDatetime: new Date(),
       available: true,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
     {
@@ -222,6 +223,7 @@ export const ApiManagement = () => {
       publishedDatetime: new Date(),
       available: false,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
   ];
@@ -256,6 +258,7 @@ export const Analytics = () => {
       isPublished: true,
       available: true,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
     {
@@ -267,6 +270,7 @@ export const Analytics = () => {
       isPublished: false,
       available: true,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
     {
@@ -278,6 +282,7 @@ export const Analytics = () => {
       isPublished: true,
       available: false,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
     {
@@ -289,6 +294,7 @@ export const Analytics = () => {
       isPublished: false,
       available: false,
       sharedStatus: '',
+      sharedScope: 'all' as SharedScope,
       owned: false,
     },
   ];

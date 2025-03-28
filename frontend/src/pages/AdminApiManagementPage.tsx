@@ -36,8 +36,6 @@ const AdminApiManagementPage: React.FC = () => {
             ...api,
             available: true,
             owned: userId === api.ownerUserId,
-            // the following are fixed values to prevent type errors
-            sharedStatus: '',
           }}
           onClick={() => {
             onClickViewApi(api.id);

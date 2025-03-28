@@ -30,7 +30,7 @@ import useConversation from '../hooks/useConversation';
 import ButtonPopover from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
 import { ActiveModels, BotSummary } from '../@types/bot';
-import PinnedBotIcon from '../components/PinnedBotIcon';
+import IconPinnedBot from '../components/IconPinnedBot.tsx';
 
 import { copyBotUrl, isPinnedBot, canBePinned } from '../utils/BotUtils';
 import { toCamelCase } from '../utils/StringUtils';
@@ -493,7 +493,7 @@ const ChatPage: React.FC = () => {
             <div className="p-2">
               <div className="mr-10 flex items-center font-bold">
                 {pageTitle}
-                <PinnedBotIcon
+                <IconPinnedBot
                   botSharedStatus={bot?.sharedStatus}
                   className="ml-1 text-aws-aqua"
                 />
@@ -550,7 +550,7 @@ const ChatPage: React.FC = () => {
                         }}>
                         {isPinnedBot(bot.sharedStatus) ? (
                           <>
-                            <PinnedBotIcon
+                            <IconPinnedBot
                               showAlways
                               className="text-aws-aqua"
                             />
@@ -558,7 +558,7 @@ const ChatPage: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <PinnedBotIcon showAlways outlined />
+                            <IconPinnedBot showAlways outlined />
                             {t('bot.titleSubmenu.markAsEssential')}
                           </>
                         )}

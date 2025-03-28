@@ -883,6 +883,8 @@ def find_all_published_bots(
             owner_user_id=item["PK"],
             published_api_stack_name=item.get("ApiPublishmentStackName", None),
             published_api_datetime=item.get("ApiPublishedDatetime", None),
+            shared_scope=item.get("SharedScope","private"),
+            shared_status=item.get("SharedStatus"),
         )
         for item in response["Items"]
     ]

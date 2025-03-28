@@ -130,13 +130,13 @@ const translation = {
           engine: '検索エンジン',
           engines: {
             duckduckgo: {
-              'label': 'DuckDuckGo (For Trial)',
-              'hint': "リミットレートが厳しいが無料で使用可能。小規模利用向け",
+              label: 'DuckDuckGo (For Trial)',
+              hint: 'リミットレートが厳しいが無料で使用可能。小規模利用向け',
             },
             firecrawl: {
-              'label': 'Firecrawl (For Business)',
-              'hint': "レートリミットの拡張可能。ビジネス利用向け。APIキーが必要. https://www.firecrawl.dev/",
-            }
+              label: 'Firecrawl (For Business)',
+              hint: 'レートリミットの拡張可能。ビジネス利用向け。APIキーが必要. https://www.firecrawl.dev/',
+            },
           },
         },
         knowledge_base_tool: {
@@ -145,14 +145,14 @@ const translation = {
         },
         firecrawl: {
           apiKey: 'Firecrawl APIキー',
-          maxResults: '最大結果数'
+          maxResults: '最大結果数',
         },
       },
     },
     bot: {
       label: {
         myBots: '自分のボット',
-        recentlyUsedBots: '最近使用した公開ボット',
+        recentlyUsedBots: '最近使用したボット',
         knowledge: 'ナレッジ',
         url: 'URL',
         s3url: 'S3 データソース',

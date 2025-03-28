@@ -1,6 +1,6 @@
 import React from 'react';
 import { PiSealCheck, PiSealCheckFill } from 'react-icons/pi';
-import { BaseProps } from '../@types/common.d';
+import { BaseProps } from '../@types/common';
 import { isPinnedBot } from '../utils/BotUtils';
 
 type Props = BaseProps & {
@@ -16,7 +16,7 @@ type Props = BaseProps & {
  * @param props.showAlways If true, always show the icon regardless of whether the bot is pinned
  * @param props.outlined If true, show the outlined version of the icon
  */
-const PinnedBotIcon: React.FC<Props> = ({
+const IconPinnedBot: React.FC<Props> = ({
   botSharedStatus,
   className = '',
   showAlways = false,
@@ -36,4 +36,4 @@ const PinnedBotIcon: React.FC<Props> = ({
   );
 };
 
-export default PinnedBotIcon;
+export default IconPinnedBot;

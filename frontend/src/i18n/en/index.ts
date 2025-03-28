@@ -485,6 +485,7 @@ How would you categorize this email?`,
             'The client can make <Bold>{{limit}}</Bold> concurrent requests to the API.',
           requestsLimit:
             'You can make <Bold>{{limit}}</Bold> requests <Bold>{{period}}</Bold>.',
+          sharedAllUsers: 'Shared with ALL Users',
         },
         alert: {
           noApiKeys: {

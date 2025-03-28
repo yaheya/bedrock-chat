@@ -1,3 +1,5 @@
+import { SharedScope } from './bot';
+
 export type QuotaPeriod = 'DAY' | 'WEEK' | 'MONTH';
 
 export type BotPublicationQuota = {
@@ -24,6 +26,8 @@ export type ListBotApisResponse = {
     publishedStackName: string;
     publishedDatetime: Date;
     ownerUserId: string;
+    sharedScope: SharedScope;
+    sharedStatus: string;
   }[];
   nextToken?: string;
 };
@@ -40,6 +44,8 @@ export type ListPublicBotsResponse = {
   description: string;
   isPublished: boolean;
   publishedDatetime: Date;
+  sharedScope: SharedScope;
+  sharedStatus: string;
   ownerUserId: string;
   totalPrice: number;
 }[];

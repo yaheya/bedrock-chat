@@ -96,6 +96,8 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
                 owner_user_id=item["PK"],
                 published_api_stack_name=item.get("ApiPublishmentStackName", None),
                 published_api_datetime=item.get("ApiPublishedDatetime", None),
+                shared_scope=item.get("SharedScope", "private"),
+                shared_status=item.get("SharedStatus")
             )
             bots_dict[item["BotId"]] = bot_obj
 
@@ -250,6 +252,8 @@ LIMIT {limit};
                     published_api_datetime=bot.published_api_datetime,
                     owner_user_id=bot.owner_user_id,
                     total_price=total_price,
+                    shared_scope=bot.shared_scope,
+                    shared_status=bot.shared_status,
                 )
             )
 

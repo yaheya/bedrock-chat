@@ -2,14 +2,13 @@ import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   PiEraser,
-  PiGlobe,
   PiLink,
-  PiLockKey,
   PiPencil,
+  PiPlugs,
+  PiShareNetwork,
   PiStar,
   PiStarFill,
   PiTrashBold,
-  PiUsers,
   PiWrench,
 } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
@@ -27,8 +26,9 @@ import { isPinnedBot, canBePinned } from '../utils/BotUtils';
 import { produce } from 'immer';
 import PopoverMenu from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
-import PinnedBotIcon from '../components/PinnedBotIcon';
+import IconPinnedBot from '../components/IconPinnedBot';
 import ListPageLayout from '../layouts/ListPageLayout';
+import IconShareBot from '../components/IconShareBot';
 
 const BotRecentlyUsedPage: React.FC = () => {
   const { t } = useTranslation();
@@ -176,7 +176,10 @@ const BotRecentlyUsedPage: React.FC = () => {
                   {bot.sharedScope === 'all' ||
                   bot.sharedScope === 'partial' ? (
                     <div className="flex items-center">
-                      <PiUsers className="mr-1" />
+                      <IconShareBot
+                        sharedScope={bot.sharedScope}
+                        className="mr-2"
+                      />
                       <ButtonIcon
                         className="-mr-3"
                         onClick={() => {
@@ -187,7 +190,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="ml-7">
-                      <PiLockKey />
+                      <IconShareBot sharedScope={bot.sharedScope} />
                     </div>
                   )}
                 </div>
@@ -271,7 +274,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                         onClick={() => {
                           onClickShare(bot.id);
                         }}>
-                        <PiUsers />
+                        <PiShareNetwork />
                         {t('bot.button.share')}
                       </PopoverItem>
                       {isAllowApiSettings && (
@@ -279,7 +282,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                           onClick={() => {
                             onClickApiSettings(bot.id);
                           }}>
-                          <PiGlobe />
+                          <PiPlugs />
                           {t('bot.button.apiSettings')}
                         </PopoverItem>
                       )}
@@ -290,7 +293,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                           }}>
                           {isPinnedBot(bot.sharedStatus) ? (
                             <>
-                              <PinnedBotIcon
+                              <IconPinnedBot
                                 showAlways
                                 className="text-aws-aqua"
                               />
@@ -298,7 +301,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <PinnedBotIcon showAlways outlined />
+                              <IconPinnedBot showAlways outlined />
                               {t('bot.button.pinBot')}
                             </>
                           )}
@@ -339,7 +342,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                           }}>
                           {isPinnedBot(bot.sharedStatus) ? (
                             <>
-                              <PinnedBotIcon
+                              <IconPinnedBot
                                 showAlways
                                 className="text-aws-aqua"
                               />
@@ -347,7 +350,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <PinnedBotIcon showAlways outlined />
+                              <IconPinnedBot showAlways outlined />
                               {t('bot.button.pinBot')}
                             </>
                           )}

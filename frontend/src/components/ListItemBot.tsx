@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
 import { BaseProps } from '../@types/common';
 import { useTranslation } from 'react-i18next';
-import PinnedBotIcon from './PinnedBotIcon';
-import { PiUsers } from 'react-icons/pi';
+import IconPinnedBot from './IconPinnedBot';
+import IconShareBot from './IconShareBot';
+import { SharedScope } from '../@types/bot';
 
 type Props = BaseProps & {
   bot: {
@@ -12,6 +13,7 @@ type Props = BaseProps & {
     available: boolean;
     owned: boolean;
     sharedStatus: string;
+    sharedScope: SharedScope;
   };
   onClick: (botId: string) => void;
   children: ReactNode;
@@ -46,14 +48,14 @@ const ListItemBot: React.FC<Props> = (props) => {
             }>
             {props.bot.title}
           </span>
-          <PinnedBotIcon
+          <IconPinnedBot
             botSharedStatus={props.bot.sharedStatus}
             className="ml-1 text-aws-aqua"
           />
 
           {!props.bot.owned && (
-            <div className="ml-1">
-              <PiUsers />
+            <div className="ml-2">
+              <IconShareBot sharedScope={props.bot.sharedScope} />
             </div>
           )}
         </div>

@@ -16,6 +16,8 @@ import useSnackbar from '../hooks/useSnackbar';
 import ButtonCopy from '../components/ButtonCopy';
 import Skeleton from '../components/Skeleton';
 import Alert from '../components/Alert';
+import IconPinnedBot from '../components/IconPinnedBot';
+import { getShareText } from '../utils/shareUtils';
 
 const AdminBotManagementPage: React.FC = () => {
   const { t } = useTranslation();
@@ -114,7 +116,13 @@ const AdminBotManagementPage: React.FC = () => {
             {!isLoadingBot && (
               <>
                 <div className="mt-3 flex flex-col gap-1">
-                  <div className="text-lg font-bold">{bot?.title}</div>
+                  <div className="flex items-center text-lg font-bold">
+                    {bot?.title}
+                    <IconPinnedBot
+                      className="ml-2 text-aws-aqua"
+                      botSharedStatus={bot?.sharedStatus}
+                    />
+                  </div>
                   {bot?.description ? (
                     <div className="text-sm text-aws-font-color-light/50 dark:text-aws-font-color-dark">
                       {bot?.description}
@@ -128,13 +136,28 @@ const AdminBotManagementPage: React.FC = () => {
                   <div className="flex items-center text-sm text-dark-gray dark:text-light-gray">
                     {t('admin.botManagement.label.sharedUrl')}:
                     <div
-                      className="flex cursor-pointer items-center text-aws-sea-blue-light dark:text-aws-sea-blue-dark underline hover:text-aws-sea-blue-hover-light dark:hover:text-aws-sea-blue-hover-dark"
+                      className="flex cursor-pointer items-center text-aws-sea-blue-light underline hover:text-aws-sea-blue-hover-light dark:text-aws-sea-blue-dark dark:hover:text-aws-sea-blue-hover-dark"
                       onClick={() => {
                         window.open(getBotUrl(bot?.id ?? ''), '_blank');
                       }}>
                       <div className="mx-1">{getBotUrl(bot?.id ?? '')} </div>
                       <PiArrowSquareOut />
                     </div>
+                  </div>
+
+                  <div className="text-sm text-dark-gray dark:text-light-gray">
+                    <div className="flex items-center">
+                      <div className="font-bold">
+                        {bot?.sharedScope === 'all'
+                          ? t('admin.botManagement.label.sharedAllUsers')
+                          : getShareText(
+                              bot?.allowedCognitoUsers.length ?? 0,
+                              bot?.allowedCognitoGroups.length ?? 0
+                            )}
+                      </div>
+                    </div>
+
+                    <div className="ml-2"></div>
                   </div>
 
                   <div className="mt-2">
@@ -323,7 +346,7 @@ const AdminBotManagementPage: React.FC = () => {
                         {t('bot.apiSettings.help.usagePlan')}
                       </div>
 
-                      <div className="mt-1 rounded border border-aws-font-color-light/50 dark:border-aws-font-color-dark/50 p-2">
+                      <div className="mt-1 rounded border border-aws-font-color-light/50 p-2 dark:border-aws-font-color-dark/50">
                         <div className="flex text-sm">
                           {t('bot.apiSettings.item.throttling')}:
                           <div className="ml-1 font-bold">

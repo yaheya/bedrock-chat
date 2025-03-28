@@ -132,8 +132,6 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
             ...bot,
             available: true,
             owned: userId === bot.ownerUserId,
-            // the following are fixed values to prevent type errors
-            sharedStatus: '',
           }}
           onClick={() => {
             onClickViewBot(bot.id);

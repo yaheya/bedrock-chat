@@ -39,6 +39,8 @@ def get_all_published_bots(
             published_stack_name=bot.published_api_stack_name,
             published_datetime=bot.published_api_datetime,
             owner_user_id=bot.owner_user_id,
+            shared_scope=bot.shared_scope,
+            shared_status=bot.shared_status,
         )
         for bot in bots
     ]
@@ -70,6 +72,8 @@ async def get_all_public_bots(
             description=bot.description,
             is_published=True if bot.published_api_stack_name else False,
             published_datetime=bot.published_api_datetime,
+            shared_scope=bot.shared_scope,
+            shared_status=bot.shared_status,
             owner_user_id=bot.owner_user_id,
             total_price=bot.total_price,
         )
@@ -125,6 +129,10 @@ def get_public_bot(request: Request, bot_id: str, admin_check=Depends(check_admi
         sync_status=bot.sync_status,
         sync_status_reason=bot.sync_status_reason,
         sync_last_exec_id=bot.sync_last_exec_id,
+        shared_scope=bot.shared_scope,
+        shared_status=bot.shared_status,
+        allowed_cognito_groups=bot.allowed_cognito_groups,
+        allowed_cognito_users=bot.allowed_cognito_users,
     )
     return output
 

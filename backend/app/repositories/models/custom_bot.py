@@ -816,3 +816,5 @@ class BotMetaWithStackInfo(BaseModel):
     owner_user_id: str
     published_api_stack_name: str | None
     published_api_datetime: int | None
+    shared_scope: type_shared_scope
+    shared_status: str

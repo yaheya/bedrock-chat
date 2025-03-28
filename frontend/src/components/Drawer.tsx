@@ -17,10 +17,10 @@ import {
   PiChatCenteredDotsDuotone,
   PiCheck,
   PiCompass,
-  PiGlobe,
   PiListBullets,
   PiNotePencil,
   PiPencilLine,
+  PiPlugs,
   PiPresentationChart,
   PiRobot,
   PiTrash,
@@ -421,7 +421,7 @@ const Drawer: React.FC<Props> = (props) => {
               <DrawerItem
                 className="w-60"
                 isActive={location.pathname === '/admin/api-management'}
-                icon={<PiGlobe />}
+                icon={<PiPlugs />}
                 to="/admin/api-management"
                 labelComponent={getPageLabel('/admin/api-management')}
                 onClick={closeSmallDrawer}
