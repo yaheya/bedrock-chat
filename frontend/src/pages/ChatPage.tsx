@@ -57,6 +57,7 @@ import { AVAILABLE_MODEL_KEYS } from '../constants/index';
 import usePostMessageStreaming from '../hooks/usePostMessageStreaming.ts';
 import useLoginUser from '../hooks/useLoginUser';
 import useBotPinning from '../hooks/useBotPinning';
+import Skeleton from '../components/Skeleton.tsx';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -492,18 +493,36 @@ const ChatPage: React.FC = () => {
           <div className="flex w-full justify-between">
             <div className="p-2">
               <div className="mr-10 flex items-center font-bold">
-                {pageTitle}
-                <IconPinnedBot
-                  botSharedStatus={bot?.sharedStatus}
-                  className="ml-1 text-aws-aqua"
-                />
+                {isLoadingBot ? (
+                  <Skeleton className="h-5 w-32" />
+                ) : (
+                  <>
+                    {pageTitle}
+                    <IconPinnedBot
+                      botSharedStatus={bot?.sharedStatus}
+                      className="ml-1 text-aws-aqua"
+                    />
+                  </>
+                )}
               </div>
               <div className="text-xs font-thin text-dark-gray dark:text-light-gray">
-                {description}
+                {isLoadingBot ? (
+                  <Skeleton className="mt-1 h-3 w-64" />
+                ) : (
+                  description
+                )}
               </div>
             </div>
 
-            {isAvailabilityBot && (
+            {isLoadingBot && (
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="size-7" />
+                <Skeleton className="h-7 w-12" />
+              </div>
+            )}
+
+            {isAvailabilityBot && !isLoadingBot && (
               <div className="absolute -top-1 right-0 flex h-full items-center">
                 <div className="h-full bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
                 <div className="flex items-center bg-aws-paper-light dark:bg-aws-paper-dark">
