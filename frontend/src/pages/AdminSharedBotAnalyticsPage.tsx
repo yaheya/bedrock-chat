@@ -11,11 +11,13 @@ import { PiArrowDown } from 'react-icons/pi';
 import { twMerge } from 'tailwind-merge';
 import { useNavigate } from 'react-router-dom';
 import ListPageLayout from '../layouts/ListPageLayout';
+import useLoginUser from '../hooks/useLoginUser';
 
 const DATA_FORMAT = 'YYYYMMDD';
 
 const AdminSharedBotAnalyticsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { userId } = useLoginUser();
 
   const [searchDateFrom, setSearchDateFrom] = useState<null | string>(
     formatDate(addDate(new Date(), -1, 'month'), DATA_FORMAT)
@@ -129,9 +131,9 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
           bot={{
             ...bot,
             available: true,
+            owned: userId === bot.ownerUserId,
             // the following are fixed values to prevent type errors
             sharedStatus: '',
-            owned: false,
           }}
           onClick={() => {
             onClickViewBot(bot.id);

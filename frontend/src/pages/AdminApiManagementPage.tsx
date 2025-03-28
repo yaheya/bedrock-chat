@@ -5,6 +5,7 @@ import { formatDatetime } from '../utils/DateUtils';
 import usePublishApiForAdmin from '../hooks/usePublishApiForAdmin';
 import { useNavigate } from 'react-router-dom';
 import ListPageLayout from '../layouts/ListPageLayout';
+import useLoginUser from '../hooks/useLoginUser';
 
 const AdminApiManagementPage: React.FC = () => {
   const { t } = useTranslation();
@@ -20,6 +21,8 @@ const AdminApiManagementPage: React.FC = () => {
     [navigate]
   );
 
+  const { userId } = useLoginUser();
+
   return (
     <ListPageLayout
       pageTitle={t('admin.apiManagement.label.pageTitle')}
@@ -32,9 +35,9 @@ const AdminApiManagementPage: React.FC = () => {
           bot={{
             ...api,
             available: true,
+            owned: userId === api.ownerUserId,
             // the following are fixed values to prevent type errors
             sharedStatus: '',
-            owned: false,
           }}
           onClick={() => {
             onClickViewApi(api.id);

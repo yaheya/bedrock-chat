@@ -21,6 +21,10 @@ const useLoginUser = () => {
     return session?.tokens?.idToken?.payload?.['cognito:groups'];
   }, [session?.tokens?.idToken?.payload]);
 
+  const userId = useMemo(() => {
+    return session?.tokens?.idToken?.payload?.sub;
+  }, [session]);
+
   useEffect(() => {
     if (Array.isArray(groups)) {
       setIsAllowApiSettings(
@@ -50,6 +54,7 @@ const useLoginUser = () => {
       ? groups.map((group) => group?.toString() ?? '')
       : [],
     userName,
+    userId,
   };
 };
 
