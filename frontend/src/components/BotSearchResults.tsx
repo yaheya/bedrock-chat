@@ -44,7 +44,7 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
 
   return (
     <div
-      className="relative cursor-pointer rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray dark:border-dark-gray dark:bg-aws-squid-ink-dark"
+      className="relative flex h-28 cursor-pointer flex-col rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray dark:border-dark-gray dark:bg-aws-squid-ink-dark"
       onClick={handleClick}>
       {props.id && props.onToggleStar && (
         <div className="absolute right-1 top-1">
@@ -61,7 +61,7 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
         <div className="text-base font-bold">{props.title}</div>
         {props.isPinned && <PiSealCheckFill className="ml-1 text-aws-aqua" />}
       </div>
-      <div className="text-sm italic text-dark-gray">
+      <div className="line-clamp-3 overflow-hidden text-sm italic text-dark-gray">
         {props.description === ''
           ? t('bot.label.noDescription')
           : props.description}
@@ -71,7 +71,7 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
 };
 
 export const SkeletonBot: React.FC = () => {
-  return <Skeleton className="h-16 w-full rounded-xl" />;
+  return <Skeleton className="h-[120px] w-full rounded-xl" />;
 };
 
 type BotSearchResultsProps = {

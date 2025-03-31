@@ -6,6 +6,8 @@ import {
   PiMagnifyingGlass,
   PiRanking,
   PiX,
+  PiCaretLeft,
+  PiCaretRight,
 } from 'react-icons/pi';
 import InputText from '../components/InputText';
 import useBotStore from '../hooks/useBotStore';
@@ -18,9 +20,15 @@ import BotSearchResults, {
 } from '../components/BotSearchResults';
 import { isPinnedBot } from '../utils/BotUtils';
 
+// for pagination
+const ITEMS_PER_PAGE = 6;
+
 const BotDiscoverPage: React.FC = () => {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
+
+  const [trendingCurrentPage, setTrendingCurrentPage] = useState(1);
+  const [discoverCurrentPage, setDiscoverCurrentPage] = useState(1);
 
   const {
     pickupBots,
@@ -86,9 +94,87 @@ const BotDiscoverPage: React.FC = () => {
   // Show regular content when not searching
   const showRegularContent = useMemo(() => !hasSearched, [hasSearched]);
 
+  const getCurrentPageItems = useCallback(
+    <T,>(items: T[], currentPage: number): T[] => {
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      return items.slice(startIndex, endIndex);
+    },
+    []
+  );
+
+  const currentTrendingBots = useMemo(
+    () => getCurrentPageItems(popularBots, trendingCurrentPage),
+    [popularBots, trendingCurrentPage, getCurrentPageItems]
+  );
+
+  const currentDiscoverBots = useMemo(
+    () => getCurrentPageItems(pickupBots, discoverCurrentPage),
+    [pickupBots, discoverCurrentPage, getCurrentPageItems]
+  );
+
+  const trendingTotalPages = useMemo(
+    () => Math.ceil(popularBots.length / ITEMS_PER_PAGE),
+    [popularBots.length]
+  );
+
+  const discoverTotalPages = useMemo(
+    () => Math.ceil(pickupBots.length / ITEMS_PER_PAGE),
+    [pickupBots.length]
+  );
+
+  const handlePageChange = useCallback(
+    (
+      pageNumber: number,
+      setPageFunction: React.Dispatch<React.SetStateAction<number>>
+    ) => {
+      setPageFunction(pageNumber);
+    },
+    []
+  );
+
+  const Pagination = useCallback(
+    ({
+      currentPage,
+      totalPages,
+      onPageChange,
+    }: {
+      currentPage: number;
+      totalPages: number;
+      onPageChange: (page: number) => void;
+    }) => {
+      if (totalPages <= 1) {
+        return null;
+      }
+
+      return (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="rounded p-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <PiCaretLeft size={20} />
+          </button>
+
+          <span className="text-sm">
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="rounded p-1 disabled:cursor-not-allowed disabled:opacity-50">
+            <PiCaretRight size={20} />
+          </button>
+        </div>
+      );
+    },
+    []
+  );
+
   return (
     <>
-      <div className="mb-32 flex h-full justify-center">
+      <div className="flex justify-center pb-16">
         <div className="flex w-full max-w-screen-xl flex-col gap-3 px-4 pt-8 lg:w-4/5">
           <div className="flex justify-center text-4xl font-bold">
             {t('discover.pageTitle').toUpperCase()}
@@ -163,16 +249,18 @@ const BotDiscoverPage: React.FC = () => {
                   {t('discover.trending.description')}
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-9">
+                <div className="mt-3 grid min-h-96 grid-cols-2 gap-3">
                   {isLoadingPopularBots && (
                     <>
                       <SkeletonBot />
                       <SkeletonBot />
                     </>
                   )}
-                  {popularBots.map((bot, idx) => (
+                  {currentTrendingBots.map((bot, idx) => (
                     <div className="flex" key={bot.id}>
-                      <div className="mr-2 text-xl font-bold">{idx + 1}.</div>
+                      <div className="mr-2 text-xl font-bold">
+                        {(trendingCurrentPage - 1) * ITEMS_PER_PAGE + idx + 1}.
+                      </div>
                       <div className="grow">
                         <CardBot
                           title={bot.title}
@@ -186,6 +274,16 @@ const BotDiscoverPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
+
+                {popularBots.length > 0 && (
+                  <Pagination
+                    currentPage={trendingCurrentPage}
+                    totalPages={trendingTotalPages}
+                    onPageChange={(page) =>
+                      handlePageChange(page, setTrendingCurrentPage)
+                    }
+                  />
+                )}
               </div>
 
               <div className="mt-6">
@@ -197,14 +295,14 @@ const BotDiscoverPage: React.FC = () => {
                   {t('discover.discover.description')}
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-6">
+                <div className="mt-3 grid min-h-96 grid-cols-2 gap-3">
                   {isLoadingPickupBots && (
                     <>
                       <SkeletonBot />
                       <SkeletonBot />
                     </>
                   )}
-                  {pickupBots.map((bot) => (
+                  {currentDiscoverBots.map((bot) => (
                     <CardBot
                       key={bot.id}
                       title={bot.title}
@@ -216,6 +314,17 @@ const BotDiscoverPage: React.FC = () => {
                     />
                   ))}
                 </div>
+
+                {/* ディスカバーボットのページネーション */}
+                {pickupBots.length > 0 && (
+                  <Pagination
+                    currentPage={discoverCurrentPage}
+                    totalPages={discoverTotalPages}
+                    onPageChange={(page) =>
+                      handlePageChange(page, setDiscoverCurrentPage)
+                    }
+                  />
+                )}
               </div>
             </>
           )}

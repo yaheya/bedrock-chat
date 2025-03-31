@@ -11,13 +11,13 @@ const useBotStore = () => {
     data: pickupBots,
     isLoading: isLoadingPickupBots,
     mutate: mutatePickupBots,
-  } = getPickupBots();
+  } = getPickupBots(50);
 
   const {
     data: popularBots,
     isLoading: isLoadingPopularBots,
     mutate: mutatePopularBots,
-  } = getPopularBots();
+  } = getPopularBots(50);
 
   const {
     data: pinnedBots,
