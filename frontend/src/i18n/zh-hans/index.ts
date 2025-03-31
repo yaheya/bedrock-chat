@@ -234,11 +234,10 @@ const translation = {
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Shared Bot Analytics',
-          noPublicBotUsages:
-            'During the Calculation Period, no public bots were utilized.',
+          pageTitle: 'Bot Analytics',
+          noBotUsages: 'During the Calculation Period, no bots were utilized.',
           published: 'API is published.',
           SearchCondition: {
             title: 'Calculation Period',
@@ -248,8 +247,7 @@ const translation = {
           sortByCost: 'Sort by Cost',
         },
         help: {
-          overview:
-            'Monitor the usage status of Shared Bots and Published Bot APIs.',
+          overview: 'Monitor the usage status of Bots and Published Bot APIs.',
           calculationPeriod:
             'If the Calculation Period is not set, the cost for today will be displayed.',
         },
@@ -308,7 +306,7 @@ const translation = {
     button: {
       newChat: '新的聊天',
       botConsole: 'Bot 主控台',
-      sharedBotAnalytics: '共用 Bot 用量分析',
+      botAnalytics: 'Bot 用量分析',
       apiManagement: 'API 管理',
       userUsages: '使用者用量',
       SaveAndSubmit: '保存并提交',

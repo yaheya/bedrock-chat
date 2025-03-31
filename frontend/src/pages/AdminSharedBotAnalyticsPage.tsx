@@ -56,8 +56,8 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
 
   return (
     <ListPageLayout
-      pageTitle={t('admin.sharedBotAnalytics.label.pageTitle')}
-      pageTitleHelp={t('admin.sharedBotAnalytics.help.overview')}
+      pageTitle={t('admin.botAnalytics.label.pageTitle')}
+      pageTitleHelp={t('admin.botAnalytics.help.overview')}
       pageTitleActions={
         <Button
           outlined
@@ -72,23 +72,21 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
           onClick={() => {
             setIsDescCost(!isDescCost);
           }}>
-          {t('admin.sharedBotAnalytics.label.sortByCost')}
+          {t('admin.botAnalytics.label.sortByCost')}
         </Button>
       }
       searchCondition={
         <div className="rounded border p-2">
           <div className="flex items-center gap-1 text-sm font-bold">
-            {t('admin.sharedBotAnalytics.label.SearchCondition.title')}
-            <Help
-              message={t('admin.sharedBotAnalytics.help.calculationPeriod')}
-            />
+            {t('admin.botAnalytics.label.SearchCondition.title')}
+            <Help message={t('admin.botAnalytics.help.calculationPeriod')} />
           </div>
 
           <div className="flex gap-2 sm:w-full md:w-3/4">
             <InputText
               className="w-full"
               type="date"
-              label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
+              label={t('admin.botAnalytics.label.SearchCondition.from')}
               value={formatDate(searchDateFrom, 'YYYY-MM-DD')}
               onChange={(val) => {
                 if (val === '') {
@@ -106,7 +104,7 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
             <InputText
               className="w-full"
               type="date"
-              label={t('admin.sharedBotAnalytics.label.SearchCondition.to')}
+              label={t('admin.botAnalytics.label.SearchCondition.to')}
               value={formatDate(searchDateTo, 'YYYY-MM-DD')}
               onChange={(val) => {
                 if (val === '') {
@@ -124,7 +122,7 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
       }
       isLoading={isLoadingPublicBots}
       isEmpty={publicBots?.length === 0}
-      emptyMessage={t('admin.sharedBotAnalytics.label.noPublicBotUsages')}>
+      emptyMessage={t('admin.botAnalytics.label.noBotUsages')}>
       {sortedBots?.map((bot, idx) => (
         <ListItemBot
           key={idx}
@@ -145,7 +143,7 @@ const AdminSharedBotAnalyticsPage: React.FC = () => {
               {bot.isPublished ? (
                 <>
                   {bot.isPublished
-                    ? t('admin.sharedBotAnalytics.label.published')
+                    ? t('admin.botAnalytics.label.published')
                     : null}
                 </>
               ) : (

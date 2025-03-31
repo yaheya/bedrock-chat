@@ -3,7 +3,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import InputText from '../components/InputText';
 import Button from '../components/Button';
 import { useParams } from 'react-router-dom';
-import { PiArrowSquareOut, PiCaretLeft, PiFile } from 'react-icons/pi';
+import {
+  PiArrowSquareOut,
+  PiCaretLeft,
+  PiFile,
+  PiUserCircle,
+} from 'react-icons/pi';
 import Textarea from '../components/Textarea';
 
 import ButtonIcon from '../components/ButtonIcon';
@@ -18,6 +23,8 @@ import Skeleton from '../components/Skeleton';
 import Alert from '../components/Alert';
 import IconPinnedBot from '../components/IconPinnedBot';
 import { getShareText } from '../utils/shareUtils';
+import IconShareBot from '../components/IconShareBot';
+import useUser from '../hooks/useUser';
 
 const AdminBotManagementPage: React.FC = () => {
   const { t } = useTranslation();
@@ -89,6 +96,8 @@ const AdminBotManagementPage: React.FC = () => {
     history.back();
   }, []);
 
+  const { user, isLoading: isLoadingUser } = useUser(bot?.ownerUserId);
+
   return (
     <>
       <DialogConfirmDeleteApi
@@ -146,14 +155,31 @@ const AdminBotManagementPage: React.FC = () => {
                   </div>
 
                   <div className="text-sm text-dark-gray dark:text-light-gray">
-                    <div className="flex items-center">
+                    <div className="flex flex-col items-start gap-1">
                       <div className="font-bold">
-                        {bot?.sharedScope === 'all'
-                          ? t('admin.botManagement.label.sharedAllUsers')
-                          : getShareText(
+                        <div className="flex items-center gap-1">
+                          <IconShareBot
+                            sharedScope={bot?.sharedScope ?? 'private'}
+                          />
+                          {bot?.sharedScope === 'all' &&
+                            t('admin.botManagement.label.sharedAllUsers')}
+                          {bot?.sharedScope === 'partial' &&
+                            getShareText(
                               bot?.allowedCognitoUsers.length ?? 0,
                               bot?.allowedCognitoGroups.length ?? 0
                             )}
+                          {bot?.sharedScope === 'private' &&
+                            t('admin.botManagement.label.privateBot')}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <PiUserCircle />
+                        <div>{t('admin.botManagement.label.owner')}:</div>
+                        {isLoadingUser ? (
+                          <Skeleton className="w-32" />
+                        ) : (
+                          user?.email
+                        )}
                       </div>
                     </div>
 

@@ -377,11 +377,11 @@ Bạn sẽ phân loại email này như thế nào?`,
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Phân tích Bot Chia Sẻ',
-          noPublicBotUsages:
-            'Trong Thời gian Tính toán, không có bot công khai nào được sử dụng.',
+          pageTitle: 'Phân tích Bot',
+          noBotUsages:
+            'Trong Thời gian Tính toán, không có bot nào được sử dụng.',
           published: 'API đã được công bố.',
           SearchCondition: {
             title: 'Thời gian Tính toán',
@@ -473,7 +473,7 @@ Bạn sẽ phân loại email này như thế nào?`,
     button: {
       newChat: 'Trò chuyện Mới',
       botConsole: 'Bảng điều khiển Bot',
-      sharedBotAnalytics: 'Phân tích Bot Chia Sẻ',
+      botAnalytics: 'Phân tích Bot',
       apiManagement: 'Quản lý API',
       userUsages: 'Lượt Sử dụng của Người dùng',
       SaveAndSubmit: 'Lưu & Gửi',

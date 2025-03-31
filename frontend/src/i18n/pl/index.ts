@@ -23,60 +23,62 @@ const translation = {
       },
       'claude-v3-sonnet': {
         label: 'Claude 3 (Sonnet)',
-        description:  'Równowaga między inteligencją a szybkością.',
+        description: 'Równowaga między inteligencją a szybkością.',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
         description:
-         'Wcześniejsza wersja Claude 3.5. Obsługuje szeroki zakres zadań, ale v2 oferuje lepszą dokładność.',
+          'Wcześniejsza wersja Claude 3.5. Obsługuje szeroki zakres zadań, ale v2 oferuje lepszą dokładność.',
       },
       'claude-v3.5-sonnet-v2': {
         label: 'Claude 3.5 (Sonnet) v2',
         description:
-         'Najnowsza wersja Claude 3.5. Ulepszony model, który bazuje na v1 z większą dokładnością i wydajnością.',
+          'Najnowsza wersja Claude 3.5. Ulepszony model, który bazuje na v1 z większą dokładnością i wydajnością.',
       },
       'claude-v3.5-haiku': {
         label: 'Claude 3.5 (Haiku) v1',
         description:
-         'Najnowsza wersja, oferująca jeszcze szybsze odpowiedzi i ulepszone możliwości w porównaniu do Haiku 3.',
+          'Najnowsza wersja, oferująca jeszcze szybsze odpowiedzi i ulepszone możliwości w porównaniu do Haiku 3.',
       },
       'claude-v3-opus': {
         label: 'Claude 3 (Opus)',
-        description:  'Potężny model do wysoce złożonych zadań.',
+        description: 'Potężny model do wysoce złożonych zadań.',
       },
       'mistral-7b-instruct': {
         label: 'Mistral 7B',
-        description: 'Wspiera generowanie tekstu w języku angielskim oraz kodu'
+        description: 'Wspiera generowanie tekstu w języku angielskim oraz kodu',
       },
       'mixtral-8x7b-instruct': {
         label: 'Mistral-8x7B',
-        description: 'Popularny, wysokiej jakości model Mixture-of-Experts (MoE), idealny do podsumowywania tekstu, pytań i odpowiedzi, klasyfikacji tekstu, uzupełniania tekstu i generowania kodu.'
+        description:
+          'Popularny, wysokiej jakości model Mixture-of-Experts (MoE), idealny do podsumowywania tekstu, pytań i odpowiedzi, klasyfikacji tekstu, uzupełniania tekstu i generowania kodu.',
       },
       'mistral-large': {
         label: 'Mistral Large',
-        description: 'Idealny do złożonych zadań wymagających znacznych zdolności rozumowania lub wysoce specjalistycznych, takich jak generowanie tekstu syntetycznego lub generowanie kodu.'
+        description:
+          'Idealny do złożonych zadań wymagających znacznych zdolności rozumowania lub wysoce specjalistycznych, takich jak generowanie tekstu syntetycznego lub generowanie kodu.',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
         description:
-         'Zaawansowany model multimodalny z najlepszą kombinacją dokładności, szybkości oraz kosztu dla szerokiego zakresu zadań.',
+          'Zaawansowany model multimodalny z najlepszą kombinacją dokładności, szybkości oraz kosztu dla szerokiego zakresu zadań.',
       },
       'amazon-nova-lite': {
         label: 'Amazon Nova Lite',
         description:
-         'Tani model multimodalny, który jest błyskawicznie szybki w przetwarzaniu obrazów, wideo i tekstu.',
+          'Tani model multimodalny, który jest błyskawicznie szybki w przetwarzaniu obrazów, wideo i tekstu.',
       },
       'amazon-nova-micro': {
         label: 'Amazon Nova Micro',
         description:
-         'Model tylko tekstowy, który zapewnia najniższe opóźnienia odpowiedzi w rodzinie modeli Amazon Nova przy bardzo niskim koszcie.',
+          'Model tylko tekstowy, który zapewnia najniższe opóźnienia odpowiedzi w rodzinie modeli Amazon Nova przy bardzo niskim koszcie.',
       },
     },
     agent: {
       label: 'Agent',
       help: {
         overview:
-         'Używając funkcjonalności Agenta, Twój chatbot może automatycznie obsługiwać bardziej złożone zadania.',
+          'Używając funkcjonalności Agenta, Twój chatbot może automatycznie obsługiwać bardziej złożone zadania.',
       },
       hint: `Agent automatycznie określa, których narzędzi użyć do odpowiedzi na pytania użytkownika. Ze względu na czas potrzebny na decyzję, czas odpowiedzi zwykle jest dłuższy. Aktywacja jednego lub więcej narzędzi włącza funkcjonalność agenta. Odwrotnie, jeśli nie wybrano żadnych narzędzi, funkcjonalność agenta nie jest wykorzystywana. Gdy funkcjonalność agenta jest włączona, wykorzystanie Bazy Wiedzy jest również traktowane jako jedno z narzędzi. Oznacza to, że Baza Wiedzy może nie być wykorzystana w odpowiedziach.`,
       progress: {
@@ -103,8 +105,7 @@ const translation = {
         },
         sql_db_schema: {
           name: 'Schema Bazy Danych',
-          description:
-           'Pobierz schemat i przykładowe wiersze dla listy tabel.',
+          description: 'Pobierz schemat i przykładowe wiersze dla listy tabel.',
         },
         sql_db_list_tables: {
           name: 'Lista Tabel Bazy Danych',
@@ -144,7 +145,7 @@ const translation = {
         retrievingKnowledge: '[Pobieranie Wiedzy...]',
         selectParsingModel: 'Wybierz Model Analizy',
         dndFileUpload:
-         'Możesz przesłać pliki poprzez przeciągnięcie i upuszczenie.\nObsługiwane pliki: {{fileExtensions}}',
+          'Możesz przesłać pliki poprzez przeciągnięcie i upuszczenie.\nObsługiwane pliki: {{fileExtensions}}',
         uploadError: 'Komunikat Błędu',
         referenceLink: 'Link Referencyjny',
         syncStatus: {
@@ -173,24 +174,24 @@ const translation = {
       },
       help: {
         overview:
-         'Boty działają zgodnie z predefiniowanymi instrukcjami. Czat nie działa zgodnie z oczekiwaniami, jeśli kontekst nie jest zdefiniowany w wiadomości, ale w przypadku botów nie ma potrzeby definiowania kontekstu.',
+          'Boty działają zgodnie z predefiniowanymi instrukcjami. Czat nie działa zgodnie z oczekiwaniami, jeśli kontekst nie jest zdefiniowany w wiadomości, ale w przypadku botów nie ma potrzeby definiowania kontekstu.',
         instructions:
-         'Zdefiniuj, jak bot powinien się zachowywać. Podawanie niejednoznacznych instrukcji może prowadzić do nieprzewidywalnych działań, dlatego należy podawać jasne i konkretne instrukcje.',
+          'Zdefiniuj, jak bot powinien się zachowywać. Podawanie niejednoznacznych instrukcji może prowadzić do nieprzewidywalnych działań, dlatego należy podawać jasne i konkretne instrukcje.',
         knowledge: {
           overview:
-           'Poprzez dostarczenie botowi zewnętrznej wiedzy, staje się on zdolny do obsługi danych, na których nie był wcześniej trenowany.',
+            'Poprzez dostarczenie botowi zewnętrznej wiedzy, staje się on zdolny do obsługi danych, na których nie był wcześniej trenowany.',
           url: 'Informacje z określonego URL będą wykorzystane jako Baza Wiedzy.',
           s3url:
-           'Podając URI S3, możesz dodać S3 jako źródło danych. Możesz dodać do 4 źródeł. Obsługuje tylko S3 istniejące w tym samym koncie i regionie co Region Bedrock.',
+            'Podając URI S3, możesz dodać S3 jako źródło danych. Możesz dodać do 4 źródeł. Obsługuje tylko S3 istniejące w tym samym koncie i regionie co Region Bedrock.',
           sitemap:
-           'Określając URL witryny, informacje uzyskane poprzez automatyczne przeszukiwanie stron w niej zawartych będą wykorzystane jako Baza Wiedzy.',
+            'Określając URL witryny, informacje uzyskane poprzez automatyczne przeszukiwanie stron w niej zawartych będą wykorzystane jako Baza Wiedzy.',
           file: 'Przesłane pliki będą wykorzystane jako Baza Wiedzy.',
           citeRetrievedContexts:
-           'Skonfiguruj, czy wyświetlać kontekst pobrany do odpowiedzi na zapytania użytkownika jako informacje o cytowaniu.\nJeśli włączone, użytkownicy mogą uzyskać dostęp do oryginalnych URL-i źródłowych lub plików.',
+            'Skonfiguruj, czy wyświetlać kontekst pobrany do odpowiedzi na zapytania użytkownika jako informacje o cytowaniu.\nJeśli włączone, użytkownicy mogą uzyskać dostęp do oryginalnych URL-i źródłowych lub plików.',
         },
         quickStarter: {
           overview:
-           'Podczas rozpoczynania konwersacji, podaj przykłady. Przykłady pokazują, jak korzystać z bota.',
+            'Podczas rozpoczynania konwersacji, podaj przykłady. Przykłady pokazują, jak korzystać z bota.',
         },
       },
       alert: {
@@ -280,25 +281,26 @@ Jak sklasyfikowałbyś ten e-mail?`,
         },
         help: {
           overview:
-           'Utworzenie API umożliwia dostęp do funkcji Bota przez zewnętrznych klientów; API umożliwiają integrację z zewnętrznymi aplikacjami.',
+            'Utworzenie API umożliwia dostęp do funkcji Bota przez zewnętrznych klientów; API umożliwiają integrację z zewnętrznymi aplikacjami.',
           endpoint: 'Klient może korzystać z Bota z tego endpointu.',
           usagePlan:
-           'Plany użytkowania określają liczbę lub częstotliwość żądań, które Twoje API przyjmuje od klienta. Powiąż API z planem użytkowania, aby śledzić żądania otrzymywane przez Twoje API.',
-          throttling: 'Ogranicz częstotliwość, z jaką użytkownicy mogą wywoływać Twoje API.',
+            'Plany użytkowania określają liczbę lub częstotliwość żądań, które Twoje API przyjmuje od klienta. Powiąż API z planem użytkowania, aby śledzić żądania otrzymywane przez Twoje API.',
+          throttling:
+            'Ogranicz częstotliwość, z jaką użytkownicy mogą wywoływać Twoje API.',
           rateLimit:
-           'Wprowadź limit częstotliwości (w żądaniach na sekundę), z jaką klienci mogą wywoływać Twoje API.',
+            'Wprowadź limit częstotliwości (w żądaniach na sekundę), z jaką klienci mogą wywoływać Twoje API.',
           burstLimit:
-           'Wprowadź liczbę równoczesnych żądań, które klient może wykonać do Twojego API.',
+            'Wprowadź liczbę równoczesnych żądań, które klient może wykonać do Twojego API.',
           quota:
-           'Włącz limity, aby ograniczyć liczbę żądań, które użytkownik może wykonać do Twojego API w danym okresie.',
+            'Włącz limity, aby ograniczyć liczbę żądań, które użytkownik może wykonać do Twojego API w danym okresie.',
           requestLimit:
-           'Wprowadź całkowitą liczbę żądań, które użytkownik może wykonać w okresie wybranym z listy rozwijanej.',
+            'Wprowadź całkowitą liczbę żądań, które użytkownik może wykonać w okresie wybranym z listy rozwijanej.',
           allowOrigins:
-           'Dozwolone źródła pochodzenia klienta. Jeśli źródło nie jest dozwolone, wywołujący otrzyma odpowiedź 403 Forbidden i zostanie odmówiony dostęp do API. Źródło musi być zgodne z formatem: "(http|https)://nazwa-hosta" lub "(http|https)://nazwa-hosta:port" i można używać symboli wieloznacznych(*).',
+            'Dozwolone źródła pochodzenia klienta. Jeśli źródło nie jest dozwolone, wywołujący otrzyma odpowiedź 403 Forbidden i zostanie odmówiony dostęp do API. Źródło musi być zgodne z formatem: "(http|https)://nazwa-hosta" lub "(http|https)://nazwa-hosta:port" i można używać symboli wieloznacznych(*).',
           allowOriginsExample:
-           'np. https://twoja-nazwa-hosta.com, https://*.twoja-nazwa-hosta.com, http://localhost:8000',
-          apiKeys: 
-          'Klucz API to ciąg alfanumeryczny używany do identyfikacji klienta Twojego API. W przeciwnym razie wywołujący otrzyma odpowiedź 403 Forbidden i zostanie odmówiony dostęp do API.',
+            'np. https://twoja-nazwa-hosta.com, https://*.twoja-nazwa-hosta.com, http://localhost:8000',
+          apiKeys:
+            'Klucz API to ciąg alfanumeryczny używany do identyfikacji klienta Twojego API. W przeciwnym razie wywołujący otrzyma odpowiedź 403 Forbidden i zostanie odmówiony dostęp do API.',
         },
         button: {
           ApiKeyShow: 'Pokaż',
@@ -325,7 +327,7 @@ Jak sklasyfikowałbyś ten e-mail?`,
         deleteApiDaialog: {
           title: 'Usunąć?',
           content:
-           'Czy na pewno chcesz usunąć API? Endpoint API zostanie usunięty i klient nie będzie miał już do niego dostępu.',
+            'Czy na pewno chcesz usunąć API? Endpoint API zostanie usunięty i klient nie będzie miał już do niego dostępu.',
         },
         addApiKeyDialog: {
           title: 'Dodaj Klucz API',
@@ -334,7 +336,7 @@ Jak sklasyfikowałbyś ten e-mail?`,
         deleteApiKeyDialog: {
           title: 'Usunąć?',
           content:
-           'Czy na pewno chcesz usunąć <Bold>{{title}}</Bold>?\nKlienci używający tego Klucza API będą mieli odmówiony dostęp do API.',
+            'Czy na pewno chcesz usunąć <Bold>{{title}}</Bold>?\nKlienci używający tego Klucza API będą mieli odmówiony dostęp do API.',
         },
       },
       button: {
@@ -357,11 +359,11 @@ Jak sklasyfikowałbyś ten e-mail?`,
         title: 'Udostępnij',
         off: {
           content:
-           'Udostępnianie linku jest wyłączone, więc tylko Ty możesz uzyskać dostęp do tego bota przez jego URL.',
+            'Udostępnianie linku jest wyłączone, więc tylko Ty możesz uzyskać dostęp do tego bota przez jego URL.',
         },
         on: {
           content:
-           'Udostępnianie linku jest włączone, więc WSZYSCY użytkownicy mogą użyć tego linku do konwersacji.',
+            'Udostępnianie linku jest włączone, więc WSZYSCY użytkownicy mogą użyć tego linku do konwersacji.',
         },
       },
       error: {
@@ -371,15 +373,16 @@ Jak sklasyfikowałbyś ten e-mail?`,
       },
       activeModels: {
         title: 'Aktywacja Modelu',
-        description: 'Skonfiguruj, które modele AI mogą być używane z tym botem.',
+        description:
+          'Skonfiguruj, które modele AI mogą być używane z tym botem.',
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Analityka Botów Współdzielonych',
-          noPublicBotUsages:
-           'W Okresie Obliczeniowym nie wykorzystano żadnych botów publicznych.',
+          pageTitle: 'Analityka Botów',
+          noBotUsages:
+            'W Okresie Obliczeniowym nie wykorzystano żadnych botów.',
           published: 'API jest opublikowane.',
           SearchCondition: {
             title: 'Okres Obliczeniowy',
@@ -390,9 +393,9 @@ Jak sklasyfikowałbyś ten e-mail?`,
         },
         help: {
           overview:
-           'Monitoruj status użytkowania Botów Współdzielonych i Opublikowanych API Botów.',
+            'Monitoruj status użytkowania Botów i Opublikowanych API Botów.',
           calculationPeriod:
-           'Jeśli Okres Obliczeniowy nie jest ustawiony, wyświetlony zostanie koszt za dzisiaj.',
+            'Jeśli Okres Obliczeniowy nie jest ustawiony, wyświetlony zostanie koszt za dzisiaj.',
         },
       },
       apiManagement: {
@@ -416,11 +419,11 @@ Jak sklasyfikowałbyś ten e-mail?`,
           usagePlanOn: 'WŁĄCZONY',
           usagePlanOff: 'WYŁĄCZONY',
           rateLimit:
-           '<Bold>{{limit}}</Bold> żądań na sekundę, które klienci mogą wykonać do API.',
+            '<Bold>{{limit}}</Bold> żądań na sekundę, które klienci mogą wykonać do API.',
           burstLimit:
-           'Klient może wykonać <Bold>{{limit}}</Bold> równoczesnych żądań do API.',
+            'Klient może wykonać <Bold>{{limit}}</Bold> równoczesnych żądań do API.',
           requestsLimit:
-           'Możesz wykonać <Bold>{{limit}}</Bold> żądań <Bold>{{period}}</Bold>.',
+            'Możesz wykonać <Bold>{{limit}}</Bold> żądań <Bold>{{period}}</Bold>.',
         },
         alert: {
           noApiKeys: {
@@ -471,7 +474,7 @@ Jak sklasyfikowałbyś ten e-mail?`,
     button: {
       newChat: 'Nowy Czat',
       botConsole: 'Konsola Bota',
-      sharedBotAnalytics: 'Analityka Botów Współdzielonych',
+      botAnalytics: 'Analityka Botów',
       apiManagement: 'Zarządzanie API',
       userUsages: 'Wykorzystanie zasobów',
       SaveAndSubmit: 'Zapisz i Wyślij',
@@ -547,7 +550,8 @@ Jak sklasyfikowałbyś ten e-mail?`,
       description:
         'Możesz skonfigurować parametry wnioskowania LLM, aby kontrolować odpowiedzi z modeli.',
       maxTokens: {
-        label: 'Maksymalna długość generowania/maksymalna liczba nowych tokenów',
+        label:
+          'Maksymalna długość generowania/maksymalna liczba nowych tokenów',
         hint: 'Maksymalna liczba tokenów dozwolona w wygenerowanej odpowiedzi',
       },
       temperature: {
@@ -652,48 +656,48 @@ Jak sklasyfikowałbyś ten e-mail?`,
       },
       breakpointThreshold: {
         label: 'Próg percentylowy punktów przełomowych',
-        hint: 'Próg percentylowy odległości/różnic między zdaniami do wyznaczania punktów przełomowych między zdaniami.'
+        hint: 'Próg percentylowy odległości/różnic między zdaniami do wyznaczania punktów przełomowych między zdaniami.',
       },
       opensearchAnalyzer: {
         label: 'Analizator (Tokenizacja, Normalizacja)',
         hint: 'Możesz określić analizator do tokenizacji i normalizacji dokumentów zarejestrowanych jako wiedza. Wybór odpowiedniego analizatora poprawi dokładność wyszukiwania. Wybierz optymalny analizator odpowiadający językowi twojej wiedzy.',
         icu: {
           label: 'Analizator ICU',
-          hint: 'Do tokenizacji używany jest {{tokenizer}}, a do normalizacji używany jest {{normalizer}}.'
+          hint: 'Do tokenizacji używany jest {{tokenizer}}, a do normalizacji używany jest {{normalizer}}.',
         },
         kuromoji: {
           label: 'Analizator japoński (kuromoji)',
-          hint: 'Do tokenizacji używany jest {{tokenizer}}, a do normalizacji używany jest {{normalizer}}.'
+          hint: 'Do tokenizacji używany jest {{tokenizer}}, a do normalizacji używany jest {{normalizer}}.',
         },
         none: {
           label: 'Domyślny analizator systemowy',
-          hint: 'Zostanie użyty domyślny analizator zdefiniowany przez system (OpenSearch).'
+          hint: 'Zostanie użyty domyślny analizator zdefiniowany przez system (OpenSearch).',
         },
         tokenizer: 'Tokenizer:',
         normalizer: 'Normalizator:',
         token_filter: 'Filtr tokenów:',
-        not_specified: 'Nie określono'
+        not_specified: 'Nie określono',
       },
       advancedParsing: {
         label: 'Zaawansowane parsowanie',
         description:
-         'Wybierz model do użycia w zaawansowanych funkcjach parsowania dokumentów.',
-        hint: 'Odpowiednie do parsowania złożonych tekstów w obsługiwanych formatach dokumentów, włącznie z tabelami w plikach PDF z zachowaniem ich struktury. Parsowanie przy użyciu AI generatywnego wiąże się z dodatkowymi kosztami.'
+          'Wybierz model do użycia w zaawansowanych funkcjach parsowania dokumentów.',
+        hint: 'Odpowiednie do parsowania złożonych tekstów w obsługiwanych formatach dokumentów, włącznie z tabelami w plikach PDF z zachowaniem ich struktury. Parsowanie przy użyciu AI generatywnego wiąże się z dodatkowymi kosztami.',
       },
       parsingModel: {
         label: 'Model zaawansowanego parsowania',
         none: {
           label: 'Wyłączone',
-          hint: 'Zaawansowane parsowanie nie będzie stosowane.'
+          hint: 'Zaawansowane parsowanie nie będzie stosowane.',
         },
         claude_3_sonnet_v1: {
           label: 'Claude 3 Sonnet v1',
-          hint: 'Użyj Claude 3 Sonnet v1 do zaawansowanego parsowania dokumentów.'
+          hint: 'Użyj Claude 3 Sonnet v1 do zaawansowanego parsowania dokumentów.',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',
-          hint: 'Użyj Claude 3 Haiku v1 do zaawansowanego parsowania dokumentów.'
-        }
+          hint: 'Użyj Claude 3 Haiku v1 do zaawansowanego parsowania dokumentów.',
+        },
       },
       webCrawlerConfig: {
         title: 'Konfiguracja Web Crawlera',
@@ -701,37 +705,38 @@ Jak sklasyfikowałbyś ten e-mail?`,
           label: 'Zakres crawlowania',
           default: {
             label: 'Domyślny',
-            hint: 'Ogranicza crawlowanie do stron internetowych należących do tego samego hosta i z tą samą początkową ścieżką URL. Na przykład, przy URL źródłowym \'https://aws.amazon.com/bedrock/\' crawlowane będą tylko ta ścieżka i strony internetowe rozszerzające tę ścieżkę, jak \'https://aws.amazon.com/bedrock/agents/\'. URLs siostrzane jak \'https://aws.amazon.com/ec2/\' nie będą crawlowane.'
+            hint: "Ogranicza crawlowanie do stron internetowych należących do tego samego hosta i z tą samą początkową ścieżką URL. Na przykład, przy URL źródłowym 'https://aws.amazon.com/bedrock/' crawlowane będą tylko ta ścieżka i strony internetowe rozszerzające tę ścieżkę, jak 'https://aws.amazon.com/bedrock/agents/'. URLs siostrzane jak 'https://aws.amazon.com/ec2/' nie będą crawlowane.",
           },
           subdomains: {
             label: 'Subdomeny',
-            hint: 'Uwzględnia crawlowanie dowolnej strony internetowej, która ma tę samą domenę główną co URL źródłowy. Na przykład, przy URL źródłowym \'https://aws.amazon.com/bedrock/\' crawlowana będzie każda strona zawierająca \'amazon.com\', jak \'https://www.amazon.com\'.'
+            hint: "Uwzględnia crawlowanie dowolnej strony internetowej, która ma tę samą domenę główną co URL źródłowy. Na przykład, przy URL źródłowym 'https://aws.amazon.com/bedrock/' crawlowana będzie każda strona zawierająca 'amazon.com', jak 'https://www.amazon.com'.",
           },
           hostOnly: {
             label: 'Tylko host',
-            hint: 'Ogranicza crawlowanie do stron internetowych należących do tego samego hosta. Na przykład, przy URL źródłowym \'https://aws.amazon.com/bedrock/\', crawlowane będą również strony z \'https://docs.aws.amazon.com\', jak \'https://aws.amazon.com/ec2\'.'
-          }
+            hint: "Ogranicza crawlowanie do stron internetowych należących do tego samego hosta. Na przykład, przy URL źródłowym 'https://aws.amazon.com/bedrock/', crawlowane będą również strony z 'https://docs.aws.amazon.com', jak 'https://aws.amazon.com/ec2'.",
+          },
         },
         includePatterns: {
           label: 'Wzorce do uwzględnienia',
-          hint: 'Określ wzorce do uwzględnienia w crawlowaniu. Tylko URL-e pasujące do tych wzorców będą crawlowane.'
+          hint: 'Określ wzorce do uwzględnienia w crawlowaniu. Tylko URL-e pasujące do tych wzorców będą crawlowane.',
         },
         excludePatterns: {
           label: 'Wzorce do wykluczenia',
-          hint: 'Określ wzorce do wykluczenia z crawlowania. URL-e pasujące do tych wzorców nie będą crawlowane.'
-        }
+          hint: 'Określ wzorce do wykluczenia z crawlowania. URL-e pasujące do tych wzorców nie będą crawlowane.',
+        },
       },
       advancedConfigration: {
         existKnowledgeBaseId: {
           label: 'ID dla bazy wiedzy Amazon Bedrock',
-          description: 'Proszę podać ID istniejącej Bazy Wiedzy Amazon Bedrock.',
+          description:
+            'Proszę podać ID istniejącej Bazy Wiedzy Amazon Bedrock.',
           createNewKb: {
-            label: 'Utwórz nową Bazę Wiedzy'
+            label: 'Utwórz nową Bazę Wiedzy',
           },
           existing: {
-            label: 'Użyj istniejącej Bazy Wiedzy'
-          }
-        }
+            label: 'Użyj istniejącej Bazy Wiedzy',
+          },
+        },
       },
     },
     error: {
@@ -767,10 +772,12 @@ Jak sklasyfikowałbyś ten e-mail?`,
         message: 'Minimalna wartość, którą można ustawić, to {{size}}',
       },
       chunkOverlapLessThanChunkSize: {
-        message: 'Nakładanie fragmentów musi być mniejsze niż rozmiar fragmentu',
+        message:
+          'Nakładanie fragmentów musi być mniejsze niż rozmiar fragmentu',
       },
       parentTokenRange: {
-        message: 'Rozmiar tokenu nadrzędnego powinien być większy niż rozmiar tokenu podrzędnego',
+        message:
+          'Rozmiar tokenu nadrzędnego powinien być większy niż rozmiar tokenu podrzędnego',
       },
       quickStarter: {
         message: 'Proszę wprowadzić zarówno Tytuł jak i Przykład Konwersacji.',
@@ -850,5 +857,5 @@ Jak sklasyfikowałbyś ten e-mail?`,
     },
   },
 };
- 
+
 export default translation;

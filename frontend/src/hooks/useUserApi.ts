@@ -27,8 +27,8 @@ const useUserApi = () => {
         prefix ? ['user/group/search', res] : null
       );
     },
-    getUser: (userId: string) => {
-      return http.get<GetUserResponse>(`user/${userId}`);
+    getUser: (userId?: string) => {
+      return http.get<GetUserResponse>(userId ? `user/${userId}` : null);
     },
   };
 };

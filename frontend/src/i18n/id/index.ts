@@ -46,15 +46,18 @@ const translation = {
       },
       'mistral-7b-instruct': {
         label: 'Mistral 7B',
-        description: 'Dapat menghasilkan teks bahasa Inggris dengan kemampuan coding alami'
+        description:
+          'Dapat menghasilkan teks bahasa Inggris dengan kemampuan coding alami',
       },
       'mixtral-8x7b-instruct': {
         label: 'Mixtral-8x7B',
-        description: "Model Mixture-of-Experts (MoE) yang populer, berkualitas tinggi, dan ideal untuk merangkum teks, tanya jawab, klasifikasi teks, melengkapi teks, dan menghasilkan kode"
+        description:
+          'Model Mixture-of-Experts (MoE) yang populer, berkualitas tinggi, dan ideal untuk merangkum teks, tanya jawab, klasifikasi teks, melengkapi teks, dan menghasilkan kode',
       },
       'mistral-large': {
         label: 'Mistral Large',
-        description: "Ideal untuk tugas-tugas rumit yang memerlukan kemampuan penalaran substansial, atau tugas-tugas yang sangat terspesialisasi, seperti Pembuatan Teks Sintetis atau Pembuatan Kode"
+        description:
+          'Ideal untuk tugas-tugas rumit yang memerlukan kemampuan penalaran substansial, atau tugas-tugas yang sangat terspesialisasi, seperti Pembuatan Teks Sintetis atau Pembuatan Kode',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
@@ -103,7 +106,7 @@ const translation = {
         },
         sql_db_schema: {
           name: 'Skema Database',
-          description: 
+          description:
             'Mengambil skema dan sampel baris data dari daftar tabel.',
         },
         sql_db_list_tables: {
@@ -112,7 +115,8 @@ const translation = {
         },
         sql_db_query_checker: {
           name: 'Pemeriksa Query',
-          description: 'Periksa apakah query SQL Anda sudah benar sebelum dieksekusi.',
+          description:
+            'Periksa apakah query SQL Anda sudah benar sebelum dieksekusi.',
         },
         internet_search: {
           name: 'Pencarian Internet',
@@ -375,11 +379,11 @@ const translation = {
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Analitik Bot Bersama',
-          noPublicBotUsages:
-            'Selama Periode Perhitungan, tidak ada bot publik yang digunakan.',
+          pageTitle: 'Analitik Bot',
+          noBotUsages:
+            'Selama Periode Perhitungan, tidak ada bot yang digunakan.',
           published: 'API telah dipublikasikan.',
           SearchCondition: {
             title: 'Periode Perhitungan',
@@ -390,7 +394,7 @@ const translation = {
         },
         help: {
           overview:
-            'Pantau status penggunaan Bot Bersama dan API Bot yang Dipublikasikan.',
+            'Pantau status penggunaan Bot dan API Bot yang Dipublikasikan.',
           calculationPeriod:
             'Jika Periode Perhitungan tidak diatur, biaya untuk hari ini akan ditampilkan.',
         },
@@ -471,7 +475,7 @@ const translation = {
     button: {
       newChat: 'Chat Baru',
       botConsole: 'Konsol Bot',
-      sharedBotAnalytics: 'Analitik Bot Bersama',
+      botAnalytics: 'Analitik Bot',
       apiManagement: 'Manajemen API',
       userUsages: 'Penggunaan Pengguna',
       SaveAndSubmit: 'Simpan & Kirim',
@@ -676,8 +680,7 @@ const translation = {
       },
       advancedParsing: {
         label: 'Parsing Lanjutan',
-        description:
-          'Pilih model untuk parsing dokumen tingkat lanjut.',
+        description: 'Pilih model untuk parsing dokumen tingkat lanjut.',
         hint: 'Cocok untuk memahami lebih dari sekadar teks standar dalam format dokumen yang didukung, misalnya termasuk tabel dalam PDF dengan struktur utuh. Biaya tambahan dikenakan untuk parsing menggunakan AI generatif.',
       },
       parsingModel: {
@@ -723,15 +726,16 @@ const translation = {
       },
       advancedConfigration: {
         existKnowledgeBaseId: {
-          label: "ID Amazon Bedrock Knowledge Base",
-          description: "Masukkan ID Amazon Bedrock Knowledge Base eksisting Anda.",
+          label: 'ID Amazon Bedrock Knowledge Base',
+          description:
+            'Masukkan ID Amazon Bedrock Knowledge Base eksisting Anda.',
           createNewKb: {
             label: 'Buat Knowledge Base baru',
           },
           existing: {
             label: 'Gunakan Knowledge Base eksisting',
-          }
-        }
+          },
+        },
       },
     },
     error: {
@@ -755,7 +759,8 @@ const translation = {
       attachment: {
         fileSizeExceeded:
           'Ukuran setiap dokumen tidak boleh lebih dari {{maxSize}}.',
-        fileCountExceeded: 'Tidak dapat mengunggah lebih dari {{maxCount}} file.',
+        fileCountExceeded:
+          'Tidak dapat mengunggah lebih dari {{maxCount}} file.',
       },
     },
     validation: {
@@ -770,7 +775,8 @@ const translation = {
         message: 'Nilai irisan token harus kurang dari ukuran potongan dokumen',
       },
       parentTokenRange: {
-        message: 'Ukuran token potongan induk harus lebih besar dari ukuran token potongan anak',
+        message:
+          'Ukuran token potongan induk harus lebih besar dari ukuran token potongan anak',
       },
       quickStarter: {
         message: 'Silakan masukkan baik Judul maupun Contoh Percakapan.',

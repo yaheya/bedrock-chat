@@ -311,7 +311,7 @@ export const Analytics = () => {
               {bot.isPublished ? (
                 <>
                   {bot.isPublished
-                    ? t('admin.sharedBotAnalytics.label.published')
+                    ? t('admin.botAnalytics.label.published')
                     : null}
                 </>
               ) : (

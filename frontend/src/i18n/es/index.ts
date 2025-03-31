@@ -90,11 +90,13 @@ const translation = {
         },
         sql_db_list_tables: {
           name: 'Listar Tablas de Base de Datos',
-          description: 'Listar todas las tablas disponibles en la base de datos.',
+          description:
+            'Listar todas las tablas disponibles en la base de datos.',
         },
         sql_db_query_checker: {
           name: 'Verificador de Consultas',
-          description: 'Verifica si tu consulta SQL es correcta antes de ejecutarla.',
+          description:
+            'Verifica si tu consulta SQL es correcta antes de ejecutarla.',
         },
         internet_search: {
           name: 'Búsqueda en Internet',
@@ -257,11 +259,12 @@ Las categorías de clasificación son:
         },
         help: {
           overview:
-            "Crear una API permite que las funciones del Bot sean accesibles para clientes externos; las APIs permiten la integración con aplicaciones externas.",
+            'Crear una API permite que las funciones del Bot sean accesibles para clientes externos; las APIs permiten la integración con aplicaciones externas.',
           endpoint: 'El cliente puede usar el Bot desde este punto de acceso.',
           usagePlan:
             'Los planes de uso especifican la cantidad o la tasa de solicitudes que tu API acepta de un cliente. Asocia una API con un plan de uso para rastrear las solicitudes que recibe tu API.',
-          throttling: 'Limita la velocidad con la que los usuarios pueden llamar a tu API.',
+          throttling:
+            'Limita la velocidad con la que los usuarios pueden llamar a tu API.',
           rateLimit:
             'Introduce la tasa, en solicitudes por segundo, que los clientes pueden llamar a tu API.',
           burstLimit:
@@ -348,11 +351,10 @@ Las categorías de clasificación son:
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Analíticas de Bot Compartido',
-          noPublicBotUsages:
-            'Durante el Período de Cálculo, no se utilizaron bots públicos.',
+          pageTitle: 'Analíticas de Bot',
+          noBotUsages: 'Durante el Período de Cálculo, no se utilizaron bots.',
           published: 'La API está publicada.',
           SearchCondition: {
             title: 'Período de Cálculo',
@@ -363,7 +365,7 @@ Las categorías de clasificación son:
         },
         help: {
           overview:
-            'Monitorea el estado de uso de Bots Compartidos y APIs de Bots Publicadas.',
+            'Monitorea el estado de uso de Bots y APIs de Bots Publicadas.',
           calculationPeriod:
             'Si no se establece el Período de Cálculo, se mostrará el costo de hoy.',
         },
@@ -381,7 +383,7 @@ Las categorías de clasificación son:
           sharedUrl: 'URL del Bot Compartido',
           apiSettings: 'Configuración de Publicación de API',
           noKnowledge: 'Este bot no tiene Conocimiento.',
-          notPublishApi: "La API de este bot no está publicada.",
+          notPublishApi: 'La API de este bot no está publicada.',
           deployStatus: 'Estado del Despliegue',
           cfnStatus: 'Estado de CloudFormation',
           codebuildStatus: 'Estado de CodeBuild',
@@ -444,7 +446,7 @@ Las categorías de clasificación son:
     button: {
       newChat: 'Nuevo Chat',
       botConsole: 'Consola de Bot',
-      sharedBotAnalytics: 'Analíticas de Bot Compartido',
+      botAnalytics: 'Analíticas de Bot',
       apiManagement: 'Gestión de API',
       userUsages: 'Usos de Usuario',
       SaveAndSubmit: 'Guardar y Enviar',
@@ -492,7 +494,7 @@ Las categorías de clasificación son:
       },
       help: {
         chunkSize:
-          "Cuando el tamaño del fragmento es demasiado pequeño, se puede perder información contextual, y cuando es demasiado grande, puede existir información contextual diferente dentro del mismo fragmento, lo que reduce la precisión de la búsqueda.",
+          'Cuando el tamaño del fragmento es demasiado pequeño, se puede perder información contextual, y cuando es demasiado grande, puede existir información contextual diferente dentro del mismo fragmento, lo que reduce la precisión de la búsqueda.',
         chunkOverlap:
           'Al especificar la superposición de fragmentos, puedes preservar información contextual en los límites de los fragmentos. Aumentar el tamaño del fragmento puede mejorar la precisión de búsqueda. Sin embargo, ten en cuenta que aumentar la superposición de fragmentos puede llevar a mayores costos computacionales.',
         overlapTokens:
@@ -580,7 +582,7 @@ Las categorías de clasificación son:
         label: 'Estrategia de Fragmentación',
         default: {
           label: 'Fragmentación predeterminada',
-          hint: "Divide automáticamente el texto en fragmentos de aproximadamente 300 tokens por defecto. Si un documento es menor o ya tiene 300 tokens, no se divide más.",
+          hint: 'Divide automáticamente el texto en fragmentos de aproximadamente 300 tokens por defecto. Si un documento es menor o ya tiene 300 tokens, no se divide más.',
         },
         fixed_size: {
           label: 'Fragmentación de tamaño fijo',
@@ -663,7 +665,8 @@ Las categorías de clasificación son:
           'Respuesta inesperada recibida. El formato de respuesta no coincide con el esperado.',
       },
       notSupportedImage: 'El modelo seleccionado no soporta imágenes.',
-      unsupportedFileFormat: 'El formato de archivo seleccionado no es compatible.',
+      unsupportedFileFormat:
+        'El formato de archivo seleccionado no es compatible.',
       totalFileSizeToSendExceeded:
         'El tamaño total del archivo no debe superar {{maxSize}}.',
       attachment: {
@@ -681,13 +684,15 @@ Las categorías de clasificación son:
         message: 'El valor mínimo que se puede configurar es {{size}}',
       },
       chunkOverlapLessThanChunkSize: {
-        message: 'La superposición de fragmentos debe configurarse en menos que el tamaño del fragmento',
+        message:
+          'La superposición de fragmentos debe configurarse en menos que el tamaño del fragmento',
       },
       parentTokenRange: {
         message: 'El tamaño de token del padre debe ser mayor que el del hijo',
       },
       quickStarter: {
-        message: 'Por favor, introduce tanto el Título como el Ejemplo de Conversación.',
+        message:
+          'Por favor, introduce tanto el Título como el Ejemplo de Conversación.',
       },
     },
     helper: {
@@ -758,7 +763,7 @@ Las categorías de clasificación son:
         },
         relevanceThreshold: {
           label: 'Relevancia',
-          hint: "Valida si las respuestas del modelo son relevantes para la consulta del usuario y bloquea las respuestas que estén por debajo del umbral de relevancia definido. 0: no bloquea nada, 0.99: bloquea casi todo",
+          hint: 'Valida si las respuestas del modelo son relevantes para la consulta del usuario y bloquea las respuestas que estén por debajo del umbral de relevancia definido. 0: no bloquea nada, 0.99: bloquea casi todo',
         },
       },
     },

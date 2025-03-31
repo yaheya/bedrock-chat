@@ -369,11 +369,10 @@ const translation = {
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Analitik Bot Berkongsi',
-          noPublicBotUsages:
-            'Dalam Tempoh Pengiraan, tiada bot awam yang digunakan.',
+          pageTitle: 'Analitik Bot',
+          noBotUsages: 'Dalam Tempoh Pengiraan, tiada bot yang digunakan.',
           published: 'API telah diterbitkan.',
           SearchCondition: {
             title: 'Tempoh Pengiraan',
@@ -383,8 +382,7 @@ const translation = {
           sortByCost: 'Susun mengikut Kos',
         },
         help: {
-          overview:
-            'Pantau status penggunaan Bot Berkongsi dan API Bot Terbitan.',
+          overview: 'Pantau status penggunaan Bot dan API Bot Terbitan.',
           calculationPeriod:
             'Jika Tempoh Pengiraan tidak ditetapkan, kos untuk hari ini akan dipaparkan.',
         },
@@ -465,7 +463,7 @@ const translation = {
     button: {
       newChat: 'Chat Baru',
       botConsole: 'Konsol Bot',
-      sharedBotAnalytics: 'Analitik Bot Berkongsi',
+      botAnalytics: 'Analitik Bot Berkongsi',
       apiManagement: 'Pengurusan API',
       userUsages: 'Penggunaan Pengguna',
       SaveAndSubmit: 'Simpan & Hantar',

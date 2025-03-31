@@ -100,7 +100,7 @@ export const usePageLabel = () => {
     { path: '/bot/discover', label: t('discover.pageTitle') },
     {
       path: '/admin/shared-bot-analytics',
-      label: t('admin.sharedBotAnalytics.label.pageTitle'),
+      label: t('admin.botAnalytics.label.pageTitle'),
     },
     {
       path: '/admin/api-management',

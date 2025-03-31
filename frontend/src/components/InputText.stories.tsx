@@ -79,7 +79,7 @@ export const DateInput = () => {
     <InputText
       className="w-full"
       type="date"
-      label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
+      label={t('admin.botAnalytics.label.SearchCondition.from')}
       value={date}
       disabled={false}
       onChange={setDate}
@@ -93,7 +93,7 @@ export const DateInputError = () => {
     <InputText
       className="w-full"
       type="date"
-      label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
+      label={t('admin.botAnalytics.label.SearchCondition.from')}
       value={formatDate(new Date(), 'YYYY-MM-DD')}
       errorMessage={t('admin.validationError.period')}
       disabled={false}
@@ -108,7 +108,7 @@ export const DateInputDisabled = () => {
     <InputText
       className="w-full"
       type="date"
-      label={t('admin.sharedBotAnalytics.label.SearchCondition.from')}
+      label={t('admin.botAnalytics.label.SearchCondition.from')}
       value={formatDate(new Date(), 'YYYY-MM-DD')}
       disabled={true}
       onChange={() => {}}

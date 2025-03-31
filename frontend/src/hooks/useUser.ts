@@ -1,6 +1,6 @@
 import useUserApi from './useUserApi';
 
-const useUser = (userId: string) => {
+const useUser = (userId?: string) => {
   const { getUser } = useUserApi();
 
   const { data, isLoading, error } = getUser(userId);

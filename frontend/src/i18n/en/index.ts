@@ -439,11 +439,10 @@ How would you categorize this email?`,
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'Shared Bot Analytics',
-          noPublicBotUsages:
-            'During the Calculation Period, no public bots were utilized.',
+          pageTitle: 'Bot Analytics',
+          noBotUsages: 'During the Calculation Period, no bots were utilized.',
           published: 'API is published.',
           SearchCondition: {
             title: 'Calculation Period',
@@ -453,8 +452,7 @@ How would you categorize this email?`,
           sortByCost: 'Sort by Cost',
         },
         help: {
-          overview:
-            'Monitor the usage status of Shared Bots and Published Bot APIs.',
+          overview: 'Monitor the usage status of Bots and Published Bot APIs.',
           calculationPeriod:
             'If the Calculation Period is not set, the cost for today will be displayed.',
         },
@@ -469,7 +467,7 @@ How would you categorize this email?`,
       botManagement: {
         label: {
           pageTitle: 'Bot Management',
-          sharedUrl: 'Shared Bot URL',
+          sharedUrl: 'Bot URL',
           apiSettings: 'API Publish Settings',
           noKnowledge: 'This bot has no Knowledge.',
           notPublishApi: "This bot's API is not published.",
@@ -486,6 +484,8 @@ How would you categorize this email?`,
           requestsLimit:
             'You can make <Bold>{{limit}}</Bold> requests <Bold>{{period}}</Bold>.',
           sharedAllUsers: 'Shared with ALL Users',
+          privateBot: 'This bot is not shared.',
+          owner: 'Owner',
         },
         alert: {
           noApiKeys: {
@@ -568,7 +568,7 @@ How would you categorize this email?`,
     button: {
       newChat: 'New Chat',
       botConsole: 'Bot Console',
-      sharedBotAnalytics: 'Shared Bot Analytics',
+      botAnalytics: 'Shared Bot Analytics',
       apiManagement: 'API Management',
       userUsages: 'User Usages',
       SaveAndSubmit: 'Save & Submit',

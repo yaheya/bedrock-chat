@@ -438,11 +438,10 @@ const translation = {
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: '公開ボット確認',
-          noPublicBotUsages:
-            '指定の集計期間内に公開ボットは利用されていません。',
+          pageTitle: 'ボット確認',
+          noBotUsages: '指定の集計期間内にボットは利用されていません。',
           published: 'API公開中',
           SearchCondition: {
             title: '集計期間',
@@ -452,8 +451,7 @@ const translation = {
           sortByCost: '利用料金でソート',
         },
         help: {
-          overview:
-            '共有されているボットと公開済みのAPIにおける利用状況を確認できます。',
+          overview: 'ボットと公開済みのAPIにおける利用状況を確認できます。',
           calculationPeriod:
             '集計期間が未設定の場合は、本日の利用状況が表示されます。',
         },
@@ -560,7 +558,7 @@ const translation = {
     button: {
       newChat: '新しいチャット',
       botConsole: 'ボットコンソール',
-      sharedBotAnalytics: '公開ボット確認',
+      botAnalytics: 'ボット確認',
       apiManagement: 'API管理',
       userUsages: 'ユーザ利用状況',
       SaveAndSubmit: '変更 & 送信',

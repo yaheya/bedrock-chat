@@ -366,10 +366,10 @@ const translation = {
       },
     },
     admin: {
-      sharedBotAnalytics: {
+      botAnalytics: {
         label: {
-          pageTitle: 'การวิเคราะห์บ็อตที่แชร์',
-          noPublicBotUsages: 'ในช่วงเวลาการคำนวณ ไม่มีการใช้งานบ็อตสาธารณะ',
+          pageTitle: 'การวิเคราะห์บ็อต',
+          noBotUsages: 'ในช่วงเวลาการคำนวณ ไม่มีการใช้งานบ็อต',
           published: 'API ได้ถูกเผยแพร่แล้ว',
           SearchCondition: {
             title: 'ช่วงเวลาการคำนวณ',
@@ -379,8 +379,7 @@ const translation = {
           sortByCost: 'เรียงตามค่าใช้จ่าย',
         },
         help: {
-          overview:
-            'ติดตามสถานะการใช้งานของบ็อตที่แชร์และ APIs ของบ็อตที่เผยแพร่',
+          overview: 'ติดตามสถานะการใช้งานของบ็อตที่และ APIs ของบ็อตที่เผยแพร่',
           calculationPeriod:
             'หากไม่ได้ตั้งค่าช่วงเวลาการคำนวณ จะแสดงค่าใช้จ่ายสำหรับวันนี้',
         },
@@ -461,7 +460,7 @@ const translation = {
     button: {
       newChat: 'แชทใหม่',
       botConsole: 'คอนโซลบ็อต',
-      sharedBotAnalytics: 'การวิเคราะห์บ็อตที่แชร์',
+      botAnalytics: 'การวิเคราะห์บ็อต',
       apiManagement: 'การจัดการ API',
       userUsages: 'การใช้งานของผู้ใช้',
       SaveAndSubmit: 'บันทึก & ส่ง',
