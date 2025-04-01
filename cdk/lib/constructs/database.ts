@@ -78,7 +78,6 @@ export class Database extends Construct {
     botTable.addGlobalSecondaryIndex({
       indexName: "ItemTypeIndex",
       partitionKey: { name: "ItemType", type: AttributeType.STRING },
-      sortKey: { name: "LastUsedTime", type: AttributeType.NUMBER },
     });
 
     const tableAccessRole = new Role(this, "TableAccessRole", {

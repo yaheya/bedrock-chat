@@ -541,8 +541,8 @@ class TestFindAllBots(unittest.TestCase):
         # Only private bots
         bots = find_owned_bots_by_user_id("user1", limit=2)
         self.assertEqual(len(bots), 2)
-        self.assertEqual(bots[0].id, "1")
-        self.assertEqual(bots[1].id, "2")
+        self.assertIn("1", [bot.id for bot in bots])
+        self.assertIn("2", [bot.id for bot in bots])
 
     def test_find_pinned_public_bots(self):
         result = find_pinned_public_bots()

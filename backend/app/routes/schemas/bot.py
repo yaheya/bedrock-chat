@@ -24,11 +24,11 @@ from app.routes.schemas.bot_kb import (
 )
 from app.routes.schemas.conversation import type_model_name
 from pydantic import (
+    Discriminator,
     Field,
     create_model,
-    model_validator,
-    Discriminator,
     field_validator,
+    model_validator,
     validator,
 )
 

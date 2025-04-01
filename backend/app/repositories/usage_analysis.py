@@ -91,7 +91,7 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
                 title=item["Title"],
                 description=item["Description"],
                 create_time=float(item["CreateTime"]),
-                last_used_time=float(item["LastUsedTime"]),
+                last_used_time=float(item.get("LastUsedTime", item["CreateTime"])),
                 sync_status=item["SyncStatus"],
                 owner_user_id=item["PK"],
                 published_api_stack_name=item.get("ApiPublishmentStackName", None),

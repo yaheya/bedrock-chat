@@ -76,7 +76,6 @@ def store_bot(custom_bot: BotModel):
         "SharedStatus": custom_bot.shared_status,
         "AllowedCognitoGroups": custom_bot.allowed_cognito_groups,
         "AllowedCognitoUsers": custom_bot.allowed_cognito_users,
-        "LastUsedTime": decimal(custom_bot.last_used_time),
         "GenerationParams": custom_bot.generation_params.model_dump(),
         "AgentData": custom_bot.agent.model_dump(),
         "Knowledge": custom_bot.knowledge.model_dump(),
@@ -94,6 +93,8 @@ def store_bot(custom_bot: BotModel):
         "UsageStats": custom_bot.usage_stats.model_dump(),
     }
 
+    if custom_bot.last_used_time:
+        item["LastUsedTime"] = decimal(custom_bot.last_used_time)
     if custom_bot.shared_scope != "private":
         # To use sparse index, set `SharedScope` attribute only when it's not private
         item["SharedScope"] = custom_bot.shared_scope
@@ -464,7 +465,7 @@ def find_owned_bots_by_user_id(user_id: str, limit: int | None = None) -> list[B
     query_params = {
         "IndexName": "ItemTypeIndex",
         "KeyConditionExpression": Key("ItemType").eq(compose_item_type(user_id, "bot")),
-        "ScanIndexForward": False,
+        # "ScanIndexForward": False,
     }
 
     bots: list[BotMeta] = []
@@ -474,10 +475,11 @@ def find_owned_bots_by_user_id(user_id: str, limit: int | None = None) -> list[B
     while query_count < MAX_QUERY_COUNT:
         query_count += 1
         response = table.query(**query_params)
-        bots.extend(
+
+        bots = [
             BotMeta.from_dynamo_item(item, owned=True, is_origin_accessible=True)
             for item in response["Items"]
-        )
+        ]
 
         if limit and len(bots) >= limit:
             break
@@ -490,6 +492,9 @@ def find_owned_bots_by_user_id(user_id: str, limit: int | None = None) -> list[B
 
     if limit:
         bots = bots[:limit]
+
+    # アプリケーション側でlast_used_timeによるソート
+    bots.sort(key=lambda x: x.last_used_time, reverse=True)
 
     logger.info(f"Found all owned {len(bots)} bots.")
     return bots
@@ -664,7 +669,7 @@ def find_bot_by_id(bot_id: str) -> BotModel:
         description=item["Description"],
         instruction=item["Instruction"],
         create_time=float(item["CreateTime"]),
-        last_used_time=float(item["LastUsedTime"]),
+        last_used_time=float(item.get("LastUsedTime", item["CreateTime"])),
         # Note: SharedScope is set to None for private shared_scope to use sparse index
         shared_scope=item.get("SharedScope", "private"),
         shared_status=item["SharedStatus"],
@@ -876,7 +881,7 @@ def find_all_published_bots(
             title=item["Title"],
             description=item["Description"],
             create_time=float(item["CreateTime"]),
-            last_used_time=float(item["LastUsedTime"]),
+            last_used_time=float(item.get("LastUsedTime", item["CreateTime"])),
             sync_status=item["SyncStatus"],
             owner_user_id=item["PK"],
             published_api_stack_name=item.get("ApiPublishmentStackName", None),

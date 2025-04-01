@@ -6,7 +6,6 @@ from app.config import GenerationParams as GenerationParamsDict
 from app.repositories.models.common import DynamicBaseModel, Float, SecureString
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import BedrockKnowledgeBaseModel
-
 from app.routes.schemas.bot import (
     ActiveModelsOutput,
     Agent,
@@ -20,10 +19,10 @@ from app.routes.schemas.bot import (
     BotSummaryOutput,
     ConversationQuickStarter,
     FirecrawlConfig,
-    InternetTool,
     GenerationParams,
-    PlainTool,
+    InternetTool,
     Knowledge,
+    PlainTool,
     Tool,
     type_shared_scope,
     type_sync_status,
@@ -31,18 +30,17 @@ from app.routes.schemas.bot import (
 from app.routes.schemas.conversation import type_model_name
 from app.user import User
 from app.utils import (
+    get_api_key_from_secret_manager,
     get_current_time,
     get_user_cognito_groups,
-    get_api_key_from_secret_manager,
     store_api_key_to_secret_manager,
 )
 from pydantic import (
     BaseModel,
-    Field,
-    ValidationInfo,
     ConfigDict,
     Discriminator,
     Field,
+    ValidationInfo,
     create_model,
     field_validator,
     model_validator,
@@ -310,7 +308,7 @@ class BotModel(BaseModel):
     create_time: Float
 
     # SK
-    last_used_time: Float
+    last_used_time: Float | None
     # GSI-2 PK (SharedScopeIndex)
     shared_scope: type_shared_scope = Field(
         ..., description="`partial` or `all` or None. None means the bot is not shared."
@@ -499,7 +497,7 @@ class BotModel(BaseModel):
             description=bot_input.description or "",
             instruction=bot_input.instruction,
             create_time=current_time,
-            last_used_time=current_time,
+            last_used_time=None,
             shared_scope="private",
             shared_status="unshared",
             allowed_cognito_groups=[],
@@ -553,7 +551,7 @@ class BotModel(BaseModel):
             description=self.description,
             instruction=self.instruction,
             create_time=self.create_time,
-            last_used_time=self.last_used_time,
+            last_used_time=(self.last_used_time or self.create_time),
             shared_scope=self.shared_scope,
             shared_status=self.shared_status,
             allowed_cognito_groups=self.allowed_cognito_groups,
@@ -597,7 +595,7 @@ class BotModel(BaseModel):
             title=self.title,
             description=self.description,
             create_time=self.create_time,
-            last_used_time=self.last_used_time,
+            last_used_time=(self.last_used_time or self.create_time),
             is_starred=self.is_starred,
             has_agent=self.is_agent_enabled(),
             owned=self.is_owned_by_user(user),
@@ -707,7 +705,7 @@ class BotMeta(BaseModel):
             title=item["Title"],
             description=item["Description"],
             create_time=item["CreateTime"],
-            last_used_time=item["LastUsedTime"],
+            last_used_time=item.get("LastUsedTime", item["CreateTime"]),
             is_starred=_is_starred,
             sync_status=item["SyncStatus"],
             has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),
