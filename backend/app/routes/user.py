@@ -1,5 +1,9 @@
 from venv import logger
-from app.usecases.user import get_user_by_id, search_group_by_name_prefix, search_user_by_email_prefix
+from app.usecases.user import (
+    get_user_by_id,
+    search_group_by_name_prefix,
+    search_user_by_email_prefix,
+)
 from app.user import User, UserGroup, UserWithoutGroups
 from fastapi import APIRouter, Request, HTTPException
 
@@ -30,6 +34,7 @@ def search_user_group(request: Request, prefix: str):
     groups = search_group_by_name_prefix(prefix=prefix)
     return groups
 
+
 @router.get("/user/{user_id}", response_model=UserWithoutGroups)
 def get_user(request: Request, user_id: str):
     """Get user"""
@@ -39,4 +44,3 @@ def get_user(request: Request, user_id: str):
         raise HTTPException(status_code=404, detail="User Not Found.")
 
     return user
-

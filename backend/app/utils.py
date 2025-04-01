@@ -198,6 +198,7 @@ def get_user_cognito_groups(user: User, user_pool_id: str = USER_POOL_ID) -> lis
         print(f"Error retrieving groups for user {user.name}: {e}")
         return []
 
+
 def store_api_key_to_secret_manager(
     user_id: str, bot_id: str, prefix: str, api_key: str
 ) -> str:

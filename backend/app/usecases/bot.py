@@ -238,7 +238,9 @@ def modify_owned_bot(
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
         generation_params=generation_params,
-        agent=AgentModel.from_agent_input(modify_input.agent, bot.owner_user_id, bot_id),
+        agent=AgentModel.from_agent_input(
+            modify_input.agent, bot.owner_user_id, bot_id
+        ),
         knowledge=KnowledgeModel(
             source_urls=source_urls,
             sitemap_urls=sitemap_urls,

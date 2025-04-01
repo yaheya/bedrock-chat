@@ -79,7 +79,7 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
     tasks = []
     for bot_id in bot_ids:
         tasks.append(loop.run_in_executor(None, _query_bot_by_id, bot_id))
-    
+
     results = await asyncio.gather(*tasks)
 
     bots_dict = {}
@@ -97,7 +97,7 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
                 published_api_stack_name=item.get("ApiPublishmentStackName", None),
                 published_api_datetime=item.get("ApiPublishedDatetime", None),
                 shared_scope=item.get("SharedScope", "private"),
-                shared_status=item.get("SharedStatus")
+                shared_status=item.get("SharedStatus"),
             )
             bots_dict[item["BotId"]] = bot_obj
 

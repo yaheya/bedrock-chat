@@ -13,8 +13,10 @@ USER_POOL_ID = os.environ.get("USER_POOL_ID")
 
 client = boto3.client("cognito-idp")
 
+
 class TooManyRequestsError(Exception):
     pass
+
 
 @retry(TooManyRequestsError, tries=3, delay=1)
 def find_users_by_email_prefix(prefix: str, limit: int = 10) -> list[UserWithoutGroups]:
@@ -89,14 +91,11 @@ def find_group_by_name_prefix(prefix: str) -> list[UserGroup]:
             raise
 
 
-
 @retry(TooManyRequestsError, tries=3, delay=1)
 def find_user_by_id(id: str) -> UserWithoutGroups | None:
     try:
         logger.debug(f"get user with id: {id}")
-        response = client.admin_get_user(
-            UserPoolId=USER_POOL_ID, Username=id
-        )
+        response = client.admin_get_user(UserPoolId=USER_POOL_ID, Username=id)
         logger.debug(response)
 
         converted_user = UserWithoutGroups.from_cognito_idp_response(response)
@@ -104,7 +103,7 @@ def find_user_by_id(id: str) -> UserWithoutGroups | None:
 
         return converted_user
     except ClientError as e:
-        
+
         # Retry if rate limit.
         # The quota is 120 RPS for AdminGetUser.
         # See: https://docs.aws.amazon.com/cognito/latest/developerguide/quotas.html

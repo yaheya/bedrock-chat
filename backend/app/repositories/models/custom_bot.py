@@ -30,7 +30,12 @@ from app.routes.schemas.bot import (
 )
 from app.routes.schemas.conversation import type_model_name
 from app.user import User
-from app.utils import get_current_time, get_user_cognito_groups, get_api_key_from_secret_manager, store_api_key_to_secret_manager
+from app.utils import (
+    get_current_time,
+    get_user_cognito_groups,
+    get_api_key_from_secret_manager,
+    store_api_key_to_secret_manager,
+)
 from pydantic import (
     BaseModel,
     Field,
@@ -465,7 +470,7 @@ class BotModel(BaseModel):
                 "stop_sequences": bot_input.generation_params.stop_sequences,
                 "reasoning_params": {
                     "budget_tokens": bot_input.generation_params.reasoning_params.budget_tokens
-                }
+                },
             }
             if bot_input.generation_params
             else DEFAULT_GENERATION_CONFIG
@@ -474,7 +479,7 @@ class BotModel(BaseModel):
         agent = AgentModel.from_agent_input(
             agent_input=bot_input.agent if bot_input.agent else None,
             user_id=owner_user_id,
-            bot_id=bot_input.id
+            bot_id=bot_input.id,
         )
 
         sync_status: type_sync_status = (

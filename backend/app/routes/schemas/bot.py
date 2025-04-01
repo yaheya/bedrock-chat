@@ -23,7 +23,14 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseOutput,
 )
 from app.routes.schemas.conversation import type_model_name
-from pydantic import Field, create_model, model_validator, Discriminator, field_validator, validator
+from pydantic import (
+    Field,
+    create_model,
+    model_validator,
+    Discriminator,
+    field_validator,
+    validator,
+)
 
 if TYPE_CHECKING:
     from app.repositories.models.custom_bot import BotModel

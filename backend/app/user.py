@@ -15,7 +15,9 @@ class UserWithoutGroups(BaseModel):
             name=user["Username"],
             # The Response for ListUsers is set to Attributes, but the Response for AdminGetUser is set to UserAttributes.
             email=next(
-                attr["Value"] for attr in user.get("Attributes", user.get("UserAttributes", [])) if attr["Name"] == "email"
+                attr["Value"]
+                for attr in user.get("Attributes", user.get("UserAttributes", []))
+                if attr["Name"] == "email"
             ),
         )
 
