@@ -4,7 +4,7 @@ The administrator features are a vital tool as it provides essential insights in
 
 ## Feedback loop
 
-The output from LLM may not always meet the user's expectations. Sometimes it fails to satisfy the user's needs. To effectively "integrate" LLMs into business operations and daily life, implementing a feedback loop is essential. Bedrock Claude Chat is equipped with a feedback feature designed to enable users to analyze why dissatisfaction arose. Based on the analysis results, users can adjust the prompts, RAG data sources, and parameters accordingly.
+The output from LLM may not always meet the user's expectations. Sometimes it fails to satisfy the user's needs. To effectively "integrate" LLMs into business operations and daily life, implementing a feedback loop is essential. Bedrock Chat is equipped with a feedback feature designed to enable users to analyze why dissatisfaction arose. Based on the analysis results, users can adjust the prompts, RAG data sources, and parameters accordingly.
 
 ![](./imgs/feedback_loop.png)
 

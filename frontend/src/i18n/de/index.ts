@@ -1,7 +1,7 @@
 const translation = {
   translation: {
     app: {
-      name: 'Bedrock Claude Chat',
+      name: 'Bedrock Chat',
       nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'Nachricht senden',
       starredBots: 'Favorisierte Bots',
@@ -125,7 +125,8 @@ Wie würden Sie diese E-Mail kategorisieren?`,
       },
       deleteDialog: {
         title: 'Löschen?',
-        content: 'Sind Sie sicher, dass Sie <Bold>{{Titel}}</Bold> löschen wollen?',
+        content:
+          'Sind Sie sicher, dass Sie <Bold>{{Titel}}</Bold> löschen wollen?',
       },
       shareDialog: {
         title: 'Teilen',
@@ -145,7 +146,8 @@ Wie würden Sie diese E-Mail kategorisieren?`,
     },
     deleteDialog: {
       title: 'Löschen?',
-      content: 'Sind Sie sicher, dass Sie <Bold>{{Titel}}</Bold> löschen wollen?',
+      content:
+        'Sind Sie sicher, dass Sie <Bold>{{Titel}}</Bold> löschen wollen?',
     },
     clearDialog: {
       title: 'ALLE Löschen?',

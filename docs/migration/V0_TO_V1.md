@@ -1,6 +1,6 @@
 # Migration Guide (v0 to v1)
 
-If you already use Bedrock Claude Chat with a previous version (~`0.4.x`), you need to follow the steps bellow to migrate.
+If you already use Bedrock Chat with a previous version (~`0.4.x`), you need to follow the steps bellow to migrate.
 
 ## Why do I need to do it?
 

@@ -44,10 +44,10 @@ if not is_published_api:
         {"name": "user", "description": "User API (cognito)"},
         {"name": "bot_store", "description": "Bot Store API"},
     ]
-    title = "Bedrock Claude Chat"
+    title = "Bedrock Chat"
 else:
     openapi_tags = [{"name": "published_api", "description": "Published API"}]
-    title = "Bedrock Claude Chat Published API"
+    title = "Bedrock Chat Published API"
 
 
 app = FastAPI(
