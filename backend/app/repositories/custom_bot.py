@@ -493,7 +493,30 @@ def find_owned_bots_by_user_id(user_id: str, limit: int | None = None) -> list[B
     if limit:
         bots = bots[:limit]
 
-    # アプリケーション側でlast_used_timeによるソート
+    # Sort by last used time.
+    # NOTE:
+    # Sorting approaches in DynamoDB:
+    #
+    # 1. DynamoDB Sort Key: Using sort key in indexes allows ordered retrieval directly from the database.
+    #    - Efficient for large datasets
+    #    - Requires the sort key attribute to always exist in items
+    #    - Items without the sort key attribute won't appear in the index
+    #
+    # 2. Application-side sorting: Retrieve all items and sort in application code.
+    #    - More flexible handling of missing attributes
+    #    - Reasonable performance for smaller datasets (hundreds of items)
+    #    - Requires fetching all items before sorting
+    #
+    # `LastUsedTime` considerations:
+    # - Used as sort key in `LastUsedTimeIndex` LSI for recently used bot queries
+    # - New bots initially have no `LastUsedTime`, which is problematic when used as GSI sort key
+    # - Having newly created bots appear at the top of "recently used" lists is counterintuitive
+    #
+    # We chose to remove `LastUsedTime` as sort key from ItemTypeIndex because:
+    # - Newly created bots should be retrievable but not necessarily treated as "recently used"
+    # - Application-side sorting gives more flexibility in handling default values
+    # - Performance impact is minimal with expected dataset size (hundreds of bots per user)
+    # - Simplifies bot creation by not requiring `LastUsedTime` to be set initially
     bots.sort(key=lambda x: x.last_used_time, reverse=True)
 
     logger.info(f"Found all owned {len(bots)} bots.")
@@ -612,7 +635,6 @@ def find_starred_bots_by_user_id(
     query_params = {
         "IndexName": "StarredIndex",
         "KeyConditionExpression": Key("PK").eq(user_id) & Key("IsStarred").eq("TRUE"),
-        # "FilterExpression": ~Key("SharedStatus").begins_with("pinned"),
     }
 
     bots = __find_bots_with_condition(query_params)
@@ -635,7 +657,6 @@ def find_recently_used_bots_by_user_id(
     query_params = {
         "IndexName": "LastUsedTimeIndex",
         "KeyConditionExpression": Key("PK").eq(user_id),
-        # "FilterExpression": ~Key("SharedStatus").begins_with("pinned"),
         "ScanIndexForward": False,
     }
 
