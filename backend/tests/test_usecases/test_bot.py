@@ -325,13 +325,13 @@ class TestScenario(unittest.TestCase):
 
         # Step 10: user1 fetches mixed bots after pinning
         mixed_bots_after_pin = fetch_all_bots(self.user1, kind="mixed", limit=10)
-        self.assertEqual(len(mixed_bots_after_pin), 2)  # exclude pinned bot3
+        self.assertEqual(len(mixed_bots_after_pin), 3)
 
         # Step 11: modifies user2's bot4 visibility to private
         summary = fetch_bot_summary(self.user1, "4")
         self.assertEqual(summary.id, "4")
         bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
-        self.assertEqual(len(bots), 3)
+        self.assertEqual(len(bots), 4)
 
         modify_bot_visibility(
             self.user2,

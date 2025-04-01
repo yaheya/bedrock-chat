@@ -15,6 +15,8 @@ from app.repositories.models.custom_bot import (
     GenerationParamsModel,
     InternetToolModel,
     KnowledgeModel,
+    PlainToolModel,
+    ReasoningParamsModel,
     UsageStatsModel,
 )
 from app.repositories.models.custom_bot_kb import (
@@ -22,8 +24,6 @@ from app.repositories.models.custom_bot_kb import (
     OpenSearchParamsModel,
     SearchParamsModel,
     WebCrawlingFiltersModel,
-    PlainToolModel,
-    ReasoningParamsModel,
 )
 from app.routes.schemas.bot import type_sync_status
 

@@ -2,9 +2,9 @@ import base64
 import json
 import logging
 import os
-from typing import Union
 from datetime import datetime
 from decimal import Decimal as decimal
+from typing import Union
 
 from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
 from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
@@ -567,18 +567,16 @@ def __find_bots_with_condition(
                 for alias in alias_items[i : i + TRANSACTION_BATCH_READ_SIZE]:
                     original_bot = original_bot_map.get(alias["OriginalBotId"])
                     if original_bot:
-                        # Exclude pinned bots from the list
-                        if not original_bot.get("SharedStatus").startswith("pinned@"):
-                            bots.append(
-                                BotMeta.from_dynamo_item(
-                                    original_bot,
-                                    owned=False,
-                                    is_origin_accessible=alias.get(
-                                        "IsOriginAccessible", False
-                                    ),
-                                    is_starred=alias.get("IsStarred", False),
-                                )
+                        bots.append(
+                            BotMeta.from_dynamo_item(
+                                original_bot,
+                                owned=False,
+                                is_origin_accessible=alias.get(
+                                    "IsOriginAccessible", False
+                                ),
+                                is_starred=alias.get("IsStarred", False),
                             )
+                        )
                     else:
                         # If original bot is not found, create a BotMeta object with `is_origin_accessible=False`
                         bots.append(
@@ -883,7 +881,7 @@ def find_all_published_bots(
             owner_user_id=item["PK"],
             published_api_stack_name=item.get("ApiPublishmentStackName", None),
             published_api_datetime=item.get("ApiPublishedDatetime", None),
-            shared_scope=item.get("SharedScope","private"),
+            shared_scope=item.get("SharedScope", "private"),
             shared_status=item.get("SharedStatus"),
         )
         for item in response["Items"]
