@@ -11,18 +11,20 @@ import ModalDialog from './ModalDialog';
 import { Trans, useTranslation } from 'react-i18next';
 import { SharedScope } from '../@types/bot';
 import Toggle from './Toggle';
-import { copyBotUrl, getBotUrl } from '../utils/BotUtils';
+import { copyBotUrl, getBotUrl, isPinnedBot } from '../utils/BotUtils';
 import RadioButton from './RadioButton';
 import InputText from './InputText';
 import { PiMagnifyingGlass, PiSpinner } from 'react-icons/pi';
 import DialogShareBotPermission from './DialogShareBotPermission';
 import { getShareText } from '../utils/shareUtils';
+import Alert from './Alert';
 
 type Props = BaseProps & {
   isOpen: boolean;
   isLoading?: boolean;
   botId?: string;
   sharedScope?: SharedScope;
+  sharedStatus?: string;
   allowedUserIds?: string[];
   allowedGroupIds?: string[];
   onChangeSharedScope: (sharedScope: SharedScope) => void;
@@ -58,7 +60,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
     }, 3000);
   }, [props.botId, t]);
 
-  // ダイアログが閉じられたときに検索入力をリセット
+  // clear search input when close dialog
   useEffect(() => {
     if (!props.isOpen) {
       setSearchUsersPrefix('');
@@ -66,20 +68,25 @@ const DialogShareBot: React.FC<Props> = (props) => {
     }
   }, [props.isOpen]);
 
-  // 検索入力フィールドにフォーカスを当てる
+  // focus search input
   useEffect(() => {
     if (isPermissionManagement && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [isPermissionManagement]);
 
-  // 検索プレフィックスが変更されたときにフォーカスを維持する
+  // stay focus search input when input
   const handleSearchPrefixChange = (value: string) => {
     setSearchUsersPrefix(value);
     if (!isPermissionManagement) {
       setIsPermissionManagement(true);
     }
   };
+
+  // disabled if mark to Essential
+  const disabled = useMemo(() => {
+    return isPinnedBot(props.sharedStatus ?? '') && !props.isLoading;
+  }, [props.isLoading, props.sharedStatus]);
 
   return (
     <ModalDialog
@@ -111,6 +118,15 @@ const DialogShareBot: React.FC<Props> = (props) => {
         </div>
       )}
 
+      {disabled && (
+        <Alert
+          title={t('error.share.markedEssential.title')}
+          className="mb-2"
+          severity="warning">
+          {t('error.share.markedEssential.content')}
+        </Alert>
+      )}
+
       {!isPermissionManagement && !props.isLoading && (
         <>
           <div className="flex w-full items-center">
@@ -118,6 +134,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
 
             <Toggle
               value={isShared}
+              disabled={disabled}
               onChange={() => {
                 props.onChangeSharedScope(isShared ? 'private' : 'all');
               }}
@@ -135,6 +152,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
                   label={t('bot.shareDialog.label.all')}
                   checked={props.sharedScope === 'all'}
                   value=""
+                  disabled={disabled}
                   onChange={() => {
                     props.onChangeSharedScope('all');
                   }}
@@ -144,6 +162,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
                   label={t('bot.shareDialog.label.partial')}
                   checked={props.sharedScope === 'partial'}
                   value=""
+                  disabled={disabled}
                   onChange={() => {
                     props.onChangeSharedScope('partial');
                   }}
@@ -159,6 +178,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
                   value={searchUsersPrefix}
                   placeholder={t('bot.shareDialog.label.search')}
                   icon={<PiMagnifyingGlass />}
+                  disabled={disabled}
                   onChange={(s) => {
                     setSearchUsersPrefix(s);
                     setIsPermissionManagement(true);

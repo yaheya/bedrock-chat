@@ -861,6 +861,13 @@ How would you categorize this email?`,
           'Each document size must be no more than {{maxSize}}.',
         fileCountExceeded: 'Could not upload more than {{maxCount}} files.',
       },
+      share: {
+        markedEssential: {
+          title: 'Unable to Change Sharing Settings',
+          content:
+            'This bot is marked Essential by administrator. Essential bots must be shared with all users.',
+        },
+      },
     },
     validation: {
       title: 'Validation Error',

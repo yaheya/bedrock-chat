@@ -254,7 +254,7 @@ const ChatPage: React.FC = () => {
     [navigate]
   );
 
-  const onClickStar = useCallback(() => {
+  const onClickStar = useCallback(async () => {
     if (!bot) {
       return;
     }
@@ -270,9 +270,9 @@ const ChatPage: React.FC = () => {
 
     try {
       if (bot.owned) {
-        updateMyBotStarred(bot.id, isStarred);
+        await updateMyBotStarred(bot.id, isStarred);
       } else {
-        updateSharedBotStarred(bot.id, isStarred);
+        await updateSharedBotStarred(bot.id, isStarred);
       }
     } finally {
       mutateBot();

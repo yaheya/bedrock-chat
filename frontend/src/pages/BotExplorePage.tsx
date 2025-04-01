@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import useBot from '../hooks/useBot';
 import { BotListItem, BotMeta } from '../@types/bot';
 import DialogConfirmDeleteBot from '../components/DialogConfirmDeleteBot';
-import DialogConfirmShareBot from '../components/DialogShareBot';
+import DialogShareBot from '../components/DialogShareBot';
 import ButtonIcon from '../components/ButtonIcon';
 import PopoverMenu from '../components/PopoverMenu';
 import PopoverItem from '../components/PopoverItem';
@@ -52,6 +52,7 @@ const BotExplorePage: React.FC = () => {
   } = useBot(true);
 
   const {
+    sharedStatus,
     sharedScope,
     allowedGroupIds,
     allowedUserIds,
@@ -148,9 +149,10 @@ const BotExplorePage: React.FC = () => {
           setIsOpenDeleteDialog(false);
         }}
       />
-      <DialogConfirmShareBot
+      <DialogShareBot
         isOpen={isOpenShareDialog}
         botId={openedShareDialogBotId}
+        sharedStatus={sharedStatus}
         sharedScope={sharedScope}
         allowedGroupIds={allowedGroupIds}
         allowedUserIds={allowedUserIds}
