@@ -1,3 +1,7 @@
+TODO: Update to the latest
+
+- Add essential explanation
+
 # Administrator features
 
 The administrator features are a vital tool as it provides essential insights into custom bot usage and user behavior. Without the functionality, it would be challenging for administrators to understand which custom bots are popular, why they are popular, and who is using them. This information is crucial for optimizing instruction prompts, customizing RAG data sources, and identifying heavy users who might will be an influencer.

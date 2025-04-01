@@ -21,24 +21,26 @@ A multilingual chatbot using LLM models provided by [Amazon Bedrock](https://aws
 
 ![](./docs/imgs/demo.gif)
 
-### Bot Personalization
+### Bot Personalization / Bot store
 
-Add your own instruction and give external knowledge as URL or files (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
+Add your own instruction and knowledge (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users via bot store. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
 
-![](./docs/imgs/bot_creation.png)
-![](./docs/imgs/bot_chat.png)
+![TODO: add latest screenshots for customized bot creation]()
+![TODO: add bot store screenshots]()
 ![](./docs/imgs/bot_api_publish_screenshot3.png)
 
 > [!Important]
 > For governance reasons, only allowed users are able to create customized bots. To allow the creation of customized bots, the user must be a member of group called `CreatingBotAllowed`, which can be set up via the management console > Amazon Cognito User pools or aws cli. Note that the user pool id can be referred by accessing CloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`.
 
-### Administrator dashboard
+### Administrative features
 
 <details>
-<summary>Administrator dashboard</summary>
+<summary>Administrative features</summary>
 
-Analyze usage for each user / bot on administrator dashboard. [detail](./docs/ADMINISTRATOR.md)
+API Management, Pin bots as essential bots, Analyze usage for bots. [detail](./docs/ADMINISTRATOR.md)
 
+![TODO: essential bots]()
+![TODO: API management]()
 ![](./docs/imgs/admin_bot_analytics.png)
 
 </details>
