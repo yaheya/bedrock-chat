@@ -1,29 +1,34 @@
 #!/bin/bash
-echo "############################################################################"
-echo "###                                                                      ###"
-echo "###           ⚠️  Caution: A Whole New World with v2.x Awaits!  ⚠️          ###"
-echo "###                                                                      ###"
-echo "###  🚨 v2.x is NOT compatible with any older versions like v1.x or below. 🚨  ###"
-echo "###  You must read the migration guide carefully before proceeding:       ###"
-echo "###  https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/migration/V1_TO_V2.md  ###"
-echo "###                                                                      ###"
-echo "###  This isn't just a regular upgrade. Data preservation requires        ###"
-echo "###  following specific steps, or you may risk CUSTOMIZED BOT LOSS.      ###"
-echo "###                                                                      ###"
-echo "###  💡 This script is only for new users or those already on v2.x.        ###"
-echo "###  If that's you, let's get started! Otherwise, check the guide first.  ###"
-echo "###                                                                      ###"
-echo "############################################################################"
 echo ""
+echo "==========================================================================="
+echo "  ⚠️  Heads Up: A Brand-New Era Begins with v3.x!                              "
+echo "---------------------------------------------------------------------------"
+echo "  🚨 v3.x is NOT compatible with v2.x or any earlier versions.              "
+echo "     Carefully read the migration guide before proceeding:                 "
+echo "     https://github.com/aws-samples/bedrock-claude-chat/blob/v3/docs/migration/V2_TO_V3.md"
+echo ""
+echo "  ❗ This upgrade is significant. To prevent DATA LOSS (especially custom bots),"
+echo "     follow the steps outlined in the guide step-by-step.                 "
+echo ""
+echo "  ✅ This script is safe ONLY IF you're:                                    "
+echo "     - A new user starting with v3.x                                       "
+echo "     - Or already upgraded to v3.x                                         "
+echo ""
+echo "  📌 Otherwise, STOP now and read the migration guide above first!         "
+echo "---------------------------------------------------------------------------"
+echo "  🌟 Let's begin your v3.x journey — the future awaits!                    "
+echo "==========================================================================="
+echo ""
+
 while true; do
-    read -p "Are you ready to explore the world of v2.x? (y/N): " answer
+    read -p "Are you ready to explore the world of v3.x? (y/N): " answer
     case ${answer:0:1} in
         y|Y )
-            echo "Buckle up! Starting deployment for v2.x..."
+            echo "Buckle up! Starting deployment for v3.x..."
             break
             ;;
         n|N )
-            echo "Whoa, hold on! This script is only for v2.x users. Please refer to the migration guide if you're coming from an older version."
+            echo "Whoa, hold on! This script is only for v3.x users. Please refer to the migration guide if you're coming from an older version."
             exit 1
             ;;
         * )
@@ -43,7 +48,7 @@ ALLOWED_SIGN_UP_EMAIL_DOMAINS=""
 BEDROCK_REGION="us-east-1"
 CDK_JSON_OVERRIDE="{}"
 REPO_URL="https://github.com/aws-samples/bedrock-claude-chat.git"
-VERSION="v2"
+VERSION="v3"
 
 # Parse command-line arguments for customization
 while [[ "$#" -gt 0 ]]; do

@@ -31,7 +31,7 @@ Parameters:
     Default: "https://github.com/aws-samples/bedrock-claude-chat.git"
   Version:
     Type: String
-    Default: "v2"
+    Default: "v3"
 
 Resources:
   ProjectRole:
