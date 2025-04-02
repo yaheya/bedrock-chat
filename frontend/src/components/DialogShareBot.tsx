@@ -214,7 +214,7 @@ const DialogShareBot: React.FC<Props> = (props) => {
                   components={{
                     Link: (
                       <a
-                        href="/bot/store"
+                        href="/bot/discover"
                         className="italic text-aws-sea-blue-light underline dark:text-aws-sea-blue-dark"
                       />
                     ),

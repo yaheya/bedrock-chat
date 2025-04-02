@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import IconPinnedBot from './IconPinnedBot';
 import IconShareBot from './IconShareBot';
 import { SharedScope } from '../@types/bot';
+import { twMerge } from 'tailwind-merge';
+import { isPinnedBot } from '../utils/BotUtils';
 
 type Props = BaseProps & {
   bot: {
@@ -27,7 +29,7 @@ const ListItemBot: React.FC<Props> = (props) => {
       key={props.bot.id}
       className={`${
         props.className ?? ''
-      } relative flex w-full justify-between border-b border-light-gray dark:border-dark-gray`}>
+      } relative flex w-full justify-between overflow-hidden border-b border-light-gray dark:border-dark-gray`}>
       <div
         className={`h-full grow bg-aws-paper-light p-2 dark:bg-aws-paper-dark ${
           props.bot.available
@@ -39,40 +41,40 @@ const ListItemBot: React.FC<Props> = (props) => {
             props.onClick(props.bot.id);
           }
         }}>
-        <div className="flex w-full items-center overflow-hidden text-ellipsis text-sm font-semibold">
-          <span
-            className={
-              props.bot.available
-                ? 'dark:text-aws-font-color-dark'
-                : 'dark:text-aws-font-color-gray'
-            }>
-            {props.bot.title}
-          </span>
+        <div className="flex w-full flex-nowrap items-center gap-1 overflow-hidden text-sm font-semibold">
           <IconPinnedBot
             botSharedStatus={props.bot.sharedStatus}
-            className="ml-1 text-aws-aqua"
+            className=" text-aws-aqua"
           />
 
-          {!props.bot.owned && (
-            <div className="ml-2">
+          {!props.bot.owned && !isPinnedBot(props.bot.sharedStatus) && (
+            <div>
               <IconShareBot sharedScope={props.bot.sharedScope} />
             </div>
           )}
+          <div
+            className={twMerge(
+              props.bot.available
+                ? 'dark:text-aws-font-color-dark'
+                : 'dark:text-aws-font-color-gray'
+            )}>
+            {props.bot.title}
+          </div>
         </div>
         {props.bot.description ? (
-          <div className="mt-1 overflow-hidden text-ellipsis text-xs dark:text-aws-font-color-dark">
+          <div className="mt-1 truncate pr-12 text-xs text-dark-gray dark:text-light-gray">
             {props.bot.available
               ? props.bot.description
               : t('bot.label.notAvailable')}
           </div>
         ) : (
-          <div className="mt-1 overflow-hidden text-ellipsis text-xs italic text-gray dark:text-aws-font-color-gray">
+          <div className="mt-1 truncate pr-12 text-xs italic text-gray dark:text-aws-font-color-gray">
             {t('bot.label.noDescription')}
           </div>
         )}
       </div>
 
-      <div className="absolute right-0 flex h-full justify-between">
+      <div className="absolute right-0 z-20 flex h-full justify-between">
         <div className="w-10 bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
         <div className="flex items-center gap-2 bg-aws-paper-light pl-2 dark:bg-aws-paper-dark dark:text-aws-font-color-dark">
           {props.children}

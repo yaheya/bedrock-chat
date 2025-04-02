@@ -1,26 +1,18 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BotMeta } from '../@types/bot';
-import {
-  PiArrowLeft,
-  PiSealCheckFill,
-  PiStar,
-  PiStarFill,
-} from 'react-icons/pi';
-import ButtonIcon from './ButtonIcon';
+import { PiArrowLeft } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat';
 import Skeleton from './Skeleton';
 import Button from './Button';
-import { isPinnedBot } from '../utils/BotUtils';
+import IconPinnedBot from './IconPinnedBot';
 
 type CardBotProps = {
   title: string;
   description: string;
-  id?: string;
-  isStarred?: boolean;
-  isPinned?: boolean;
-  onToggleStar?: (id: string, starred: boolean) => void;
+  id: string;
+  sharedStatus: string;
 };
 
 export const CardBot: React.FC<CardBotProps> = (props) => {
@@ -29,37 +21,20 @@ export const CardBot: React.FC<CardBotProps> = (props) => {
   const { newChat } = useChat();
 
   const handleClick = () => {
-    if (props.id) {
-      newChat();
-      navigate(`/bot/${props.id}`);
-    }
-  };
-
-  const handleStarClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (props.id && props.onToggleStar) {
-      props.onToggleStar(props.id, !props.isStarred);
-    }
+    newChat();
+    navigate(`/bot/${props.id}`);
   };
 
   return (
     <div
-      className="relative flex h-28 cursor-pointer flex-col rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray dark:border-dark-gray dark:bg-aws-squid-ink-dark"
+      className="relative flex h-28 w-full cursor-pointer flex-col rounded-xl border border-gray bg-white px-4 py-2 transition-colors hover:bg-light-gray dark:border-dark-gray dark:bg-aws-squid-ink-dark"
       onClick={handleClick}>
-      {props.id && props.onToggleStar && (
-        <div className="absolute right-1 top-1">
-          <ButtonIcon onClick={handleStarClick}>
-            {props.isStarred ? (
-              <PiStarFill className="text-aws-aqua" />
-            ) : (
-              <PiStar />
-            )}
-          </ButtonIcon>
-        </div>
-      )}
       <div className="flex items-center">
-        <div className="text-base font-bold">{props.title}</div>
-        {props.isPinned && <PiSealCheckFill className="ml-1 text-aws-aqua" />}
+        <IconPinnedBot
+          className="mr-1 shrink-0 text-aws-aqua"
+          botSharedStatus={props.sharedStatus}
+        />
+        <div className="truncate text-base font-bold">{props.title}</div>
       </div>
       <div className="line-clamp-3 overflow-hidden text-sm italic text-dark-gray">
         {props.description === ''
@@ -79,7 +54,6 @@ type BotSearchResultsProps = {
   isSearching: boolean;
   hasSearched: boolean;
   searchQuery: string;
-  onToggleStar: (botId: string, starred: boolean) => void;
   onBackToHome: () => void; // Handler for returning to home view
 };
 
@@ -88,7 +62,6 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
   isSearching,
   hasSearched,
   searchQuery,
-  onToggleStar,
   onBackToHome,
 }) => {
   const { t } = useTranslation();
@@ -99,7 +72,7 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
         <div className="text-2xl font-bold">
           {t('discover.search.searching')}
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-6">
+        <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-2">
           <SkeletonBot />
           <SkeletonBot />
           <SkeletonBot />
@@ -147,16 +120,14 @@ const BotSearchResults: React.FC<BotSearchResultsProps> = ({
             query: searchQuery,
           })}
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-6">
+        <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-2">
           {results.map((bot) => (
             <CardBot
               key={bot.id}
               title={bot.title}
               description={bot.description}
               id={bot.id}
-              isStarred={bot.isStarred}
-              isPinned={isPinnedBot(bot.sharedStatus)}
-              onToggleStar={onToggleStar}
+              sharedStatus={bot.sharedStatus}
             />
           ))}
         </div>

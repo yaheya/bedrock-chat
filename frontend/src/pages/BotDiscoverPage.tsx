@@ -12,13 +12,11 @@ import {
 import InputText from '../components/InputText';
 import useBotStore from '../hooks/useBotStore';
 import { twMerge } from 'tailwind-merge';
-import useBot from '../hooks/useBot';
 import useBotSearch from '../hooks/useBotSearch';
 import BotSearchResults, {
   CardBot,
   SkeletonBot,
 } from '../components/BotSearchResults';
-import { isPinnedBot } from '../utils/BotUtils';
 
 // for pagination
 const ITEMS_PER_PAGE = 6;
@@ -36,9 +34,8 @@ const BotDiscoverPage: React.FC = () => {
     popularBots,
     isLoadingPopularBots,
     pinnedBots,
-    toggleBotStarred,
   } = useBotStore();
-  const { mutateStarredBots } = useBot();
+
   const {
     displayQuery, // Query used for displaying search results
     searchResults,
@@ -46,37 +43,7 @@ const BotDiscoverPage: React.FC = () => {
     hasSearched,
     handleSearch,
     clearSearch,
-    updateSearchResultStarredStatus,
   } = useBotSearch();
-
-  const handleToggleStar = useCallback(
-    (botId: string, starred: boolean) => {
-      // Optimistic update for search results
-      if (hasSearched) {
-        updateSearchResultStarredStatus(botId, starred);
-      }
-
-      // Optimistic update for regular bot lists and API call
-      toggleBotStarred(botId, starred)
-        .catch((error) => {
-          console.error('Failed to update star status:', error);
-          // Revert search results on error
-          if (hasSearched) {
-            updateSearchResultStarredStatus(botId, !starred);
-          }
-        })
-        .finally(() => {
-          // Refresh starred bots list
-          mutateStarredBots();
-        });
-    },
-    [
-      mutateStarredBots,
-      toggleBotStarred,
-      hasSearched,
-      updateSearchResultStarredStatus,
-    ]
-  );
 
   const handleInputChange = useCallback(
     (value: string) => {
@@ -206,7 +173,6 @@ const BotDiscoverPage: React.FC = () => {
             isSearching={isSearching}
             hasSearched={hasSearched}
             searchQuery={displayQuery}
-            onToggleStar={handleToggleStar}
             onBackToHome={handleClearSearch}
           />
 
@@ -225,16 +191,15 @@ const BotDiscoverPage: React.FC = () => {
                   {t('discover.essential.description')}
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-6">
+                <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-2">
                   {pinnedBots.map((bot) => (
                     <CardBot
                       key={bot.id}
                       title={bot.title}
                       description={bot.description}
                       id={bot.id}
-                      isStarred={bot.isStarred}
-                      isPinned={isPinnedBot(bot.sharedScope)}
-                      onToggleStar={handleToggleStar}
+                      // not display pinned icon in Essential section
+                      sharedStatus={''}
                     />
                   ))}
                 </div>
@@ -249,7 +214,7 @@ const BotDiscoverPage: React.FC = () => {
                   {t('discover.trending.description')}
                 </div>
 
-                <div className="mt-3 grid min-h-96 grid-cols-2 gap-3">
+                <div className="mt-3 grid min-h-96 grid-cols-1 gap-6 md:grid-cols-2">
                   {isLoadingPopularBots && (
                     <>
                       <SkeletonBot />
@@ -257,18 +222,16 @@ const BotDiscoverPage: React.FC = () => {
                     </>
                   )}
                   {currentTrendingBots.map((bot, idx) => (
-                    <div className="flex" key={bot.id}>
-                      <div className="mr-2 text-xl font-bold">
+                    <div className="flex w-full" key={bot.id}>
+                      <div className="mr-2 shrink-0 text-xl font-bold">
                         {(trendingCurrentPage - 1) * ITEMS_PER_PAGE + idx + 1}.
                       </div>
-                      <div className="grow">
+                      <div className="w-full min-w-0 flex-1">
                         <CardBot
                           title={bot.title}
                           description={bot.description}
                           id={bot.id}
-                          isStarred={bot.isStarred}
-                          isPinned={isPinnedBot(bot.sharedScope)}
-                          onToggleStar={handleToggleStar}
+                          sharedStatus={bot.sharedStatus}
                         />
                       </div>
                     </div>
@@ -295,7 +258,7 @@ const BotDiscoverPage: React.FC = () => {
                   {t('discover.discover.description')}
                 </div>
 
-                <div className="mt-3 grid min-h-96 grid-cols-2 gap-3">
+                <div className="mt-3 grid min-h-96 grid-cols-1 gap-6 md:grid-cols-2">
                   {isLoadingPickupBots && (
                     <>
                       <SkeletonBot />
@@ -308,9 +271,7 @@ const BotDiscoverPage: React.FC = () => {
                       title={bot.title}
                       description={bot.description}
                       id={bot.id}
-                      isStarred={bot.isStarred}
-                      isPinned={isPinnedBot(bot.sharedScope)}
-                      onToggleStar={handleToggleStar}
+                      sharedStatus={bot.sharedStatus}
                     />
                   ))}
                 </div>
