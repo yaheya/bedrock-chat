@@ -58,6 +58,7 @@ import usePostMessageStreaming from '../hooks/usePostMessageStreaming.ts';
 import useLoginUser from '../hooks/useLoginUser';
 import useBotPinning from '../hooks/useBotPinning';
 import Skeleton from '../components/Skeleton.tsx';
+import { twMerge } from 'tailwind-merge';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -153,12 +154,10 @@ const ChatPage: React.FC = () => {
   const description = useMemo<string>(() => {
     if (!bot) {
       return '';
-    } else if (bot.description === '') {
-      return t('bot.label.noDescription');
     } else {
       return bot.description;
     }
-  }, [bot, t]);
+  }, [bot]);
 
   const disabledInput = useMemo(() => {
     return botId !== null && !isAvailabilityBot && !isLoadingBot;
@@ -492,24 +491,17 @@ const ChatPage: React.FC = () => {
         <div className="sticky top-0 z-10 mb-1.5 flex h-14 w-full items-center justify-between border-b border-gray bg-aws-paper-light p-2 dark:bg-aws-paper-dark">
           <div className="flex w-full justify-between">
             <div className="p-2">
-              <div className="mr-10 flex items-center font-bold">
+              <div className="mr-10 flex items-center whitespace-nowrap font-bold">
                 {isLoadingBot ? (
                   <Skeleton className="h-5 w-32" />
                 ) : (
                   <>
-                    {pageTitle}
                     <IconPinnedBot
                       botSharedStatus={bot?.sharedStatus}
-                      className="ml-1 text-aws-aqua"
+                      className="mr-1 text-aws-aqua"
                     />
+                    {pageTitle}
                   </>
-                )}
-              </div>
-              <div className="text-xs font-thin text-dark-gray dark:text-light-gray">
-                {isLoadingBot ? (
-                  <Skeleton className="mt-1 h-3 w-64" />
-                ) : (
-                  description
                 )}
               </div>
             </div>
@@ -524,7 +516,7 @@ const ChatPage: React.FC = () => {
 
             {isAvailabilityBot && !isLoadingBot && (
               <div className="absolute -top-1 right-0 flex h-full items-center">
-                <div className="h-full bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
+                <div className="h-full w-12 bg-gradient-to-r from-transparent to-aws-paper-light dark:to-aws-paper-dark"></div>
                 <div className="flex items-center bg-aws-paper-light dark:bg-aws-paper-dark">
                   {bot?.owned && (
                     <StatusSyncBot
@@ -599,16 +591,38 @@ const ChatPage: React.FC = () => {
             <div
               id="messages"
               role="presentation"
-              className=" flex h-full flex-col overflow-auto pb-16">
+              className="flex h-full flex-col overflow-auto pb-16">
               {messages?.length === 0 ? (
-                <div className="relative flex w-full justify-center">
+                <div className="relative mb-[45vh]  flex w-full flex-col items-center justify-center">
                   {!loadingConversation && (
                     <SwitchBedrockModel
-                      className="mt-3 w-min"
+                      className="mb-6 mt-3 w-min"
                       activeModels={activeModels}
                       botId={botId}
                     />
                   )}
+                  <div className="px-20">
+                    <div className="px-10 text-lg font-bold">
+                      {isLoadingBot ? (
+                        <Skeleton className="h-5 w-32" />
+                      ) : (
+                        <div className="flex items-baseline">
+                          <IconPinnedBot
+                            botSharedStatus={bot?.sharedStatus}
+                            className="mr-1 shrink-0 text-aws-aqua"
+                          />
+                          <div>{pageTitle}</div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 text-xs text-dark-gray dark:text-light-gray">
+                      {isLoadingBot ? (
+                        <Skeleton className="mt-1 h-3 w-64" />
+                      ) : (
+                        description
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -663,7 +677,10 @@ const ChatPage: React.FC = () => {
       </div>
 
       <div
-        className={`bottom-0 z-0 flex w-full flex-col items-center justify-center ${messages.length === 0 ? 'absolute top-1/2 -translate-y-1/2' : ''}`}>
+        className={twMerge(
+          'bottom-0 z-0 flex w-full flex-col items-center justify-center',
+          messages.length === 0 ? 'absolute top-2/3 -translate-y-1/2' : ''
+        )}>
         {bot && bot.syncStatus !== SyncStatus.SUCCEEDED && (
           <div className="mb-8 w-1/2">
             <Alert
@@ -692,6 +709,7 @@ const ChatPage: React.FC = () => {
         )}
 
         <InputChatContent
+          className="mb-7 w-11/12 md:w-10/12 lg:w-4/6 xl:w-3/6"
           dndMode={dndMode}
           disabledSend={postingMessage || hasError}
           disabledRegenerate={postingMessage || hasError}

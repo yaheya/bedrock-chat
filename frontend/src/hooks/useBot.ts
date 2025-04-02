@@ -197,20 +197,6 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         mutateMyBots();
       });
     },
-    deleteRecentlyUsedBot: (botId: string) => {
-      const idx = recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
-      mutateRecentlyUsedBots(
-        produce(recentlyUsedBots, (draft) => {
-          draft?.splice(idx, 1);
-        }),
-        {
-          revalidate: false,
-        }
-      );
-      return api.deleteBot(botId).finally(() => {
-        mutateRecentlyUsedBots();
-      });
-    },
     removeFromRecentlyUsed: (botId: string) => {
       const idx = recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
       mutateRecentlyUsedBots(

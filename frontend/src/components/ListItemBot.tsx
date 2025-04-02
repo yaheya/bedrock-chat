@@ -41,7 +41,7 @@ const ListItemBot: React.FC<Props> = (props) => {
             props.onClick(props.bot.id);
           }
         }}>
-        <div className="flex w-full flex-nowrap items-center gap-1 overflow-hidden text-sm font-semibold">
+        <div className="flex w-full flex-nowrap items-center gap-1 overflow-hidden whitespace-nowrap text-sm font-semibold">
           <IconPinnedBot
             botSharedStatus={props.bot.sharedStatus}
             className=" text-aws-aqua"
