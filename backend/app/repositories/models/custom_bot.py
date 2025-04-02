@@ -560,7 +560,7 @@ class BotModel(BaseModel):
             generation_params=GenerationParams.model_validate(
                 self.generation_params.model_dump()
             ),
-            agent=Agent.model_validate(self.agent.model_dump()),
+            agent=self.agent.to_agent(),
             knowledge=Knowledge.model_validate(self.knowledge.model_dump()),
             sync_status=self.sync_status,
             sync_status_reason=self.sync_status_reason,

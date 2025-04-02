@@ -107,6 +107,7 @@ def store_bot(custom_bot: BotModel):
         item["GuardrailsParams"] = custom_bot.bedrock_guardrails.model_dump()
 
     response = table.put_item(Item=item)
+    logger.info(f"Stored bot: {custom_bot.id} successfully")
     return response
 
 
