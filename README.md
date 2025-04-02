@@ -1,17 +1,22 @@
-# Bedrock Chat (BrChat)
+<h1 align="center">Bedrock Chat (BrChat)</h1>
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square" />
+  <img src="https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square" />
+  <img src="https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square" />
+  <a href="https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap">
+    <img src="https://img.shields.io/badge/roadmap-view-blue?style=flat-square" />
+  </a>
+</p>
 
 [English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+
+A multilingual generative AI platform powered by [Amazon Bedrock](https://aws.amazon.com/bedrock/).
+Supports chat, custom bots with knowledge (RAG), bot sharing via a bot store, and task automation using agents.
 
 > [!Warning]
 >
 > **V3 released. To update, please carefully review the [migration guide](./docs/migration/V2_TO_V3.md).** Without any care, **BOTS FROM V1 WILL BECOME UNUSABLE.**
-
-A multilingual chatbot using LLM models provided by [Amazon Bedrock](https://aws.amazon.com/bedrock/) for generative AI.
 
 ### Watch Overview and Installation on YouTube
 
@@ -23,7 +28,7 @@ A multilingual chatbot using LLM models provided by [Amazon Bedrock](https://aws
 
 ### Bot Personalization / Bot store
 
-Add your own instruction and knowledge (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users via bot store. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
+Add your own instruction and knowledge (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users via bot store market place. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
 
 ![TODO: add latest screenshots for customized bot creation]()
 ![TODO: add bot store screenshots]()
