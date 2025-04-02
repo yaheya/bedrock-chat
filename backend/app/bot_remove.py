@@ -66,7 +66,7 @@ def handler(event: dict, context: Any) -> None:
 
     pk = record["dynamodb"]["Keys"]["PK"]["S"]
     sk = record["dynamodb"]["Keys"].get("SK", {}).get("S")
-    if not sk or "#BOT#" not in sk:
+    if not sk or "BOT#" not in sk:
         # Ignore non-bot items
         print(f"Skipping event for SK: {sk}")
         return
