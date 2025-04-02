@@ -879,6 +879,42 @@ def delete_alias_by_id(user_id: str, bot_id: str):
     return response
 
 
+def remove_bot_last_used_time(user_id: str, bot_id: str):
+    """Remove last used time for bot to exclude it from recently used bots."""
+    table = get_bot_table_client()
+    logger.info(f"Removing last used time for bot: {bot_id}")
+    try:
+        response = table.update_item(
+            Key={"PK": user_id, "SK": compose_sk(bot_id, "bot")},
+            UpdateExpression="REMOVE LastUsedTime",
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise RecordNotFoundError(f"Bot with id {bot_id} not found")
+        else:
+            raise e
+    return response
+
+
+def remove_alias_last_used_time(user_id: str, original_bot_id: str):
+    """Remove last used time for alias to exclude it from recently used bots."""
+    table = get_bot_table_client()
+    logger.info(f"Removing last used time for alias: {original_bot_id}")
+    try:
+        response = table.update_item(
+            Key={"PK": user_id, "SK": compose_sk(original_bot_id, "alias")},
+            UpdateExpression="REMOVE LastUsedTime",
+            ConditionExpression="attribute_exists(PK) AND attribute_exists(SK)",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise RecordNotFoundError(f"Alias with id {original_bot_id} not found")
+        else:
+            raise e
+    return response
+
+
 def find_all_published_bots(
     limit: int = 1000, next_token: str | None = None
 ) -> tuple[list[BotMetaWithStackInfo], str | None]:

@@ -15,6 +15,8 @@ from app.repositories.custom_bot import (
     find_pinned_public_bots,
     find_recently_used_bots_by_user_id,
     find_starred_bots_by_user_id,
+    remove_alias_last_used_time,
+    remove_bot_last_used_time,
     store_alias,
     store_bot,
     update_alias_is_origin_accessible,
@@ -597,6 +599,60 @@ class TestUpdateBotSharedStatus(unittest.TestCase):
         self.assertEqual(bot.shared_status, "shared")
         self.assertEqual(bot.allowed_cognito_groups, ["group1"])
         self.assertEqual(bot.allowed_cognito_users, ["user2"])
+
+
+class TestRemoveFromRecentlyUsed(unittest.TestCase):
+    def setUp(self) -> None:
+        # Create a bot owned by user1
+        self.owned_bot = create_test_private_bot(
+            id="owned_bot", is_starred=False, owner_user_id="user1"
+        )
+        store_bot(self.owned_bot)
+        update_bot_last_used_time("user1", "owned_bot")  # Ensure it has LastUsedTime
+
+        # Create a bot owned by user2 that user1 will use via alias
+        self.shared_bot = create_test_public_bot(
+            id="shared_bot", is_starred=False, owner_user_id="user2"
+        )
+        store_bot(self.shared_bot)
+
+        # Create an alias for user1 to access user2's bot
+        alias_for_shared = BotAliasModel.from_bot_for_initial_alias(self.shared_bot)
+        store_alias("user1", alias_for_shared)
+        update_alias_last_used_time("user1", "shared_bot")  # Ensure it has LastUsedTime
+
+    def tearDown(self) -> None:
+        delete_bot_by_id("user1", "owned_bot")
+        delete_bot_by_id("user2", "shared_bot")
+        delete_alias_by_id("user1", "shared_bot")
+
+    def test_remove_bot_last_used_time(self):
+        # Verify the bot is in recently used bots before removal
+        recently_used_before = find_recently_used_bots_by_user_id("user1")
+        bot_ids_before = [bot.id for bot in recently_used_before]
+        self.assertIn("owned_bot", bot_ids_before)
+
+        # Remove the bot from recently used
+        remove_bot_last_used_time("user1", "owned_bot")
+
+        # Verify the bot is no longer in recently used bots
+        recently_used_after = find_recently_used_bots_by_user_id("user1")
+        bot_ids_after = [bot.id for bot in recently_used_after]
+        self.assertNotIn("owned_bot", bot_ids_after)
+
+    def test_remove_alias_last_used_time(self):
+        # Verify the alias is in recently used bots before removal
+        recently_used_before = find_recently_used_bots_by_user_id("user1")
+        bot_ids_before = [bot.id for bot in recently_used_before]
+        self.assertIn("shared_bot", bot_ids_before)
+
+        # Remove the alias from recently used
+        remove_alias_last_used_time("user1", "shared_bot")
+
+        # Verify the alias is no longer in recently used bots
+        recently_used_after = find_recently_used_bots_by_user_id("user1")
+        bot_ids_after = [bot.id for bot in recently_used_after]
+        self.assertNotIn("shared_bot", bot_ids_after)
 
 
 if __name__ == "__main__":

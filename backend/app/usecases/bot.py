@@ -16,6 +16,8 @@ from app.repositories.custom_bot import (
     find_pinned_public_bots,
     find_recently_used_bots_by_user_id,
     find_starred_bots_by_user_id,
+    remove_alias_last_used_time,
+    remove_bot_last_used_time,
     store_alias,
     store_bot,
     update_alias_is_origin_accessible,
@@ -626,6 +628,27 @@ def issue_presigned_url(
         client_method="put_object",
     )
     return response
+
+
+def remove_bot_from_recently_used(user: User, bot_id: str):
+    """Remove bot from recently used bots by removing LastUsedTime attribute."""
+    try:
+        bot = find_bot_by_id(bot_id)
+    except RecordNotFoundError as e:
+        # NOTE: If the bot is not found, delete alias
+        logger.info(f"Bot {bot_id} is not found. Delete alias.")
+        return delete_alias_by_id(user.id, bot_id)
+
+    if bot.is_owned_by_user(user):
+        logger.debug(
+            f"Bot {bot_id} is owned by user {user.id}. Removing last used time..."
+        )
+        return remove_bot_last_used_time(user.id, bot_id)
+    else:
+        logger.debug(
+            f"Bot {bot_id} is not owned by user {user.id}. Removing alias last used time..."
+        )
+        return remove_alias_last_used_time(user.id, bot_id)
 
 
 def remove_uploaded_file(user: User, bot_id: str, filename: str):

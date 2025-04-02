@@ -64,7 +64,7 @@ By using the [Agent functionality](./docs/AGENT.md), your chatbot can automatica
 
 ## 🚀 Super-easy Deployment
 
-- In the us-east-1 region, open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` > Check all of `Anthropic / Claude 3`, all of `Amazon / Nova`, `Amazon / Titan Text Embeddings V2` and `Cohere / Embed Multilingual` then `Save changes`.
+- In the us-east-1 region, open [Bedrock Model access](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) > `Manage model access` > Check all of models you wish to use and then `Save changes`.
 
 <details>
 <summary>Screenshot</summary>
@@ -339,20 +339,6 @@ Update `enableMistral` to `true` in [cdk.json](./cdk/cdk.json), and run `npx cdk
 
 > [!Important]
 > This project focus on Anthropic Claude models, the Mistral models are limited supported. For example, prompt examples are based on Claude models. This is a Mistral-only option, once you toggled to enable Mistral models, you can only use Mistral models for all the chat features, NOT both Claude and Mistral models.
-
-### Configure default text generation
-
-Users can adjust the [text generation parameters](https://docs.anthropic.com/claude/reference/complete_post) from the custom bot creation screen. If the bot is not used, the default parameters set in [config.py](./backend/app/config.py) will be used.
-
-```py
-DEFAULT_GENERATION_CONFIG = {
-    "max_tokens": 2000,
-    "top_k": 250,
-    "top_p": 0.999,
-    "temperature": 0.6,
-    "stop_sequences": ["Human: ", "Assistant: "],
-}
-```
 
 ### Remove resources
 

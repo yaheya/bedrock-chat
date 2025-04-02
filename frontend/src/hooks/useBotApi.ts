@@ -78,6 +78,9 @@ const useBotApi = () => {
     deleteBot: (botId: string) => {
       return http.delete(`bot/${botId}`);
     },
+    removeFromRecentlyUsed: (botId: string) => {
+      return http.delete(`bot/${botId}/recently-used`);
+    },
     getPresignedUrl: (botId: string, file: File) => {
       return http.getOnce<GetPresignedUrlResponse>(
         `bot/${botId}/presigned-url`,

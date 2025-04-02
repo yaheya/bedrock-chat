@@ -211,6 +211,20 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         mutateRecentlyUsedBots();
       });
     },
+    removeFromRecentlyUsed: (botId: string) => {
+      const idx = recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
+      mutateRecentlyUsedBots(
+        produce(recentlyUsedBots, (draft) => {
+          draft?.splice(idx, 1);
+        }),
+        {
+          revalidate: false,
+        }
+      );
+      return api.removeFromRecentlyUsed(botId).finally(() => {
+        mutateRecentlyUsedBots();
+      });
+    },
     uploadFile: (
       botId: string,
       file: File,

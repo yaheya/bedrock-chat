@@ -734,7 +734,7 @@ class BotMeta(BaseModel):
             title=item["Title"],
             description=item["Description"],
             create_time=item["CreateTime"],
-            last_used_time=item["LastUsedTime"],
+            last_used_time=item.get("LastUsedTime", item["CreateTime"]),
             is_starred=_is_starred,
             sync_status=item["SyncStatus"],
             has_bedrock_knowledge_base=bool(item.get("BedrockKnowledgeBase")),

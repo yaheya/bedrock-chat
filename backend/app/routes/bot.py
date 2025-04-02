@@ -34,6 +34,7 @@ from app.usecases.bot import (
     modify_owned_bot,
     modify_star_status,
     remove_bot_by_id,
+    remove_bot_from_recently_used,
     remove_uploaded_file,
 )
 from app.user import User
@@ -157,6 +158,14 @@ def delete_bot_uploaded_file(request: Request, bot_id: str, filename: str):
     """Delete uploaded file for bot"""
     current_user: User = request.state.current_user
     remove_uploaded_file(current_user, bot_id, filename)
+
+
+@router.delete("/bot/{bot_id}/recently-used")
+def remove_bot_from_recent_history(request: Request, bot_id: str):
+    """Remove bot from recently used bots history by removing LastUsedTime attribute."""
+    current_user: User = request.state.current_user
+    remove_bot_from_recently_used(current_user, bot_id)
+    return {"message": f"Bot {bot_id} removed from recently used bots history"}
 
 
 @router.get("/bot/{bot_id}/agent/available-tools", response_model=list[PlainTool])

@@ -47,10 +47,10 @@ const BotRecentlyUsedPage: React.FC = () => {
     recentlyUsedBots,
     isLoadingRecentlyUsedBots,
     deleteMyBot,
-    deleteRecentlyUsedBot,
     updateMyBotStarred,
     updateSharedBotStarred,
     mutateRecentlyUsedBots,
+    removeFromRecentlyUsed,
   } = useBot(true);
 
   const {
@@ -311,7 +311,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                       )}
                       <PopoverItem
                         onClick={() => {
-                          deleteRecentlyUsedBot(bot.id);
+                          removeFromRecentlyUsed(bot.id);
                         }}>
                         <PiEraser />
                         {t('bot.button.removeFromRecent')}
@@ -360,7 +360,7 @@ const BotRecentlyUsedPage: React.FC = () => {
                       )}
                       <PopoverItem
                         onClick={() => {
-                          deleteRecentlyUsedBot(bot.id);
+                          removeFromRecentlyUsed(bot.id);
                         }}>
                         <PiEraser />
                         {t('bot.button.removeFromRecent')}
