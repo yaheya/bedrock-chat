@@ -537,6 +537,10 @@ How would you categorize this email?`,
     deleteDialog: {
       title: 'Delete?',
       content: 'Are you sure to delete <Bold>{{title}}</Bold>?',
+      pinnedBotError: {
+        title: 'Cannot Delete',
+        content: 'This bots is marked as essential',
+      },
     },
     clearDialog: {
       title: 'Delete ALL?',
