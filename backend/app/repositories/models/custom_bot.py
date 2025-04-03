@@ -557,6 +557,7 @@ class BotModel(BaseModel):
             allowed_cognito_groups=self.allowed_cognito_groups,
             allowed_cognito_users=self.allowed_cognito_users,
             owner_user_id=self.owner_user_id,
+            is_publication=self.published_api_codebuild_id is not None,
             generation_params=GenerationParams.model_validate(
                 self.generation_params.model_dump()
             ),

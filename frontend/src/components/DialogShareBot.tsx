@@ -22,6 +22,7 @@ import Alert from './Alert';
 type Props = BaseProps & {
   isOpen: boolean;
   isLoading?: boolean;
+  isPublication?: boolean;
   botId?: string;
   sharedScope?: SharedScope;
   sharedStatus?: string;
@@ -83,10 +84,13 @@ const DialogShareBot: React.FC<Props> = (props) => {
     }
   };
 
-  // disabled if mark to Essential
+  const isPinned = useMemo(() => {
+    return isPinnedBot(props.sharedStatus ?? '');
+  }, [props.sharedStatus]);
+
   const disabled = useMemo(() => {
-    return isPinnedBot(props.sharedStatus ?? '') && !props.isLoading;
-  }, [props.isLoading, props.sharedStatus]);
+    return (isPinned || props.isPublication) && !props.isLoading;
+  }, [isPinned, props.isLoading, props.isPublication]);
 
   return (
     <ModalDialog
@@ -120,10 +124,16 @@ const DialogShareBot: React.FC<Props> = (props) => {
 
       {disabled && (
         <Alert
-          title={t('error.share.markedEssential.title')}
+          title={
+            isPinned
+              ? t('error.share.markedEssential.title')
+              : t('error.share.publication.title')
+          }
           className="mb-2"
           severity="warning">
-          {t('error.share.markedEssential.content')}
+          {isPinned
+            ? t('error.share.markedEssential.content')
+            : t('error.share.publication.content')}
         </Alert>
       )}
 

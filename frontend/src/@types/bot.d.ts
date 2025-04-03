@@ -80,6 +80,7 @@ export type BotDetails = Omit<BotMeta, 'isStarred' | 'owned'> & {
   allowedCognitoGroups: string[];
   allowedCognitoUsers: string[];
   ownerUserId: string;
+  isPublication: boolean;
   generationParams: GenerationParams;
   agent: Agent;
   knowledge: BotKnowledge;

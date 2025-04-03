@@ -52,6 +52,7 @@ const BotStarredPage: React.FC = () => {
   } = useBot(true);
 
   const {
+    isPublication,
     sharedStatus,
     sharedScope,
     allowedGroupIds,
@@ -147,6 +148,7 @@ const BotStarredPage: React.FC = () => {
       />
       <DialogShareBot
         isOpen={isOpenShareDialog}
+        isPublication={isPublication}
         botId={openedShareDialogBotId}
         sharedStatus={sharedStatus}
         sharedScope={sharedScope}

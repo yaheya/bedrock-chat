@@ -24,6 +24,7 @@ const useShareBot = (
 
   return {
     isLoading,
+    isPublication: data?.isPublication,
     sharedStatus: data?.sharedStatus,
     sharedScope: data?.sharedScope,
     allowedUserIds: data?.allowedCognitoUsers,

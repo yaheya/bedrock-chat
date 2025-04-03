@@ -13,6 +13,8 @@ from typing import (
     get_args,
 )
 
+from charset_normalizer.utils import is_punctuation
+
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
     BedrockGuardrailsInput,
@@ -372,6 +374,7 @@ class BotOutput(BaseSchema):
     allowed_cognito_groups: list[str]
     allowed_cognito_users: list[str]
     owner_user_id: str
+    is_publication: bool
     generation_params: GenerationParams
     agent: Agent
     knowledge: Knowledge

@@ -603,9 +603,10 @@ const ChatPage: React.FC = () => {
                   )}
                   <div className="px-20">
                     <div className="px-10 text-lg font-bold">
-                      {isLoadingBot ? (
+                      {isLoadingBot && botId && (
                         <Skeleton className="h-5 w-32" />
-                      ) : (
+                      )}
+                      {!isLoadingBot && bot && (
                         <div className="flex items-baseline">
                           <IconPinnedBot
                             botSharedStatus={bot?.sharedStatus}

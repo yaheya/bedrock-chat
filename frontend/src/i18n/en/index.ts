@@ -539,7 +539,8 @@ How would you categorize this email?`,
       content: 'Are you sure to delete <Bold>{{title}}</Bold>?',
       pinnedBotError: {
         title: 'Cannot Delete',
-        content: 'This bots is marked as essential',
+        content:
+          'This bots is marked as essential. Essential status can be changed by administrator.',
       },
     },
     clearDialog: {
@@ -871,6 +872,11 @@ How would you categorize this email?`,
           title: 'Unable to Change Sharing Settings',
           content:
             'This bot is marked Essential by administrator. Essential bots must be shared with all users.',
+        },
+        publication: {
+          title: 'Unable to Change Sharing Settings',
+          content:
+            'This bot is published as API by administrator. Published APIs must be shared with all users.',
         },
       },
     },
