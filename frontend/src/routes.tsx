@@ -17,6 +17,7 @@ import {
 import { useMemo } from 'react';
 import BotDiscoverPage from './pages/BotDiscoverPage.tsx';
 import BotRecentlyUsedPage from './pages/BotRecentlyUsedPage.tsx';
+import BotStarredPage from './pages/BotStarredPage.tsx';
 import ConversationHistoryPage from './pages/ConversationHistoryPage.tsx';
 
 const rootChildren = [
@@ -31,6 +32,10 @@ const rootChildren = [
   {
     path: '/bot/recently-used',
     element: <BotRecentlyUsedPage />,
+  },
+  {
+    path: '/bot/starred',
+    element: <BotStarredPage />,
   },
   {
     path: '/bot/discover',

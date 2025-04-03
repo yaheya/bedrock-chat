@@ -310,7 +310,18 @@ const Drawer: React.FC<Props> = (props) => {
               <ExpandableDrawerGroup
                 label={t('app.starredBots')}
                 className="border-t bg-aws-squid-ink-light pt-1 dark:bg-aws-squid-ink-dark">
-                {starredBots?.map((bot) => (
+                {starredBots === undefined && (
+                  <div className="flex flex-col gap-2 p-2">
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                    <Skeleton className="h-10 w-full bg-aws-sea-blue-light/50 dark:bg-aws-sea-blue-dark/50" />
+                  </div>
+                )}
+                {starredBots
+                  ?.slice(0, 15)
+                  .map((bot) => (
                   <DrawerItem
                     key={bot.id}
                     isActive={botId === bot.id && !conversationId}
@@ -320,6 +331,19 @@ const Drawer: React.FC<Props> = (props) => {
                     onClick={onClickNewBotChat}
                   />
                 ))}
+                
+                {starredBots && starredBots.length > 15 && (
+                  <Button
+                    text
+                    rightIcon={<PiArrowRight />}
+                    className="w-full"
+                    onClick={() => {
+                      navigate('/bot/starred');
+                      closeSmallDrawer();
+                    }}>
+                    {t('bot.button.viewAll')}
+                  </Button>
+                )}
               </ExpandableDrawerGroup>
 
               <ExpandableDrawerGroup

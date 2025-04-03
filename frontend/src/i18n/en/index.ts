@@ -167,6 +167,7 @@ const translation = {
         notAvailable: 'This bot is NOT available.',
         noBots: 'No Bots.',
         noBotsRecentlyUsed: 'No Recently Used Bots.',
+        noStarredBots: 'No Starred Bots.',
         retrievingKnowledge: '[Retrieving Knowledge...]',
         selectParsingModel: 'Select Parsing Model',
         dndFileUpload:
