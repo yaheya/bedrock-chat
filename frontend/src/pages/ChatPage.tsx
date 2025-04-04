@@ -546,7 +546,7 @@ const ChatPage: React.FC = () => {
                         {t('bot.titleSubmenu.edit')}
                       </PopoverItem>
                     )}
-                    {bot?.sharedScope === 'all' && (
+                    {bot?.sharedScope !== 'private' && (
                       <PopoverItem
                         onClick={() => {
                           if (bot) {
