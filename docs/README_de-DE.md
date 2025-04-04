@@ -1,11 +1,11 @@
 # Bedrock Claude Chat (Nova)
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Warning]
 >
@@ -70,8 +70,8 @@ Durch die Verwendung der [Agent-Funktionalität](./AGENT_de-DE.md) kann Ihr Chat
 - Führen Sie die Bereitstellung mit folgenden Befehlen durch. Wenn Sie eine bestimmte Version bereitstellen oder Sicherheitsrichtlinien anwenden möchten, geben Sie bitte die entsprechenden Parameter aus [Optionale Parameter](#optionale-parameter) an.
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
@@ -89,7 +89,7 @@ Sie können folgende Parameter während der Bereitstellung angeben, um Sicherhei
 - **--disable-ipv6**: Verbindungen über IPv6 deaktivieren. (Standard: aktiviert)
 - **--allowed-signup-email-domains**: Durch Komma getrennte Liste der erlaubten E-Mail-Domains für die Registrierung. (Standard: keine Domainbeschränkung)
 - **--bedrock-region**: Region definieren, in der Bedrock verfügbar ist. (Standard: us-east-1)
-- **--repo-url**: Das benutzerdefinierte Repository von Bedrock Claude Chat für die Bereitstellung, falls geforkt oder benutzerdefinierte Quellcodeverwaltung. (Standard: https://github.com/aws-samples/bedrock-claude-chat.git)
+- **--repo-url**: Das benutzerdefinierte Repository von Bedrock Claude Chat für die Bereitstellung, falls geforkt oder benutzerdefinierte Quellcodeverwaltung. (Standard: https://github.com/aws-samples/bedrock-chat.git)
 - **--version**: Die Version von Bedrock Claude Chat für die Bereitstellung. (Standard: neueste Version in der Entwicklung)
 - **--cdk-json-override**: Sie können beliebige CDK-Kontextwerte während der Bereitstellung mit dem Override-JSON-Block überschreiben. Dies ermöglicht Ihnen, die Konfiguration zu ändern, ohne die cdk.json-Datei direkt zu bearbeiten.
 
@@ -173,13 +173,13 @@ Die Super-einfache Bereitstellung verwendet [AWS CodeBuild](https://aws.amazon.c
 - Klonen Sie dieses Repository
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
 - Installieren Sie npm-Pakete
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
@@ -298,14 +298,17 @@ npx cdk deploy --all
 #### Wichtige Hinweise
 
 1. **Stack-Benennung**:
+
    - Die Haupt-Stacks für jede Umgebung werden mit dem Umgebungsnamen als Präfix versehen (z.B. `dev-BedrockChatStack`, `prod-BedrockChatStack`)
    - Benutzerdefinierte Bot-Stacks (`BrChatKbStack*`) und API-Veröffentlichungs-Stacks (`ApiPublishmentStack*`) erhalten jedoch keine Umgebungspräfixe, da sie zur Laufzeit dynamisch erstellt werden
 
 2. **Ressourcenbenennung**:
+
    - Nur einige Ressourcen erhalten Umgebungspräfixe in ihren Namen (z.B. `dev_ddb_export`-Tabelle, `dev-FrontendWebAcl`)
    - Die meisten Ressourcen behalten ihre ursprünglichen Namen, sind aber durch separate Stacks isoliert
 
 3. **Umgebungsidentifikation**:
+
    - Alle Ressourcen werden mit einem `CDKEnvironment`-Tag versehen, das den Umgebungsnamen enthält
    - Sie können dieses Tag verwenden, um zu identifizieren, zu welcher Umgebung eine Ressource gehört
    - Beispiel: `CDKEnvironment: dev` oder `CDKEnvironment: prod`
@@ -401,7 +404,7 @@ Standardmäßig werden neu erstellte Benutzer der Gruppe `CreatingBotAllowed` be
 
 ## Mitwirkende
 
-[![bedrock claude chat contributors](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![bedrock claude chat contributors](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## Lizenz
 

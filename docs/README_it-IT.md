@@ -1,11 +1,11 @@
 # Chat Bedrock Claude (Nova)
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Avvertenza]
 >
@@ -70,8 +70,8 @@ Utilizzando la [funzionalità Agente](./AGENT_it-IT.md), il tuo chatbot può ges
 - Eseguire la distribuzione tramite i seguenti comandi. Se si desidera specificare la versione da distribuire o applicare criteri di sicurezza, specificare i parametri appropriati da [Parametri Opzionali](#parametri-opzionali).
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
@@ -89,7 +89,7 @@ chmod +x bin.sh
 - **--disable-ipv6**: Disabilita le connessioni su IPv6. (predefinito: abilitato)
 - **--allowed-signup-email-domains**: Elenco separato da virgole dei domini e-mail consentiti per la registrazione. (predefinito: nessuna restrizione di dominio)
 - **--bedrock-region**: Definisce la regione in cui Bedrock è disponibile. (predefinito: us-east-1)
-- **--repo-url**: L'URL del repository personalizzato di Bedrock Claude Chat da distribuire, se biforcato o con un controllo del codice sorgente personalizzato. (predefinito: https://github.com/aws-samples/bedrock-claude-chat.git)
+- **--repo-url**: L'URL del repository personalizzato di Bedrock Claude Chat da distribuire, se biforcato o con un controllo del codice sorgente personalizzato. (predefinito: https://github.com/aws-samples/bedrock-chat.git)
 - **--version**: La versione di Bedrock Claude Chat da distribuire. (predefinito: ultima versione in sviluppo)
 - **--cdk-json-override**: È possibile sovrascrivere qualsiasi valore di contesto CDK durante la distribuzione utilizzando il blocco JSON di override. Ciò consente di modificare la configurazione senza modificare direttamente il file cdk.json.
 
@@ -173,13 +173,13 @@ La distribuzione Super-easy utilizza [AWS CodeBuild](https://aws.amazon.com/code
 - Clona questo repository
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
 - Installa i pacchetti npm
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
@@ -469,7 +469,7 @@ Si prega inoltre di consultare le seguenti linee guida prima di contribuire:
 
 ## Collaboratori
 
-[![bedrock claude chat contributors](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![bedrock claude chat contributors](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## Licenza
 

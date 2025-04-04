@@ -42,4 +42,4 @@ Klien perlu menetapkan `x-api-key` pada pengepala permintaan.
 
 ## Spesifikasi API
 
-Lihat [di sini](https://aws-samples.github.io/bedrock-claude-chat).
+Lihat [di sini](https://aws-samples.github.io/bedrock-chat).

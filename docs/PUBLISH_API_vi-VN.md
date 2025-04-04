@@ -42,4 +42,4 @@ Khách hàng cần đặt `x-api-key` trong tiêu đề yêu cầu.
 
 ## Thông số kỹ thuật API
 
-Xem [tại đây](https://aws-samples.github.io/bedrock-claude-chat).
+Xem [tại đây](https://aws-samples.github.io/bedrock-chat).

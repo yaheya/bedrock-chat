@@ -42,4 +42,4 @@ WAF 用于 IP 地址限制。可以通过在 `cdk.json` 中设置参数 `publish
 
 ## API 规范
 
-请查看[此处](https://aws-samples.github.io/bedrock-claude-chat)。
+请查看[此处](https://aws-samples.github.io/bedrock-chat)。

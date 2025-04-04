@@ -1,11 +1,11 @@
 # Bedrock Claude Chat (Nova)
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Warning]
 >
@@ -70,8 +70,8 @@ Dengan menggunakan [fungsi Ejen](./AGENT_ms-MY.md), chatbot anda boleh secara au
 - Jalankan penggunaan melalui arahan berikut. Jika anda ingin menetapkan versi untuk digunakan atau perlu menggunakan polisi keselamatan, sila tentukan parameter yang sesuai dari [Parameter Pilihan](#parameter-pilihan).
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
@@ -89,7 +89,7 @@ Anda boleh menetapkan parameter berikut semasa penggunaan untuk meningkatkan kes
 - **--disable-ipv6**: Matikan sambungan melalui IPv6. (lalai: didayakan)
 - **--allowed-signup-email-domains**: Senarai yang dipisahkan koma bagi domain e-mel yang dibenarkan untuk pendaftaran. (lalai: tiada sekatan domain)
 - **--bedrock-region**: Tentukan kawasan di mana bedrock tersedia. (lalai: us-east-1)
-- **--repo-url**: Repo Bedrock Claude Chat khusus untuk digunakan, jika diforked atau kawalan sumber khusus. (lalai: https://github.com/aws-samples/bedrock-claude-chat.git)
+- **--repo-url**: Repo Bedrock Claude Chat khusus untuk digunakan, jika diforked atau kawalan sumber khusus. (lalai: https://github.com/aws-samples/bedrock-chat.git)
 - **--version**: Versi Bedrock Claude Chat untuk digunakan. (lalai: versi terkini dalam pembangunan)
 - **--cdk-json-override**: Anda boleh mengatasi mana-mana nilai konteks CDK semasa penggunaan menggunakan blok JSON override. Ini membolehkan anda mengubah konfigurasi tanpa mengedit fail cdk.json secara langsung.
 
@@ -173,13 +173,13 @@ Deployment Super-mudah menggunakan [AWS CodeBuild](https://aws.amazon.com/codebu
 - Klon repositori ini
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
 - Pasang pakej npm
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
@@ -469,7 +469,7 @@ Sila lihat garis panduan berikut sebelum menyumbang:
 
 ## Penyumbang
 
-[![penyumbang bedrock claude chat](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![penyumbang bedrock claude chat](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## Lesen
 

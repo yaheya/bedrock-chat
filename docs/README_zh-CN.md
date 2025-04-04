@@ -1,11 +1,11 @@
 # Bedrock Claude 聊天机器人（Nova）
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Warning]
 >
@@ -70,8 +70,8 @@
 - 通过以下命令运行部署。如果您想指定部署的版本或需要应用安全策略，请从[可选参数](#可选参数)中指定适当的参数。
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
@@ -89,7 +89,7 @@ chmod +x bin.sh
 - **--disable-ipv6**：禁用 IPv6 连接。（默认：启用）
 - **--allowed-signup-email-domains**：允许注册的电子邮件域名的逗号分隔列表。（默认：无域名限制）
 - **--bedrock-region**：定义 Bedrock 可用的区域。（默认：us-east-1）
-- **--repo-url**：要部署的 Bedrock Claude Chat 的自定义仓库，如果是 fork 或自定义源代码控制。（默认：https://github.com/aws-samples/bedrock-claude-chat.git）
+- **--repo-url**：要部署的 Bedrock Claude Chat 的自定义仓库，如果是 fork 或自定义源代码控制。（默认：https://github.com/aws-samples/bedrock-chat.git）
 - **--version**：要部署的 Bedrock Claude Chat 版本。（默认：开发中的最新版本）
 - **--cdk-json-override**：您可以在部署期间使用覆盖 JSON 块覆盖任何 CDK 上下文值。这允许您在不直接编辑 cdk.json 文件的情况下修改配置。
 
@@ -173,13 +173,13 @@ chmod +x bin.sh
 - 克隆此仓库
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
 - 安装 npm 包
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
@@ -298,14 +298,17 @@ npx cdk deploy --all
 #### 重要说明
 
 1. **堆栈命名**：
+
    - 每个环境的主要堆栈将以环境名为前缀（例如，`dev-BedrockChatStack`、`prod-BedrockChatStack`）
    - 但是，自定义机器人堆栈（`BrChatKbStack*`）和 API 发布堆栈（`ApiPublishmentStack*`）不会收到环境前缀，因为它们是在运行时动态创建的
 
 2. **资源命名**：
+
    - 只有部分资源在其名称中接收环境前缀（例如，`dev_ddb_export` 表，`dev-FrontendWebAcl`）
    - 大多数资源保持其原始名称，但通过位于不同堆栈中而隔离
 
 3. **环境标识**：
+
    - 所有资源都带有包含环境名称的 `CDKEnvironment` 标签
    - 您可以使用此标签识别资源属于哪个环境
    - 示例：`CDKEnvironment: dev` 或 `CDKEnvironment: prod`
@@ -466,7 +469,7 @@ DEFAULT_GENERATION_CONFIG = {
 
 ## 贡献者
 
-[![bedrock claude chat 贡献者](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![bedrock claude chat 贡献者](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## 许可证
 

@@ -42,4 +42,4 @@ Klienten må sette `x-api-key` i forespørselhodet.
 
 ## API-spesifikasjon
 
-Se [her](https://aws-samples.github.io/bedrock-claude-chat).
+Se [her](https://aws-samples.github.io/bedrock-chat).

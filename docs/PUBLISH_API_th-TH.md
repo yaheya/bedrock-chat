@@ -42,4 +42,4 @@ WAF ใช้สำหรับการจำกัดที่อยู่ IP 
 
 ## ข้อกำหนด API
 
-ดูได้ที่[ที่นี่](https://aws-samples.github.io/bedrock-claude-chat)
+ดูได้ที่[ที่นี่](https://aws-samples.github.io/bedrock-chat)

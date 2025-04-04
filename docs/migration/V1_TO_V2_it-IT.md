@@ -71,7 +71,7 @@ I passaggi differiscono a seconda che si stia utilizzando v1.2 o precedenti, opp
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**Da notare che alcune funzionalità non sono disponibili su Knowledge Bases, come la ricerca web e il supporto per i trascritti di YouTube (in programma il supporto per il crawler web ([issue](https://github.com/aws-samples/bedrock-claude-chat/issues/557))).** Tenere inoltre presente che l'utilizzo di Knowledge Bases comporterà addebiti sia per Aurora che per Knowledge Bases durante la transizione.
+**Da notare che alcune funzionalità non sono disponibili su Knowledge Bases, come la ricerca web e il supporto per i trascritti di YouTube (in programma il supporto per il crawler web ([issue](https://github.com/aws-samples/bedrock-chat/issues/557))).** Tenere inoltre presente che l'utilizzo di Knowledge Bases comporterà addebiti sia per Aurora che per Knowledge Bases durante la transizione.
 
 4. **Rimuovere le API pubblicate**: Tutte le API precedentemente pubblicate dovranno essere ripubblicate prima di distribuire v2 a causa dell'eliminazione della VPC. A tale scopo, sarà necessario eliminare prima le API esistenti. L'utilizzo della [funzione di gestione delle API dell'amministratore](../ADMINISTRATOR_it-IT.md) può semplificare questo processo. Una volta completata l'eliminazione di tutti gli stack CloudFormation `APIPublishmentStackXXXX`, l'ambiente sarà pronto.
 

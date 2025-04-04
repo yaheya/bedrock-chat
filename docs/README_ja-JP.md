@@ -1,19 +1,19 @@
 # Bedrock Claude チャット (Nova)
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Warning]
 >
-> **V2がリリースされました。更新する際は、[移行ガイド](./migration/V1_TO_V2_ja-JP.md)を注意深く確認してください。** 注意を払わないと、**V1のBOTが使用不能になります。**
+> **V2 がリリースされました。更新する際は、[移行ガイド](./migration/V1_TO_V2_ja-JP.md)を注意深く確認してください。** 注意を払わないと、**V1 の BOT が使用不能になります。**
 
-[Amazon Bedrock](https://aws.amazon.com/bedrock/)が提供するLLMモデルを使用した多言語チャットボット。
+[Amazon Bedrock](https://aws.amazon.com/bedrock/)が提供する LLM モデルを使用した多言語チャットボット。
 
-### YouTubeで概要とインストールを確認
+### YouTube で概要とインストールを確認
 
 [![Overview](https://img.youtube.com/vi/PDTGrHlaLCQ/hq1.jpg)](https://www.youtube.com/watch?v=PDTGrHlaLCQ)
 
@@ -23,14 +23,14 @@
 
 ### ボットのパーソナライズ
 
-独自の指示を追加し、URLやファイルとして外部知識を提供（[RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/)）。ボットはアプリケーションユーザー間で共有できます。カスタマイズされたボットはスタンドアロンAPIとして公開することもできます（[詳細](./PUBLISH_API_ja-JP.md)を参照）。
+独自の指示を追加し、URL やファイルとして外部知識を提供（[RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/)）。ボットはアプリケーションユーザー間で共有できます。カスタマイズされたボットはスタンドアロン API として公開することもできます（[詳細](./PUBLISH_API_ja-JP.md)を参照）。
 
 ![](./imgs/bot_creation.png)
 ![](./imgs/bot_chat.png)
 ![](./imgs/bot_api_publish_screenshot3.png)
 
 > [!Important]
-> ガバナンス上の理由により、許可されたユーザーのみがカスタマイズされたボットを作成できます。カスタマイズされたボットの作成を許可するには、ユーザーは`CreatingBotAllowed`グループのメンバーである必要があります。これは管理コンソール > Amazon Cognito ユーザープールまたはAWS CLIで設定できます。ユーザープールIDはCloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`からアクセスできます。
+> ガバナンス上の理由により、許可されたユーザーのみがカスタマイズされたボットを作成できます。カスタマイズされたボットの作成を許可するには、ユーザーは`CreatingBotAllowed`グループのメンバーである必要があります。これは管理コンソール > Amazon Cognito ユーザープールまたは AWS CLI で設定できます。ユーザープール ID は CloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`からアクセスできます。
 
 ### 管理者ダッシュボード
 
@@ -43,7 +43,7 @@
 
 </details>
 
-### LLMベースのエージェント
+### LLM ベースのエージェント
 
 <details>
 <summary>LLMベースのエージェント</summary>
@@ -57,7 +57,7 @@
 
 ## 🚀 超簡単デプロイ
 
-- us-east-1リージョンで、[Bedrockモデルアクセス](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess)を開き > `モデルアクセスの管理` > `Anthropic / Claude 3`のすべて、`Amazon / Nova`、`Amazon / Titan Text Embeddings V2`、`Cohere / Embed Multilingual`をすべてチェックし、`変更を保存`します。
+- us-east-1 リージョンで、[Bedrock モデルアクセス](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess)を開き > `モデルアクセスの管理` > `Anthropic / Claude 3`のすべて、`Amazon / Nova`、`Amazon / Titan Text Embeddings V2`、`Cohere / Embed Multilingual`をすべてチェックし、`変更を保存`します。
 
 <details>
 <summary>スクリーンショット</summary>
@@ -70,28 +70,28 @@
 - 以下のコマンドでデプロイを実行します。特定のバージョンをデプロイしたい場合やセキュリティポリシーを適用する必要がある場合は、[オプションパラメータ](#optional-parameters)から適切なパラメータを指定してください。
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
 
-- 新規ユーザーか v2 を使用するかを尋ねられます。v0からの継続ユーザーでない場合は、`y` を入力してください。
+- 新規ユーザーか v2 を使用するかを尋ねられます。v0 からの継続ユーザーでない場合は、`y` を入力してください。
 
 ### オプションパラメータ
 
 デプロイ時に以下のパラメータを指定して、セキュリティとカスタマイズを強化できます：
 
-- **--disable-self-register**: 自己登録を無効化（デフォルト：有効）。このフラグが設定されている場合、Cognitoですべてのユーザーを作成する必要があり、ユーザーは自分でアカウントを登録できません。
-- **--enable-lambda-snapstart**: [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html)を有効化（デフォルト：無効）。このフラグが設定されている場合、Lambdaファンクションのコールドスタート時間を改善し、ユーザーエクスペリエンスを向上させます。
-- **--ipv4-ranges**: 許可されたIPv4範囲をカンマ区切りで指定（デフォルト：すべてのIPv4アドレスを許可）。
-- **--ipv6-ranges**: 許可されたIPv6範囲をカンマ区切りで指定（デフォルト：すべてのIPv6アドレスを許可）。
-- **--disable-ipv6**: IPv6接続を無効化（デフォルト：有効）。
+- **--disable-self-register**: 自己登録を無効化（デフォルト：有効）。このフラグが設定されている場合、Cognito ですべてのユーザーを作成する必要があり、ユーザーは自分でアカウントを登録できません。
+- **--enable-lambda-snapstart**: [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html)を有効化（デフォルト：無効）。このフラグが設定されている場合、Lambda ファンクションのコールドスタート時間を改善し、ユーザーエクスペリエンスを向上させます。
+- **--ipv4-ranges**: 許可された IPv4 範囲をカンマ区切りで指定（デフォルト：すべての IPv4 アドレスを許可）。
+- **--ipv6-ranges**: 許可された IPv6 範囲をカンマ区切りで指定（デフォルト：すべての IPv6 アドレスを許可）。
+- **--disable-ipv6**: IPv6 接続を無効化（デフォルト：有効）。
 - **--allowed-signup-email-domains**: サインアップを許可するメールドメインをカンマ区切りで指定（デフォルト：ドメイン制限なし）。
-- **--bedrock-region**: Bedrockが利用可能なリージョンを定義（デフォルト：us-east-1）。
-- **--repo-url**: フォークまたはカスタムソース管理の場合、Bedrock Claude Chatのカスタムリポジトリをデプロイ（デフォルト：https://github.com/aws-samples/bedrock-claude-chat.git）。
-- **--version**: デプロイするBedrock Claude Chatのバージョン（デフォルト：開発中の最新バージョン）。
-- **--cdk-json-override**: デプロイ時にCDKコンテキスト値を上書きできます。これにより、cdk.jsonファイルを直接編集せずに設定を変更できます。
+- **--bedrock-region**: Bedrock が利用可能なリージョンを定義（デフォルト：us-east-1）。
+- **--repo-url**: フォークまたはカスタムソース管理の場合、Bedrock Claude Chat のカスタムリポジトリをデプロイ（デフォルト：https://github.com/aws-samples/bedrock-chat.git）。
+- **--version**: デプロイする Bedrock Claude Chat のバージョン（デフォルト：開発中の最新バージョン）。
+- **--cdk-json-override**: デプロイ時に CDK コンテキスト値を上書きできます。これにより、cdk.json ファイルを直接編集せずに設定を変更できます。
 
 使用例：
 
@@ -106,7 +106,7 @@ chmod +x bin.sh
 }'
 ```
 
-上書きJSONは、cdk.jsonと同じ構造に従う必要があります。以下のようなコンテキスト値を上書きできます：
+上書き JSON は、cdk.json と同じ構造に従う必要があります。以下のようなコンテキスト値を上書きできます：
 
 - `selfSignUpEnabled`
 - `enableLambdaSnapStart`
@@ -116,10 +116,10 @@ chmod +x bin.sh
 - `bedrockRegion`
 - `enableRagReplicas`
 - `enableBedrockCrossRegionInference`
-- cdk.jsonで定義されたその他のコンテキスト値
+- cdk.json で定義されたその他のコンテキスト値
 
 > [!Note]
-> 上書き値は、AWS CodeBuildでのデプロイ時に既存のcdk.json設定とマージされます。指定された上書き値は、cdk.jsonの値よりも優先されます。
+> 上書き値は、AWS CodeBuild でのデプロイ時に既存の cdk.json 設定とマージされます。指定された上書き値は、cdk.json の値よりも優先されます。
 
 #### パラメータを含むコマンド例：
 
@@ -127,7 +127,7 @@ chmod +x bin.sh
 ./bin.sh --disable-self-register --ipv4-ranges "192.0.2.0/25,192.0.2.128/25" --ipv6-ranges "2001:db8:1:2::/64,2001:db8:1:3::/64" --allowed-signup-email-domains "example.com,anotherexample.com" --bedrock-region "us-west-2" --version "v1.2.6"
 ```
 
-- 約35分後、以下の出力が表示され、ブラウザからアクセスできます
+- 約 35 分後、以下の出力が表示され、ブラウザからアクセスできます
 
 ```
 フロントエンドURL: https://xxxxxxxxx.cloudfront.net
@@ -138,59 +138,58 @@ chmod +x bin.sh
 上記のようにサインアップ画面が表示され、メールを登録してログインできます。
 
 > [!Important]
-> オプションパラメータを設定しない場合、URLを知っている人は誰でもサインアップできます。本番環境では、セキュリティリスクを軽減するために、IPアドレス制限と自己サインアップの無効化を強くお勧めします（allowed-signup-email-domainsを定義して、会社のドメインのメールアドレスのみがサインアップできるように制限できます）。./binを実行する際に、ipv4-rangesとipv6-rangesでIPアドレス制限を設定し、disable-self-registerを使用して自己サインアップを無効にしてください。
+> オプションパラメータを設定しない場合、URL を知っている人は誰でもサインアップできます。本番環境では、セキュリティリスクを軽減するために、IP アドレス制限と自己サインアップの無効化を強くお勧めします（allowed-signup-email-domains を定義して、会社のドメインのメールアドレスのみがサインアップできるように制限できます）。./bin を実行する際に、ipv4-ranges と ipv6-ranges で IP アドレス制限を設定し、disable-self-register を使用して自己サインアップを無効にしてください。
 
-> [!TIP]
-> `フロントエンドURL`が表示されないか、Bedrock Claude Chatが正常に動作しない場合、最新バージョンに問題がある可能性があります。その場合は、パラメータに`--version "v1.2.6"`を追加してデプロイを再試行してください。
+> [!TIP] > `フロントエンドURL`が表示されないか、Bedrock Claude Chat が正常に動作しない場合、最新バージョンに問題がある可能性があります。その場合は、パラメータに`--version "v1.2.6"`を追加してデプロイを再試行してください。
 
 ## アーキテクチャ
 
-AWS管理サービスを基盤としたアーキテクチャで、インフラ管理の必要性を排除しています。Amazon Bedrockを利用することで、AWS外のAPIと通信する必要がなくなります。これにより、スケーラブルで信頼性が高く、セキュアなアプリケーションをデプロイできます。
+AWS 管理サービスを基盤としたアーキテクチャで、インフラ管理の必要性を排除しています。Amazon Bedrock を利用することで、AWS 外の API と通信する必要がなくなります。これにより、スケーラブルで信頼性が高く、セキュアなアプリケーションをデプロイできます。
 
-- [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)：会話履歴を保存するためのNoSQLデータベース
-- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) + [AWS Lambda](https://aws.amazon.com/lambda/)：バックエンドAPIエンドポイント（[AWS Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter)、[FastAPI](https://fastapi.tiangolo.com/)）
+- [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)：会話履歴を保存するための NoSQL データベース
+- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) + [AWS Lambda](https://aws.amazon.com/lambda/)：バックエンド API エンドポイント（[AWS Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter)、[FastAPI](https://fastapi.tiangolo.com/)）
 - [Amazon CloudFront](https://aws.amazon.com/cloudfront/) + [S3](https://aws.amazon.com/s3/)：フロントエンドアプリケーションの配信（[React](https://react.dev/)、[Tailwind CSS](https://tailwindcss.com/)）
-- [AWS WAF](https://aws.amazon.com/waf/)：IPアドレス制限
+- [AWS WAF](https://aws.amazon.com/waf/)：IP アドレス制限
 - [Amazon Cognito](https://aws.amazon.com/cognito/)：ユーザー認証
-- [Amazon Bedrock](https://aws.amazon.com/bedrock/)：APIを介して基盤モデルを利用する管理サービス
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/)：API を介して基盤モデルを利用する管理サービス
 - [Amazon Bedrock Knowledge Bases](https://aws.amazon.com/bedrock/knowledge-bases/)：検索拡張生成（[RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/)）のための管理インターフェースを提供し、ドキュメントの埋め込みと解析サービスを提供
-- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/)：DynamoDBストリームからイベントを受信し、外部知識を埋め込むStep Functionsを起動
-- [AWS Step Functions](https://aws.amazon.com/step-functions/)：外部知識をBedrock Knowledge Basesに埋め込むための取り込みパイプラインのオーケストレーション
-- [Amazon OpenSearch Serverless](https://aws.amazon.com/opensearch-service/features/serverless/)：Bedrock Knowledge Basesのバックエンドデータベースとして機能し、全文検索とベクター検索機能を提供し、関連情報の正確な検索を可能に
-- [Amazon Athena](https://aws.amazon.com/athena/)：S3バケットを分析するためのクエリサービス
+- [Amazon EventBridge Pipes](https://aws.amazon.com/eventbridge/pipes/)：DynamoDB ストリームからイベントを受信し、外部知識を埋め込む Step Functions を起動
+- [AWS Step Functions](https://aws.amazon.com/step-functions/)：外部知識を Bedrock Knowledge Bases に埋め込むための取り込みパイプラインのオーケストレーション
+- [Amazon OpenSearch Serverless](https://aws.amazon.com/opensearch-service/features/serverless/)：Bedrock Knowledge Bases のバックエンドデータベースとして機能し、全文検索とベクター検索機能を提供し、関連情報の正確な検索を可能に
+- [Amazon Athena](https://aws.amazon.com/athena/)：S3 バケットを分析するためのクエリサービス
 
 ![](./imgs/arch.png)
 
-## CDKを使用したデプロイ
+## CDK を使用したデプロイ
 
-超簡単なデプロイでは、[AWS CodeBuild](https://aws.amazon.com/codebuild/)を内部的に使用してCDKによるデプロイを実行します。このセクションでは、CDKを直接使用したデプロイ手順を説明します。
+超簡単なデプロイでは、[AWS CodeBuild](https://aws.amazon.com/codebuild/)を内部的に使用して CDK によるデプロイを実行します。このセクションでは、CDK を直接使用したデプロイ手順を説明します。
 
-- UNIX、Docker、Node.jsランタイム環境が必要です。ない場合は、[Cloud9](https://github.com/aws-samples/cloud9-setup-for-prototyping)を使用することもできます。
+- UNIX、Docker、Node.js ランタイム環境が必要です。ない場合は、[Cloud9](https://github.com/aws-samples/cloud9-setup-for-prototyping)を使用することもできます。
 
 > [!重要]
-> デプロイ中にローカル環境のストレージ容量が不足している場合、CDKブートストラップでエラーが発生する可能性があります。Cloud9などで実行している場合は、デプロイ前にインスタンスのボリュームサイズを拡張することをお勧めします。
+> デプロイ中にローカル環境のストレージ容量が不足している場合、CDK ブートストラップでエラーが発生する可能性があります。Cloud9 などで実行している場合は、デプロイ前にインスタンスのボリュームサイズを拡張することをお勧めします。
 
 - リポジトリをクローン
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
-- npmパッケージをインストール
+- npm パッケージをインストール
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
 
 - 必要に応じて、[cdk.json](./cdk/cdk.json)の以下のエントリを編集します。
 
-  - `bedrockRegion`: Bedrockが利用可能なリージョン。**注意：現時点でBedrockはすべてのリージョンをサポートしていません。**
-  - `allowedIpV4AddressRanges`、`allowedIpV6AddressRanges`：許可されたIPアドレス範囲。
-  - `enableLambdaSnapStart`：デフォルトはtrueです。[Lambda SnapStartをPython関数でサポートしていないリージョン](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html#snapstart-supported-regions)にデプロイする場合はfalseに設定します。
+  - `bedrockRegion`: Bedrock が利用可能なリージョン。**注意：現時点で Bedrock はすべてのリージョンをサポートしていません。**
+  - `allowedIpV4AddressRanges`、`allowedIpV6AddressRanges`：許可された IP アドレス範囲。
+  - `enableLambdaSnapStart`：デフォルトは true です。[Lambda SnapStart を Python 関数でサポートしていないリージョン](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html#snapstart-supported-regions)にデプロイする場合は false に設定します。
 
-- CDKをデプロイする前に、デプロイするリージョンでブートストラップを一度実行する必要があります。
+- CDK をデプロイする前に、デプロイするリージョンでブートストラップを一度実行する必要があります。
 
 ```
 npx cdk bootstrap
@@ -202,7 +201,7 @@ npx cdk bootstrap
 npx cdk deploy --require-approval never --all
 ```
 
-- 以下のような出力が得られます。WebアプリのURLは`BedrockChatStack.FrontendURL`に出力されるので、ブラウザからアクセスしてください。
+- 以下のような出力が得られます。Web アプリの URL は`BedrockChatStack.FrontendURL`に出力されるので、ブラウザからアクセスしてください。
 
 ```sh
  ✅  BedrockChatStack
@@ -300,7 +299,7 @@ npx cdk deploy --all
 1. **スタックの命名**：
 
    - 各環境のメインスタックは環境名の接頭辞が付きます（例：`dev-BedrockChatStack`、`prod-BedrockChatStack`）
-   - ただし、カスタムボットスタック（`BrChatKbStack*`）とAPI公開スタック（`ApiPublishmentStack*`）は、実行時に動的に作成されるため、環境接頭辞は付きません
+   - ただし、カスタムボットスタック（`BrChatKbStack*`）と API 公開スタック（`ApiPublishmentStack*`）は、実行時に動的に作成されるため、環境接頭辞は付きません
 
 2. **リソースの命名**：
 
@@ -317,11 +316,11 @@ npx cdk deploy --all
 
 5. **環境の要件**：「default」以外の環境を作成するには、`parameter.ts`を使用する必要があります。`-c envName`オプションだけでは不十分です。
 
-6. **リソースの分離**：各環境は独自のリソースセットを作成するため、同じAWSアカウント内で開発、テスト、本番環境を競合なく持つことができます。
+6. **リソースの分離**：各環境は独自のリソースセットを作成するため、同じ AWS アカウント内で開発、テスト、本番環境を競合なく持つことができます。
 
 ## その他
 
-### Mistralモデルのサポートを設定
+### Mistral モデルのサポートを設定
 
 [cdk.json](./cdk/cdk.json)の`enableMistral`を`true`に更新し、`npx cdk deploy`を実行します。
 
@@ -331,7 +330,7 @@ npx cdk deploy --all
 ```
 
 > [!重要]
-> このプロジェクトはAnthropicのClaudeモデルに焦点を当てており、Mistralモデルは限定的にサポートされています。例えば、プロンプト例はClaudeモデルに基づいています。これはMistralモデル専用のオプションであり、一度Mistralモデルを有効にすると、すべてのチャット機能でMistralモデルのみを使用でき、ClaudeとMistralモデルの両方は使用できません。
+> このプロジェクトは Anthropic の Claude モデルに焦点を当てており、Mistral モデルは限定的にサポートされています。例えば、プロンプト例は Claude モデルに基づいています。これは Mistral モデル専用のオプションであり、一度 Mistral モデルを有効にすると、すべてのチャット機能で Mistral モデルのみを使用でき、Claude と Mistral モデルの両方は使用できません。
 
 ### デフォルトのテキスト生成を設定
 
@@ -349,7 +348,7 @@ DEFAULT_GENERATION_CONFIG = {
 
 ### リソースの削除
 
-CLIとCDKを使用している場合は、`npx cdk destroy`を実行してください。そうでない場合は、[CloudFormation](https://console.aws.amazon.com/cloudformation/home)にアクセスし、`BedrockChatStack`と`FrontendWafStack`を手動で削除してください。`FrontendWafStack`は`us-east-1`リージョンにあることに注意してください。
+CLI と CDK を使用している場合は、`npx cdk destroy`を実行してください。そうでない場合は、[CloudFormation](https://console.aws.amazon.com/cloudformation/home)にアクセスし、`BedrockChatStack`と`FrontendWafStack`を手動で削除してください。`FrontendWafStack`は`us-east-1`リージョンにあることに注意してください。
 
 ### 言語設定
 
@@ -371,7 +370,7 @@ CLIとCDKを使用している場合は、`npx cdk destroy`を実行してくだ
 
 ### 外部アイデンティティプロバイダ
 
-このサンプルは外部アイデンティティプロバイダをサポートしています。現在、[Google](./idp/SET_UP_GOOGLE_ja-JP.md)と[カスタムOIDCプロバイダ](./idp/SET_UP_CUSTOM_OIDC_ja-JP.md)をサポートしています。
+このサンプルは外部アイデンティティプロバイダをサポートしています。現在、[Google](./idp/SET_UP_GOOGLE_ja-JP.md)と[カスタム OIDC プロバイダ](./idp/SET_UP_CUSTOM_OIDC_ja-JP.md)をサポートしています。
 
 ### 新規ユーザーを自動的にグループに追加
 
@@ -389,9 +388,9 @@ CLIとCDKを使用している場合は、`npx cdk destroy`を実行してくだ
 
 デフォルトでは、新規作成されたユーザーは`CreatingBotAllowed`グループに参加します。
 
-### RAGレプリカの設定
+### RAG レプリカの設定
 
-[cdk.json](./cdk/cdk.json)の`enableRagReplicas`は、Amazon OpenSearch Serverlessを使用するナレッジベースのレプリカ設定を制御するオプションです。
+[cdk.json](./cdk/cdk.json)の`enableRagReplicas`は、Amazon OpenSearch Serverless を使用するナレッジベースのレプリカ設定を制御するオプションです。
 
 - **デフォルト**: true
 - **true**: 追加のレプリカを有効にすることで可用性を向上させ、本番環境に適していますが、コストが増加します。
@@ -400,7 +399,7 @@ CLIとCDKを使用している場合は、`npx cdk destroy`を実行してくだ
 これはアカウント/リージョンレベルの設定で、個々のボットではなくアプリケーション全体に影響します。
 
 > [!メモ]
-> 2024年6月現在、Amazon OpenSearch Serverlessは0.5 OCUをサポートし、小規模ワークロードのエントリコストを下げています。本番環境では2 OCUから開始でき、開発/テストワークロードでは1 OCUを使用できます。OpenSearch Serverlessは自動的にワークロードの需要に応じてスケーリングします。詳細については、[アナウンス](https://aws.amazon.com/jp/about-aws/whats-new/2024/06/amazon-opensearch-serverless-entry-cost-half-collection-types/)をご覧ください。
+> 2024 年 6 月現在、Amazon OpenSearch Serverless は 0.5 OCU をサポートし、小規模ワークロードのエントリコストを下げています。本番環境では 2 OCU から開始でき、開発/テストワークロードでは 1 OCU を使用できます。OpenSearch Serverless は自動的にワークロードの需要に応じてスケーリングします。詳細については、[アナウンス](https://aws.amazon.com/jp/about-aws/whats-new/2024/06/amazon-opensearch-serverless-entry-cost-half-collection-types/)をご覧ください。
 
 （以下、同様に翻訳が続きます）
 
@@ -417,8 +416,8 @@ CLIとCDKを使用している場合は、`npx cdk destroy`を実行してくだ
 
 ## コントリビューター
 
-[![bedrock claude chat コントリビューター](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![bedrock claude chat コントリビューター](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## ライセンス
 
-このライブラリは MIT-0 ライセンスの下でライセンス供与されています。[LICENSEファイル](./LICENSE)を参照してください。
+このライブラリは MIT-0 ライセンスの下でライセンス供与されています。[LICENSE ファイル](./LICENSE)を参照してください。

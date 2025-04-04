@@ -1,11 +1,11 @@
 # Bedrock Claude 채팅 (Nova)
 
-![](https://img.shields.io/github/v/release/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/license/aws-samples/bedrock-claude-chat?style=flat-square)
-![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-claude-chat/cdk.yml?style=flat-square)
-[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-claude-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
+![](https://img.shields.io/github/v/release/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/license/aws-samples/bedrock-chat?style=flat-square)
+![](https://img.shields.io/github/actions/workflow/status/aws-samples/bedrock-chat/cdk.yml?style=flat-square)
+[![](https://img.shields.io/badge/roadmap-view-blue)](https://github.com/aws-samples/bedrock-chat/issues?q=is%3Aissue%20state%3Aopen%20label%3Aroadmap)
 
-[English](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-claude-chat/blob/v2/docs/README_pl-PL.md)
+[English](https://github.com/aws-samples/bedrock-chat/blob/v2/README.md) | [日本語](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ja-JP.md) | [한국어](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ko-KR.md) | [中文](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_zh-CN.md) | [Français](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_fr-FR.md) | [Deutsch](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_de-DE.md) | [Español](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_es-ES.md) | [Italian](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_it-IT.md) | [Norsk](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_nb-NO.md) | [ไทย](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_th-TH.md) | [Bahasa Indonesia](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_id-ID.md) | [Bahasa Melayu](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_ms-MY.md) | [Tiếng Việt](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_vi-VN.md) | [Polski](https://github.com/aws-samples/bedrock-chat/blob/v2/docs/README_pl-PL.md)
 
 > [!Warning]
 >
@@ -70,8 +70,8 @@
 - 다음 명령어로 배포를 진행합니다. 특정 버전을 배포하거나 보안 정책을 적용해야 하는 경우 [선택적 매개변수](#선택적-매개변수)에서 적절한 매개변수를 지정하세요.
 
 ```sh
-git clone https://github.com/aws-samples/bedrock-claude-chat.git
-cd bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat.git
+cd bedrock-chat
 chmod +x bin.sh
 ./bin.sh
 ```
@@ -89,7 +89,7 @@ chmod +x bin.sh
 - **--disable-ipv6**: IPv6를 통한 연결 비활성화. (기본값: 활성화)
 - **--allowed-signup-email-domains**: 가입에 허용된 이메일 도메인의 쉼표로 구분된 목록. (기본값: 도메인 제한 없음)
 - **--bedrock-region**: Bedrock을 사용할 수 있는 리전 정의. (기본값: us-east-1)
-- **--repo-url**: 포크되거나 사용자 정의된 소스 컨트롤의 Bedrock Claude Chat 사용자 정의 저장소. (기본값: https://github.com/aws-samples/bedrock-claude-chat.git)
+- **--repo-url**: 포크되거나 사용자 정의된 소스 컨트롤의 Bedrock Claude Chat 사용자 정의 저장소. (기본값: https://github.com/aws-samples/bedrock-chat.git)
 - **--version**: 배포할 Bedrock Claude Chat 버전. (기본값: 개발 중인 최신 버전)
 - **--cdk-json-override**: 배포 중 CDK 컨텍스트 값을 재정의할 수 있는 JSON 블록. 이를 통해 cdk.json 파일을 직접 편집하지 않고 구성을 수정할 수 있습니다.
 
@@ -140,8 +140,7 @@ Frontend URL: https://xxxxxxxxx.cloudfront.net
 > [!중요]
 > 선택적 매개변수를 설정하지 않으면 URL을 아는 누구나 가입할 수 있습니다. 프로덕션 환경에서는 보안 위험을 완화하기 위해 IP 주소 제한 및 자체 가입 비활성화를 강력히 권장합니다(회사 도메인의 이메일 주소만 가입할 수 있도록 allowed-signup-email-domains를 정의할 수 있습니다). ./bin 실행 시 ipv4-ranges와 ipv6-ranges로 IP 주소를 제한하고 disable-self-register를 사용하여 자체 가입을 비활성화하세요.
 
-> [!팁]
-> `Frontend URL`이 표시되지 않거나 Bedrock Claude Chat이 제대로 작동하지 않는 경우 최신 버전에 문제가 있을 수 있습니다. 이 경우 매개변수에 `--version "v1.2.6"`을 추가하고 다시 배포를 시도해 보세요.
+> [!팁] > `Frontend URL`이 표시되지 않거나 Bedrock Claude Chat이 제대로 작동하지 않는 경우 최신 버전에 문제가 있을 수 있습니다. 이 경우 매개변수에 `--version "v1.2.6"`을 추가하고 다시 배포를 시도해 보세요.
 
 ## 아키텍처
 
@@ -173,13 +172,13 @@ AWS 관리형 서비스를 기반으로 구축된 아키텍처로, 인프라 관
 - 리포지토리 클론
 
 ```
-git clone https://github.com/aws-samples/bedrock-claude-chat
+git clone https://github.com/aws-samples/bedrock-chat
 ```
 
 - npm 패키지 설치
 
 ```
-cd bedrock-claude-chat
+cd bedrock-chat
 cd cdk
 npm ci
 ```
@@ -404,7 +403,7 @@ CLI 및 CDK를 사용하는 경우 `npx cdk destroy`를 실행하세요. 그렇�
 
 ## 기여자
 
-[![bedrock claude chat 기여자](https://contrib.rocks/image?repo=aws-samples/bedrock-claude-chat&max=1000)](https://github.com/aws-samples/bedrock-claude-chat/graphs/contributors)
+[![bedrock claude chat 기여자](https://contrib.rocks/image?repo=aws-samples/bedrock-chat&max=1000)](https://github.com/aws-samples/bedrock-chat/graphs/contributors)
 
 ## 라이선스
 

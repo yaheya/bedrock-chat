@@ -71,7 +71,7 @@ Các bước khác nhau tùy thuộc vào việc bạn đang sử dụng v1.2 ho
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**Lưu ý rằng một số tính năng không khả dụng trên Knowledge Bases, như web crawling và hỗ trợ bản ghi YouTube (Dự định hỗ trợ web crawler ([issue](https://github.com/aws-samples/bedrock-claude-chat/issues/557))).** Ngoài ra, hãy lưu ý rằng việc sử dụng Knowledge Bases sẽ phát sinh phí cho cả Aurora và Knowledge Bases trong quá trình chuyển đổi.
+**Lưu ý rằng một số tính năng không khả dụng trên Knowledge Bases, như web crawling và hỗ trợ bản ghi YouTube (Dự định hỗ trợ web crawler ([issue](https://github.com/aws-samples/bedrock-chat/issues/557))).** Ngoài ra, hãy lưu ý rằng việc sử dụng Knowledge Bases sẽ phát sinh phí cho cả Aurora và Knowledge Bases trong quá trình chuyển đổi.
 
 4. **Xóa các API đã xuất bản**: Tất cả các API đã xuất bản trước đây sẽ cần được xuất bản lại trước khi triển khai v2 do việc xóa VPC. Để làm điều này, bạn sẽ cần xóa các API hiện có trước. Việc sử dụng [tính năng Quản lý API của quản trị viên](../ADMINISTRATOR_vi-VN.md) có thể đơn giản hóa quá trình này. Một khi việc xóa tất cả các ngăn xếp CloudFormation `APIPublishmentStackXXXX` hoàn tất, môi trường sẽ sẵn sàng.
 

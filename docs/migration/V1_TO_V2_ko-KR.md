@@ -71,7 +71,7 @@ v1.4에서는 [Amazon Bedrock용 가드레일](https://aws.amazon.com/jp/bedrock
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**웹 크롤링 및 YouTube 트랜스크립트 지원과 같은 일부 기능은 Knowledge Bases에서 사용할 수 없습니다(웹 크롤러 지원 계획 중 ([이슈](https://github.com/aws-samples/bedrock-claude-chat/issues/557))).** 또한 전환 중에는 Aurora와 Knowledge Bases에 대한 요금이 모두 발생한다는 점을 유의하세요.
+**웹 크롤링 및 YouTube 트랜스크립트 지원과 같은 일부 기능은 Knowledge Bases에서 사용할 수 없습니다(웹 크롤러 지원 계획 중 ([이슈](https://github.com/aws-samples/bedrock-chat/issues/557))).** 또한 전환 중에는 Aurora와 Knowledge Bases에 대한 요금이 모두 발생한다는 점을 유의하세요.
 
 4. **게시된 API 제거**: VPC 삭제로 인해 v2 배포 전에 이전에 게시된 모든 API를 다시 게시해야 합니다. 이를 위해 먼저 기존 API를 삭제해야 합니다. [관리자의 API 관리 기능](../ADMINISTRATOR_ko-KR.md)을 사용하면 이 프로세스를 간소화할 수 있습니다. 모든 `APIPublishmentStackXXXX` CloudFormation 스택 삭제가 완료되면 환경이 준비됩니다.
 

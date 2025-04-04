@@ -71,7 +71,7 @@ v2 更新通过将 Aurora Serverless 和基于 ECS 的嵌入替换为 [Amazon Be
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**请注意，知识库中不支持某些功能，如网络爬虫和 YouTube 字幕支持（计划支持网络爬虫（[问题](https://github.com/aws-samples/bedrock-claude-chat/issues/557)）)。** 另外，请记住，在过渡期间，使用知识库将同时产生 Aurora 和知识库的费用。
+**请注意，知识库中不支持某些功能，如网络爬虫和 YouTube 字幕支持（计划支持网络爬虫（[问题](https://github.com/aws-samples/bedrock-chat/issues/557)）)。** 另外，请记住，在过渡期间，使用知识库将同时产生 Aurora 和知识库的费用。
 
 4. **删除已发布的 API**：由于 VPC 删除，所有之前发布的 API 都需要在部署 v2 之前重新发布。为此，您需要先删除现有的 API。使用[管理员的 API 管理功能](../ADMINISTRATOR_zh-CN.md)可以简化此过程。一旦所有 `APIPublishmentStackXXXX` CloudFormation 堆栈删除完成，环境就准备就绪了。
 

@@ -71,7 +71,7 @@ v2 更新通過用 [Amazon Bedrock 知識庫](https://docs.aws.amazon.com/bedroc
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**請注意，某些功能在知識庫中不可用，如網路爬蟲和 YouTube 字幕支持（計劃支持網路爬蟲（[議題](https://github.com/aws-samples/bedrock-claude-chat/issues/557)）)）。另外，請記住，在遷移期間，使用知識庫將同時產生 Aurora 和知識庫的費用。**
+**請注意，某些功能在知識庫中不可用，如網路爬蟲和 YouTube 字幕支持（計劃支持網路爬蟲（[議題](https://github.com/aws-samples/bedrock-chat/issues/557)）)）。另外，請記住，在遷移期間，使用知識庫將同時產生 Aurora 和知識庫的費用。**
 
 4. **移除已發佈的 API**：由於 VPC 刪除，所有先前發佈的 API 都需要在部署 v2 之前重新發佈。要執行此操作，您需要先刪除現有的 API。使用[管理員的 API 管理功能](../ADMINISTRATOR_zh-TW.md)可以簡化此過程。一旦所有 `APIPublishmentStackXXXX` CloudFormation 堆疊刪除完成，環境就準備就緒了。
 

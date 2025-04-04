@@ -5,7 +5,7 @@ echo "  ⚠️  Heads Up: A Brand-New Era Begins with v3.x!                     
 echo "---------------------------------------------------------------------------"
 echo "  🚨 v3.x is NOT compatible with v2.x or any earlier versions.              "
 echo "     Carefully read the migration guide before proceeding:                 "
-echo "     https://github.com/aws-samples/bedrock-claude-chat/blob/v3/docs/migration/V2_TO_V3.md"
+echo "     https://github.com/aws-samples/bedrock-chat/blob/v3/docs/migration/V2_TO_V3.md"
 echo ""
 echo "  ❗ This upgrade is significant. To prevent DATA LOSS (especially custom bots),"
 echo "     follow the steps outlined in the guide step-by-step.                 "
@@ -47,7 +47,7 @@ DISABLE_IPV6="false"
 ALLOWED_SIGN_UP_EMAIL_DOMAINS=""
 BEDROCK_REGION="us-east-1"
 CDK_JSON_OVERRIDE="{}"
-REPO_URL="https://github.com/aws-samples/bedrock-claude-chat.git"
+REPO_URL="https://github.com/aws-samples/bedrock-chat.git"
 VERSION="v3"
 
 # Parse command-line arguments for customization

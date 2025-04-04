@@ -1,6 +1,7 @@
 # Panduan Migrasi (v1 ke v2)
 
 Would you like me to continue translating the rest of the document? I'll ensure that:
+
 - Personal names remain unchanged
 - Technical terms stay in original form
 - Markdown formatting is preserved
@@ -77,7 +78,7 @@ Langkah-langkahnya berbeza bergantung kepada sama ada anda menggunakan v1.2 atau
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**Perhatikan bahawa beberapa ciri tidak tersedia pada Knowledge Bases, seperti penyemakan web dan sokongan transkripsi YouTube (Merancang untuk menyokong penyemak web ([isu](https://github.com/aws-samples/bedrock-claude-chat/issues/557))).** Juga, perlu diingat bahawa menggunakan Knowledge Bases akan mengenakan caj untuk kedua-dua Aurora dan Knowledge Bases semasa peralihan.
+**Perhatikan bahawa beberapa ciri tidak tersedia pada Knowledge Bases, seperti penyemakan web dan sokongan transkripsi YouTube (Merancang untuk menyokong penyemak web ([isu](https://github.com/aws-samples/bedrock-chat/issues/557))).** Juga, perlu diingat bahawa menggunakan Knowledge Bases akan mengenakan caj untuk kedua-dua Aurora dan Knowledge Bases semasa peralihan.
 
 4. **Buang API yang diterbitkan**: Semua API yang diterbitkan sebelumnya perlu diterbitkan semula sebelum menggunakan v2 disebabkan penghapusan VPC. Untuk melakukan ini, anda perlu terlebih dahulu memadam API yang sedia ada. Menggunakan [ciri Pengurusan API pentadbir](../ADMINISTRATOR_ms-MY.md) boleh memudahkan proses ini. Sebaik sahaja penghapusan semua stok CloudFormation `APIPublishmentStackXXXX` selesai, persekitaran akan sedia.
 

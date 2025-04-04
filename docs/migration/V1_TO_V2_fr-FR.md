@@ -1,6 +1,7 @@
 # Guide de Migration (v1 à v2)
 
 Would you like me to continue translating the rest of the document? I'll ensure I follow the critical requirements you specified:
+
 - Preserving personal names, URLs, code blocks
 - Maintaining markdown formatting
 - Keeping the same document structure
@@ -79,7 +80,7 @@ Les étapes diffèrent selon que vous utilisez v1.2 ou antérieure, ou v1.3.
 
 ![](../imgs/v1_to_v2_KB_s3_source.png)
 
-**Notez que certaines fonctionnalités ne sont pas disponibles sur Knowledge Bases, comme le crawling web et le support des transcriptions YouTube (Prévu pour supporter le crawler web ([issue](https://github.com/aws-samples/bedrock-claude-chat/issues/557))).** Gardez à l'esprit que l'utilisation de Knowledge Bases entraînera des frais pour Aurora et Knowledge Bases pendant la transition.
+**Notez que certaines fonctionnalités ne sont pas disponibles sur Knowledge Bases, comme le crawling web et le support des transcriptions YouTube (Prévu pour supporter le crawler web ([issue](https://github.com/aws-samples/bedrock-chat/issues/557))).** Gardez à l'esprit que l'utilisation de Knowledge Bases entraînera des frais pour Aurora et Knowledge Bases pendant la transition.
 
 4. **Supprimez les API publiées** : Toutes les API précédemment publiées devront être republiées avant de déployer v2 en raison de la suppression du VPC. Pour ce faire, vous devrez d'abord supprimer les API existantes. L'utilisation de la [fonctionnalité de gestion des API de l'administrateur](../ADMINISTRATOR_fr-FR.md) peut simplifier ce processus. Une fois la suppression de toutes les piles CloudFormation `APIPublishmentStackXXXX` terminée, l'environnement sera prêt.
 

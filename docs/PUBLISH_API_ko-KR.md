@@ -42,4 +42,4 @@ WAF는 IP 주소 제한에 사용됩니다. 주소는 `cdk.json`의 `publishedAp
 
 ## API 명세
 
-[여기](https://aws-samples.github.io/bedrock-claude-chat)를 참조하세요.
+[여기](https://aws-samples.github.io/bedrock-chat)를 참조하세요.
