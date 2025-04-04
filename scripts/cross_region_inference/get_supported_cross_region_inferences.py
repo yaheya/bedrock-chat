@@ -1,11 +1,9 @@
 import json
+
 import boto3
 
 # Definition of supported base models
 supported_base_models = {
-    "anthropic.claude-v2:1": "claude-v2",
-    "anthropic.claude-instant-v1": "claude-instant-v1",
-    "anthropic.claude-3-sonnet-20240229-v1:0": "claude-v3-sonnet",
     "anthropic.claude-3-haiku-20240307-v1:0": "claude-v3-haiku",
     "anthropic.claude-3-opus-20240229-v1:0": "claude-v3-opus",
     "anthropic.claude-3-5-sonnet-20240620-v1:0": "claude-v3.5-sonnet",
@@ -15,9 +13,17 @@ supported_base_models = {
     "mistral.mistral-7b-instruct-v0:2": "mistral-7b-instruct",
     "mistral.mixtral-8x7b-instruct-v0:1": "mixtral-8x7b-instruct",
     "mistral.mistral-large-2402-v1:0": "mistral-large",
+    "mistral.mistral-large-2407-v1:0": "mistral-large-2",
     "amazon.nova-pro-v1:0": "amazon-nova-pro",
     "amazon.nova-lite-v1:0": "amazon-nova-lite",
     "amazon.nova-micro-v1:0": "amazon-nova-micro",
+    "deepseek.r1-v1:0": "deepseek-r1",
+    # Meta Llama 3 models
+    "meta.llama3-3-70b-instruct-v1:0": "llama3-3-70b-instruct",
+    "meta.llama3-2-1b-instruct-v1:0": "llama3-2-1b-instruct",
+    "meta.llama3-2-3b-instruct-v1:0": "llama3-2-3b-instruct",
+    "meta.llama3-2-11b-instruct-v1:0": "llama3-2-11b-instruct",
+    "meta.llama3-2-90b-instruct-v1:0": "llama3-2-90b-instruct",
 }
 
 # Region definitions

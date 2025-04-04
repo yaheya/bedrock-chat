@@ -7,7 +7,6 @@ const translation = {
     },
     app: {
       name: 'Bedrock Chat',
-      nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'ฉันช่วยอะไรคุณได้บ้าง?',
       starredBots: 'บ็อตที่ถูกใจ',
       recentlyUsedBots: 'บ็อตที่ใช้งานล่าสุด',
@@ -675,9 +674,9 @@ const translation = {
           label: 'ปิดใช้งาน',
           hint: 'จะไม่ใช้การวิเคราะห์ขั้นสูง',
         },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'ใช้ Claude 3 Sonnet v1 สำหรับการวิเคราะห์เอกสารขั้นสูง',
+        claude_3_5_sonnet_v1: {
+          label: 'Claude 3.5 Sonnet v1',
+          hint: 'ใช้ Claude 3.5 Sonnet v1 สำหรับการวิเคราะห์เอกสารขั้นสูง',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',

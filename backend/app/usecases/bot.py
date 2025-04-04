@@ -2,9 +2,9 @@ import logging
 import os
 from typing import Literal, TypeGuard
 
-from app.agents.utils import get_available_tools, get_tool_by_name
-from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
-from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
+from app.agents.tools.agent_tool import AgentTool
+from app.agents.utils import get_available_tools
+from app.config import DEFAULT_GENERATION_CONFIG
 from app.config import GenerationParams as GenerationParamsDict
 from app.repositories.common import RecordNotFoundError
 from app.repositories.custom_bot import (
@@ -50,6 +50,7 @@ from app.routes.schemas.bot import (
     ActiveModelsOutput,
     Agent,
     AllVisibilityInput,
+    BedrockAgentTool,
     BotInput,
     BotMetaOutput,
     BotModifyInput,
@@ -59,9 +60,12 @@ from app.routes.schemas.bot import (
     BotSwitchVisibilityInput,
     ConversationQuickStarter,
     GenerationParams,
+    InternetTool,
     Knowledge,
     PartialVisibilityInput,
+    PlainTool,
     PrivateVisibilityInput,
+    Tool,
     type_shared_scope,
     type_sync_status,
 )
@@ -84,13 +88,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 DOCUMENT_BUCKET = os.environ.get("DOCUMENT_BUCKET", "bedrock-documents")
-ENABLE_MISTRAL = os.environ.get("ENABLE_MISTRAL", "") == "true"
-
-DEFAULT_GENERATION_CONFIG = (
-    DEFAULT_MISTRAL_GENERATION_CONFIG
-    if ENABLE_MISTRAL
-    else DEFAULT_CLAUDE_GENERATION_CONFIG
-)
 
 
 def _update_s3_documents_by_diff(
@@ -662,6 +659,33 @@ def remove_uploaded_file(user: User, bot_id: str, filename: str):
     return
 
 
-def fetch_available_agent_tools():
+def fetch_available_agent_tools() -> list[Tool]:
     """Fetch available tools for bot."""
-    return get_available_tools()
+    tools: list[AgentTool] = get_available_tools()
+    result: list[Tool] = []
+    for tool in tools:
+        if tool.name == "bedrock_agent":
+            result.append(
+                BedrockAgentTool(
+                    tool_type="bedrock_agent",
+                    name=tool.name,
+                    description=tool.description,
+                )
+            )
+        elif tool.name == "internet_search":
+            result.append(
+                InternetTool(
+                    tool_type="internet",
+                    name=tool.name,
+                    description=tool.description,
+                    search_engine="duckduckgo",
+                )
+            )
+        else:
+            result.append(
+                PlainTool(
+                    tool_type="plain", name=tool.name, description=tool.description
+                )
+            )
+
+    return result

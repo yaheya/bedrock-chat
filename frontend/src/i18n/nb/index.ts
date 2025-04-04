@@ -33,11 +33,14 @@ const translation = {
           success: 'Suksess',
           error: 'Feil',
         },
-      },
-      tools: {
-        get_weather: {
-          name: 'Værmelding nå',
-          description: 'Hent den aktuelle værmeldingen.',
+        app: {
+          name: 'Bedrock Chat',
+          inputMessage: 'Send en melding',
+          starredBots: 'Favorittbot',
+          recentlyUsedBots: 'Nylig brukte boter',
+          conversationHistory: 'Historikk',
+          chatWaitingSymbol: '▍',
+          adminConsoles: 'Kun administrator',
         },
         sql_db_query: {
           name: 'Databaseforespørsel',

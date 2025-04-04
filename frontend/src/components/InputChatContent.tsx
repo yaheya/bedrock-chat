@@ -154,7 +154,12 @@ const useInputChatContentState = create<{
 const InputChatContent = forwardRef<HTMLElement, Props>(
   (props, focusInputRef) => {
     const { t } = useTranslation();
-    const { disabledImageUpload, model, acceptMediaType } = useModel();
+    const {
+      disabledImageUpload,
+      model,
+      acceptMediaType,
+      forceReasoningEnabled,
+    } = useModel();
 
     const extendedAcceptMediaType = useMemo(() => {
       return [...acceptMediaType, ...SUPPORTED_FILE_EXTENSIONS];
@@ -469,7 +474,7 @@ const InputChatContent = forwardRef<HTMLElement, Props>(
           onDrop={onDrop}
           className={twMerge(
             props.className,
-            'relative flex flex-col gap-1 rounded-xl border border-black/10 bg-white shadow-[0_0_30px_7px] shadow-light-gray dark:bg-aws-ui-color-dark dark:shadow-black/35'
+            'relative mb-7 flex w-11/12 flex-col gap-1 rounded-xl border border-black/10 bg-white shadow-[0_0_30px_7px] shadow-light-gray dark:bg-aws-ui-color-dark dark:shadow-black/35 md:w-10/12 lg:w-4/6 xl:w-3/6'
           )}>
           <div className="flex w-full">
             <Textarea
@@ -497,6 +502,7 @@ const InputChatContent = forwardRef<HTMLElement, Props>(
                 <ButtonReasoning
                   disabled={props.isLoading || props.canContinue}
                   showReasoning={reasoningEnabled}
+                  forceReasoningEnabled={forceReasoningEnabled}
                   onToggleReasoning={() => onChangeReasoning(!reasoningEnabled)}
                 />
               )}

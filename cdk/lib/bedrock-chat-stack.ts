@@ -37,7 +37,6 @@ export interface BedrockChatStackProps extends StackProps {
   readonly publishedApiAllowedIpV6AddressRanges: string[];
   readonly allowedSignUpEmailDomains: string[];
   readonly autoJoinUserGroups: string[];
-  readonly enableMistral: boolean;
   readonly selfSignUpEnabled: boolean;
   readonly enableIpV6: boolean;
   readonly documentBucket: Bucket;
@@ -138,7 +137,6 @@ export class BedrockChatStack extends cdk.Stack {
     const frontend = new Frontend(this, "Frontend", {
       accessLogBucket,
       webAclId: props.webAclId,
-      enableMistral: props.enableMistral,
       enableIpV6: props.enableIpV6,
       alternateDomainName: props.alternateDomainName,
       hostedZoneId: props.hostedZoneId,
@@ -196,7 +194,6 @@ export class BedrockChatStack extends cdk.Stack {
       bedrockCustomBotProject: bedrockCustomBotCodebuild.project,
       usageAnalysis,
       largeMessageBucket,
-      enableMistral: props.enableMistral,
       enableBedrockCrossRegionInference:
         props.enableBedrockCrossRegionInference,
       enableLambdaSnapStart: props.enableLambdaSnapStart,
@@ -219,7 +216,6 @@ export class BedrockChatStack extends cdk.Stack {
       bedrockRegion: props.bedrockRegion,
       largeMessageBucket,
       documentBucket: props.documentBucket,
-      enableMistral: props.enableMistral,
       enableBedrockCrossRegionInference:
         props.enableBedrockCrossRegionInference,
       enableLambdaSnapStart: props.enableLambdaSnapStart,
@@ -228,7 +224,6 @@ export class BedrockChatStack extends cdk.Stack {
       backendApiEndpoint: backendApi.api.apiEndpoint,
       webSocketApiEndpoint: websocket.apiEndpoint,
       userPoolDomainPrefix: props.userPoolDomainPrefix,
-      enableMistral: props.enableMistral,
       auth,
       idp,
     });

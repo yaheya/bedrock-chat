@@ -11,6 +11,8 @@ from app.routes.schemas.bot import (
     Agent,
     AgentInput,
     AgentToolInput,
+    BedrockAgentConfig,
+    BedrockAgentTool,
     BedrockGuardrailsOutput,
     BedrockKnowledgeBaseOutput,
     BotInput,
@@ -23,6 +25,7 @@ from app.routes.schemas.bot import (
     InternetTool,
     Knowledge,
     PlainTool,
+    ReasoningParams,
     Tool,
     type_shared_scope,
     type_sync_status,
@@ -215,7 +218,41 @@ class InternetToolModel(BaseModel):
         )
 
 
-ToolModel = Annotated[PlainToolModel | InternetToolModel, Discriminator("tool_type")]
+class BedrockAgentConfigModel(BaseModel):
+    agent_id: str
+    alias_id: str
+
+
+class BedrockAgentToolModel(BaseModel):
+    tool_type: Literal["bedrock_agent"] = Field(
+        "bedrock_agent",
+        description="Type of tool. It does need additional settings for the bedrock agent.",
+    )
+    name: str
+    description: str
+    bedrockAgentConfig: Optional[BedrockAgentConfigModel] | None = None
+
+    @classmethod
+    def from_tool_input(cls, tool: AgentToolInput) -> Self:
+        return cls(
+            tool_type="bedrock_agent",
+            name=tool.name,
+            description=tool.description,
+            bedrockAgentConfig=(
+                BedrockAgentConfigModel(
+                    agent_id=tool.bedrock_agent_config.agent_id,
+                    alias_id=tool.bedrock_agent_config.alias_id,
+                )
+                if tool.bedrock_agent_config
+                else None
+            ),
+        )
+
+
+ToolModel = Annotated[
+    PlainToolModel | InternetToolModel | BedrockAgentToolModel,
+    Discriminator("tool_type"),
+]
 
 
 class AgentModel(BaseModel):
@@ -251,6 +288,8 @@ class AgentModel(BaseModel):
                 tools.append(
                     InternetToolModel.from_tool_input(tool_input, user_id, bot_id)
                 )
+            elif tool_input.tool_type == "bedrock_agent":
+                tools.append(BedrockAgentToolModel.from_tool_input(tool_input))
 
         return cls(tools=tools)
 
@@ -276,6 +315,19 @@ class AgentModel(BaseModel):
                         description=tool.description,
                         search_engine=tool.search_engine,
                         firecrawl_config=firecrawl_config,
+                    )
+                )
+            elif isinstance(tool, BedrockAgentToolModel):
+                tools.append(
+                    BedrockAgentTool(
+                        tool_type="bedrock_agent",
+                        name=tool.name,
+                        description=tool.description,
+                        bedrockAgentConfig=(
+                            BedrockAgentConfig(**tool.bedrockAgentConfig.model_dump())
+                            if tool.bedrockAgentConfig
+                            else None
+                        ),
                     )
                 )
             else:
@@ -459,21 +511,6 @@ class BotModel(BaseModel):
         """Create a BotModel instance. This is used when creating a new bot."""
         current_time = get_current_time()
 
-        generation_params: GenerationParamsDict = (
-            {
-                "max_tokens": bot_input.generation_params.max_tokens,
-                "top_k": bot_input.generation_params.top_k,
-                "top_p": bot_input.generation_params.top_p,
-                "temperature": bot_input.generation_params.temperature,
-                "stop_sequences": bot_input.generation_params.stop_sequences,
-                "reasoning_params": {
-                    "budget_tokens": bot_input.generation_params.reasoning_params.budget_tokens
-                },
-            }
-            if bot_input.generation_params
-            else DEFAULT_GENERATION_CONFIG
-        )
-
         agent = AgentModel.from_agent_input(
             agent_input=bot_input.agent if bot_input.agent else None,
             user_id=owner_user_id,
@@ -503,7 +540,24 @@ class BotModel(BaseModel):
             allowed_cognito_groups=[],
             allowed_cognito_users=[],
             is_starred=False,
-            generation_params=GenerationParamsModel(**generation_params),
+            generation_params=GenerationParamsModel.model_validate(
+                (
+                    bot_input.generation_params
+                    if bot_input.generation_params
+                    else GenerationParams(
+                        max_tokens=DEFAULT_GENERATION_CONFIG["max_tokens"],
+                        top_k=DEFAULT_GENERATION_CONFIG.get("top_k", 0),
+                        top_p=DEFAULT_GENERATION_CONFIG["top_p"],
+                        temperature=DEFAULT_GENERATION_CONFIG["temperature"],
+                        stop_sequences=DEFAULT_GENERATION_CONFIG["stop_sequences"],
+                        reasoning_params=ReasoningParams(
+                            budget_tokens=DEFAULT_GENERATION_CONFIG.get(
+                                "reasoning_params", {}
+                            ).get("budget_tokens", 1024)
+                        ),
+                    )
+                ).model_dump()
+            ),
             agent=agent,
             knowledge=knowledge,
             sync_status=sync_status,
@@ -784,7 +838,7 @@ class BotMeta(BaseModel):
             title=source["Title"],
             description=source["Description"],
             create_time=float(source["CreateTime"]),
-            last_used_time=float(source.get("LastUsedTime",source["CreateTime"])),
+            last_used_time=float(source.get("LastUsedTime", source["CreateTime"])),
             is_starred=source.get("IsStarred", False),
             sync_status=source["SyncStatus"],
             has_bedrock_knowledge_base=bool(source.get("BedrockKnowledgeBase")),

@@ -83,7 +83,6 @@ const chat = new BedrockChatStack(
       params.publishedApiAllowedIpV6AddressRanges,
     allowedSignUpEmailDomains: params.allowedSignUpEmailDomains,
     autoJoinUserGroups: params.autoJoinUserGroups,
-    enableMistral: params.enableMistral,
     selfSignUpEnabled: params.selfSignUpEnabled,
     documentBucket: bedrockRegionResources.documentBucket,
     useStandbyReplicas: params.enableRagReplicas,

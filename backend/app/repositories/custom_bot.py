@@ -6,8 +6,8 @@ from datetime import datetime
 from decimal import Decimal as decimal
 from typing import Union
 
-from app.config import DEFAULT_GENERATION_CONFIG as DEFAULT_CLAUDE_GENERATION_CONFIG
-from app.config import DEFAULT_MISTRAL_GENERATION_CONFIG
+import boto3
+from app.config import DEFAULT_GENERATION_CONFIG
 from app.repositories.common import (
     TRANSACTION_BATCH_READ_SIZE,
     RecordNotFoundError,
@@ -35,14 +35,6 @@ from app.routes.schemas.bot import type_shared_scope, type_sync_status
 from app.utils import get_current_time
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-
-ENABLE_MISTRAL = os.environ.get("ENABLE_MISTRAL", "") == "true"
-
-DEFAULT_GENERATION_CONFIG = (
-    DEFAULT_MISTRAL_GENERATION_CONFIG
-    if ENABLE_MISTRAL
-    else DEFAULT_CLAUDE_GENERATION_CONFIG
-)
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")

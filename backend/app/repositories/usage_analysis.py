@@ -97,7 +97,7 @@ async def _find_bots_by_ids(bot_ids: list[str]) -> dict[str, BotMetaWithStackInf
                 published_api_stack_name=item.get("ApiPublishmentStackName", None),
                 published_api_datetime=item.get("ApiPublishedDatetime", None),
                 shared_scope=item.get("SharedScope", "private"),
-                shared_status=item.get("SharedStatus"),
+                shared_status=item.get("SharedStatus", "private"),
             )
             bots_dict[item["BotId"]] = bot_obj
 

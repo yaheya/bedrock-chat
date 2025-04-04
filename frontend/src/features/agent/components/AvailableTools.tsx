@@ -1,12 +1,14 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   AgentTool,
+  BedrockAgentConfig,
+  BedrockAgentTool,
   FirecrawlConfig,
   InternetAgentTool,
   SearchEngine,
   ToolType,
 } from '../types';
-import { isInternetTool } from '../utils/typeGuards';
+import { isInternetTool, isBedrockAgentTool } from '../utils/typeGuards';
 import Toggle from '../../../components/Toggle';
 import { Dispatch, useCallback, useState, useEffect } from 'react';
 import { formatDescription } from '../functions/formatDescription';
@@ -14,6 +16,7 @@ import Help from '../../../components/Help';
 import Skeleton from '../../../components/Skeleton';
 import { TooltipDirection } from '../../../constants';
 import { FirecrawlConfig as FirecrawlConfigComponent } from './FirecrawlConfig';
+import { BedrockAgentConfig as BedrockAgentConfigComponent } from './BedrockAgentConfig';
 import ExpandableDrawerGroup from '../../../components/ExpandableDrawerGroup';
 import RadioButton from '../../../components/RadioButton';
 import { DEFAULT_FIRECRAWL_CONFIG } from '../constants';
@@ -50,6 +53,29 @@ export const AvailableTools = ({ availableTools, tools, setTools }: Props) => {
 
           return newTools;
         });
+      } else if (tool.name === 'bedrock_agent') {
+        setTools((preTools) => {
+          const isEnabled = preTools
+            ?.map(({ name }) => name)
+            .includes(tool.name);
+
+          const newTools = isEnabled
+            ? [...preTools.filter(({ name }) => name != tool.name)]
+            : [
+                ...preTools,
+                {
+                  ...tool,
+                  toolType: 'bedrock_agent' as ToolType,
+                  name: 'bedrock_agent',
+                  bedrockAgentConfig: {
+                    agentId: '',
+                    aliasId: '',
+                  },
+                } as AgentTool,
+              ];
+
+          return newTools;
+        });
       } else {
         setTools((preTools) =>
           preTools?.map(({ name }) => name).includes(tool.name)
@@ -74,6 +100,25 @@ export const AvailableTools = ({ availableTools, tools, setTools }: Props) => {
                 ? tool.searchEngine
                 : 'duckduckgo',
               firecrawlConfig: config,
+            } as AgentTool;
+          }
+          return tool;
+        })
+      );
+    },
+    [setTools]
+  );
+
+  const handleBedrockAgentConfigChange = useCallback(
+    (config: BedrockAgentConfig) => {
+      setTools((prevTools) =>
+        prevTools.map((tool) => {
+          if (tool.name === 'bedrock_agent') {
+            return {
+              ...tool,
+              toolType: 'bedrock_agent' as ToolType,
+              name: 'bedrock_agent',
+              bedrockAgentConfig: config,
             } as AgentTool;
           }
           return tool;
@@ -140,7 +185,19 @@ export const AvailableTools = ({ availableTools, tools, setTools }: Props) => {
       </div>
 
       <div className="text-sm text-aws-font-color-light/50 dark:text-aws-font-color-dark">
-        {t('agent.help.overview')}
+        <Trans
+          i18nKey="agent.help.overview"
+          components={{
+            Link: (
+              <a
+                href="https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-aws-sea-blue-light underline dark:text-aws-sea-blue-dark"
+              />
+            ),
+          }}
+        />
       </div>
       {availableTools === undefined && <Skeleton className="h-12 w-full" />}
 
@@ -215,6 +272,25 @@ export const AvailableTools = ({ availableTools, tools, setTools }: Props) => {
                   </div>
                 </div>
               </ExpandableDrawerGroup>
+            )}
+          {tool.name === 'bedrock_agent' &&
+            tools?.map(({ name }) => name).includes('bedrock_agent') && (
+              <div className="space-y-4">
+                <div className="ml-6 text-sm">
+                  <BedrockAgentConfigComponent
+                    config={
+                      tools.find(
+                        (t): t is BedrockAgentTool =>
+                          t.name === 'bedrock_agent' && isBedrockAgentTool(t)
+                      )?.bedrockAgentConfig || {
+                        agentId: '',
+                        aliasId: '',
+                      }
+                    }
+                    onChange={handleBedrockAgentConfigChange}
+                  />
+                </div>
+              </div>
             )}
         </div>
       ))}

@@ -180,6 +180,7 @@ def get_opensearch_client() -> OpenSearch:
 
     # Get credentials from boto3
     credentials = boto3.Session().get_credentials()
+    assert credentials is not None, "Credentials are not available"
     aws_auth = AWS4Auth(
         credentials.access_key,
         credentials.secret_key,

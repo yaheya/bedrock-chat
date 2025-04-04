@@ -22,9 +22,7 @@ import { ParsingModel } from '../types';
 import { ulid } from 'ulid';
 import {
   EDGE_GENERATION_PARAMS,
-  EDGE_MISTRAL_GENERATION_PARAMS,
   DEFAULT_GENERATION_CONFIG,
-  DEFAULT_MISTRAL_GENERATION_CONFIG,
   TooltipDirection,
 } from '../../../constants';
 import { Slider } from '../../../components/Slider';
@@ -35,7 +33,10 @@ import Toggle from '../../../components/Toggle';
 import RadioButton from '../../../components/RadioButton';
 import { useAgent } from '../../../features/agent/hooks/useAgent';
 import { AgentTool } from '../../../features/agent/types';
-import { isInternetTool } from '../../../features/agent/utils/typeGuards';
+import {
+  isInternetTool,
+  isBedrockAgentTool,
+} from '../../../features/agent/utils/typeGuards';
 import { AvailableTools } from '../../../features/agent/components/AvailableTools';
 import {
   DEFAULT_FIXED_CHUNK_PARAMS,
@@ -68,18 +69,9 @@ import {
 } from '../types';
 import { toCamelCase } from '../../../utils/StringUtils';
 
-const MISTRAL_ENABLED: boolean =
-  import.meta.env.VITE_APP_ENABLE_MISTRAL === 'true';
+const edgeGenerationParams = EDGE_GENERATION_PARAMS;
 
-const edgeGenerationParams =
-  MISTRAL_ENABLED === true
-    ? EDGE_MISTRAL_GENERATION_PARAMS
-    : EDGE_GENERATION_PARAMS;
-
-const defaultGenerationConfig =
-  MISTRAL_ENABLED === true
-    ? DEFAULT_MISTRAL_GENERATION_CONFIG
-    : DEFAULT_GENERATION_CONFIG;
+const defaultGenerationConfig = DEFAULT_GENERATION_CONFIG;
 
 const BotKbEditPage: React.FC = () => {
   const { i18n, t } = useTranslation();
@@ -178,26 +170,15 @@ const BotKbEditPage: React.FC = () => {
     label: string;
     description: string;
   }[] = (() => {
-    const getMistralModels = () =>
-      AVAILABLE_MODEL_KEYS.filter(
-        (key) => key.includes('mistral') || key.includes('mixtral')
-      ).map((key) => ({
-        key: key as Model,
-        label: t(`model.${key}.label`) as string,
-        description: t(`model.${key}.description`) as string,
-      }));
-
-    const getClaudeAndNovaModels = () => {
-      return AVAILABLE_MODEL_KEYS.filter(
-        (key) => key.includes('claude') || key.includes('nova')
-      ).map((key) => ({
+    const getGeneralModels = () => {
+      return AVAILABLE_MODEL_KEYS.map((key) => ({
         key: key as Model,
         label: t(`model.${key}.label`) as string,
         description: t(`model.${key}.description`) as string,
       }));
     };
 
-    return MISTRAL_ENABLED ? getMistralModels() : getClaudeAndNovaModels();
+    return getGeneralModels();
   })();
 
   const embeddingsModelOptions: {
@@ -298,10 +279,10 @@ const BotKbEditPage: React.FC = () => {
       description: t('knowledgeBaseSettings.parsingModel.none.hint'),
     },
     {
-      label: t('knowledgeBaseSettings.parsingModel.claude_3_sonnet_v1.label'),
-      value: 'anthropic.claude-3-sonnet-v1',
+      label: t('knowledgeBaseSettings.parsingModel.claude_3_5_sonnet_v1.label'),
+      value: 'anthropic.claude-3-5-sonnet-v1',
       description: t(
-        'knowledgeBaseSettings.parsingModel.claude_3_sonnet_v1.hint'
+        'knowledgeBaseSettings.parsingModel.claude_3_5_sonnet_v1.hint'
       ),
     },
     {
@@ -905,20 +886,34 @@ const BotKbEditPage: React.FC = () => {
 
     // Use some() instead of every() since we want to find invalid tools
     const hasInvalidTool = tools.some((tool, idx) => {
-      if (!isInternetTool(tool)) {
-        return false;
+      // BedrockAgentTool validation
+      if (isBedrockAgentTool(tool) && !tool.bedrockAgentConfig?.agentId) {
+        setErrorMessages(
+          `tools-${idx}-bedrockAgentConfig.agent_id`,
+          t('input.validationError.required')
+        );
+        return true;
       }
 
-      const isFirecrawlTool = tool.searchEngine === 'firecrawl';
-      const hasInvalidConfig =
-        !tool.firecrawlConfig || !tool.firecrawlConfig.apiKey;
+      if (isBedrockAgentTool(tool) && !tool.bedrockAgentConfig?.aliasId) {
+        setErrorMessages(
+          `tools-${idx}-bedrockAgentConfig.alias_id`,
+          t('input.validationError.required')
+        );
+        return true;
+      }
 
-      if (isFirecrawlTool && hasInvalidConfig) {
+      // Firecrawl tool validation
+      if (
+        isInternetTool(tool) &&
+        tool.searchEngine === 'firecrawl' &&
+        (!tool.firecrawlConfig || !tool.firecrawlConfig.apiKey)
+      ) {
         setErrorMessages(
           `tools-${idx}-firecrawlConfig.apiKey`,
           t('input.validationError.required')
         );
-        return true; // Found an invalid tool
+        return true;
       }
 
       return false; // Tool is valid
@@ -1138,11 +1133,6 @@ const BotKbEditPage: React.FC = () => {
       }
     }
 
-    if (stopSequences.length === 0) {
-      setErrorMessages('stopSequences', t('input.validationError.required'));
-      return false;
-    }
-
     if (searchParams.maxResults < EDGE_SEARCH_PARAMS.maxResults.MIN) {
       setErrorMessages(
         'maxResults',
@@ -1189,7 +1179,6 @@ const BotKbEditPage: React.FC = () => {
   }, [
     clearErrorMessages,
     s3Urls,
-    stopSequences.length,
     searchParams.maxResults,
     conversationQuickStarters,
     isToolValid,
@@ -1231,6 +1220,18 @@ const BotKbEditPage: React.FC = () => {
                 ? {
                     api_key: tool.firecrawlConfig.apiKey,
                     max_results: tool.firecrawlConfig.maxResults,
+                  }
+                : undefined,
+            };
+          }
+
+          if (isBedrockAgentTool(tool)) {
+            return {
+              ...baseTool,
+              bedrock_agent_config: tool.bedrockAgentConfig
+                ? {
+                    agent_id: tool.bedrockAgentConfig.agentId,
+                    alias_id: tool.bedrockAgentConfig.aliasId,
                   }
                 : undefined,
             };
@@ -1380,6 +1381,18 @@ const BotKbEditPage: React.FC = () => {
                   ? {
                       api_key: tool.firecrawlConfig.apiKey,
                       max_results: tool.firecrawlConfig.maxResults,
+                    }
+                  : undefined,
+              };
+            }
+
+            if (isBedrockAgentTool(tool)) {
+              return {
+                ...baseTool,
+                bedrock_agent_config: tool.bedrockAgentConfig
+                  ? {
+                      agent_id: tool.bedrockAgentConfig.agentId,
+                      alias_id: tool.bedrockAgentConfig.aliasId,
                     }
                   : undefined,
               };

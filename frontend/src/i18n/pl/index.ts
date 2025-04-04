@@ -7,7 +7,6 @@ const translation = {
     },
     app: {
       name: 'Bedrock Chat',
-      nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'Jak mogę pomóc?',
       starredBots: 'Ulubione Boty',
       recentlyUsedBots: 'Ostatnio używane Boty',
@@ -20,10 +19,6 @@ const translation = {
         label: 'Claude 3 (Haiku)',
         description:
           'Poprzednia wersja zoptymalizowana pod kątem szybkości i zwięzłości, zapewniająca niemal natychmiastową odpowiedź.',
-      },
-      'claude-v3-sonnet': {
-        label: 'Claude 3 (Sonnet)',
-        description: 'Równowaga między inteligencją a szybkością.',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
@@ -378,11 +373,11 @@ Jak sklasyfikowałbyś ten e-mail?`,
       },
     },
     admin: {
-      botAnalytics: {
+      sharedBotAnalytics: {
         label: {
-          pageTitle: 'Analityka Botów',
-          noBotUsages:
-            'W Okresie Obliczeniowym nie wykorzystano żadnych botów.',
+          pageTitle: 'Analityka Botów Współdzielonych',
+          noPublicBotUsages:
+            'W Okresie Obliczeniowym nie wykorzystano żadnych botów publicznych.',
           published: 'API jest opublikowane.',
           SearchCondition: {
             title: 'Okres Obliczeniowy',
@@ -393,7 +388,7 @@ Jak sklasyfikowałbyś ten e-mail?`,
         },
         help: {
           overview:
-            'Monitoruj status użytkowania Botów i Opublikowanych API Botów.',
+            'Monitoruj status użytkowania Botów Współdzielonych i Opublikowanych API Botów.',
           calculationPeriod:
             'Jeśli Okres Obliczeniowy nie jest ustawiony, wyświetlony zostanie koszt za dzisiaj.',
         },
@@ -474,7 +469,7 @@ Jak sklasyfikowałbyś ten e-mail?`,
     button: {
       newChat: 'Nowy Czat',
       botConsole: 'Konsola Bota',
-      botAnalytics: 'Analityka Botów',
+      sharedBotAnalytics: 'Analityka Botów Współdzielonych',
       apiManagement: 'Zarządzanie API',
       userUsages: 'Wykorzystanie zasobów',
       SaveAndSubmit: 'Zapisz i Wyślij',
@@ -690,9 +685,9 @@ Jak sklasyfikowałbyś ten e-mail?`,
           label: 'Wyłączone',
           hint: 'Zaawansowane parsowanie nie będzie stosowane.',
         },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Użyj Claude 3 Sonnet v1 do zaawansowanego parsowania dokumentów.',
+        claude_3_5_sonnet_v1: {
+          label: 'Claude 3.5 Sonnet v1',
+          hint: 'Użyj Claude 3.5 Sonnet v1 do zaawansowanego parsowania dokumentów.',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',

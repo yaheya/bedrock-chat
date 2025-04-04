@@ -7,7 +7,6 @@ const translation = {
     },
     app: {
       name: 'Bedrock Chat',
-      nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'Bisakah Saya Membantu Anda?',
       starredBots: 'Bot Favorit',
       recentlyUsedBots: 'Bot yang Baru Digunakan',
@@ -20,10 +19,6 @@ const translation = {
         label: 'Claude 3 (Haiku)',
         description:
           'Versi sebelumnya yang dioptimalkan untuk kecepatan dan kekompakan, memberikan respons hampir instan.',
-      },
-      'claude-v3-sonnet': {
-        label: 'Claude 3 (Sonnet)',
-        description: 'Keseimbangan antara kecerdasan dan kecepatan.',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
@@ -689,9 +684,9 @@ const translation = {
           label: 'Dinonaktifkan',
           hint: 'Tidak ada parsing lanjutan yang akan diterapkan.',
         },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Gunakan Claude 3 Sonnet v1 untuk parsing dokumen lanjutan.',
+        claude_3_5_sonnet_v1: {
+          label: 'Claude 3.5 Sonnet v1',
+          hint: 'Gunakan Claude 3.5 Sonnet v1 untuk parsing dokumen lanjutan.',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',

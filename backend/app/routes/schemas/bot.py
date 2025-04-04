@@ -8,12 +8,9 @@ from typing import (
     List,
     Literal,
     Optional,
-    Self,
     Type,
     get_args,
 )
-
-from charset_normalizer.utils import is_punctuation
 
 from app.routes.schemas.base import BaseSchema
 from app.routes.schemas.bot_guardrails import (
@@ -25,6 +22,7 @@ from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseOutput,
 )
 from app.routes.schemas.conversation import type_model_name
+from charset_normalizer.utils import is_punctuation
 from pydantic import (
     Discriminator,
     Field,
@@ -95,6 +93,11 @@ class FirecrawlConfig(BaseSchema):
         return v
 
 
+class BedrockAgentConfig(BaseSchema):
+    agent_id: str
+    alias_id: str
+
+
 class PlainTool(BaseSchema):
     tool_type: Literal["plain"] = "plain"
     name: str
@@ -123,7 +126,16 @@ class InternetTool(BaseSchema):
         return v
 
 
-Tool = Annotated[PlainTool | InternetTool, Discriminator("tool_type")]
+class BedrockAgentTool(BaseSchema):
+    tool_type: Literal["bedrock_agent"]
+    name: str
+    description: str
+    bedrockAgentConfig: Optional[BedrockAgentConfig] | None = None
+
+
+Tool = Annotated[
+    PlainTool | InternetTool | BedrockAgentTool, Discriminator("tool_type")
+]
 
 
 class Agent(BaseSchema):
@@ -146,11 +158,12 @@ class Agent(BaseSchema):
 
 
 class AgentToolInput(BaseSchema):
-    tool_type: Literal["plain", "internet"]
+    tool_type: Literal["plain", "internet", "bedrock_agent"]
     name: str
     description: str
     search_engine: Literal["duckduckgo", "firecrawl"] | None = None
     firecrawl_config: FirecrawlConfig | None = None
+    bedrock_agent_config: BedrockAgentConfig | None = None
 
 
 class AgentInput(BaseSchema):

@@ -39,7 +39,6 @@ export interface ApiProps {
   readonly apiPublishProject: codebuild.IProject;
   readonly bedrockCustomBotProject: codebuild.IProject;
   readonly usageAnalysis?: UsageAnalysis;
-  readonly enableMistral: boolean;
   readonly enableBedrockCrossRegionInference: boolean;
   readonly enableLambdaSnapStart: boolean;
   readonly botStoreEndpoint?: string;
@@ -262,7 +261,6 @@ export class Api extends Construct {
           props.usageAnalysis?.ddbExportTable.tableName || "",
         USAGE_ANALYSIS_WORKGROUP: props.usageAnalysis?.workgroupName || "",
         USAGE_ANALYSIS_OUTPUT_LOCATION: usageAnalysisOutputLocation,
-        ENABLE_MISTRAL: props.enableMistral.toString(),
         ENABLE_BEDROCK_CROSS_REGION_INFERENCE:
           props.enableBedrockCrossRegionInference.toString(),
         BOT_STORE_OPENSEARCH_DOMAIN_ENDPOINT: props.botStoreEndpoint || "",

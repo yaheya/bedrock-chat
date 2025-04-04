@@ -7,7 +7,6 @@ const translation = {
     },
     app: {
       name: 'Bedrock Chat',
-      nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'How can I Help You?',
       starredBots: 'Starred Bots',
       recentlyUsedBots: 'Recently Used Bots',
@@ -22,10 +21,6 @@ const translation = {
         label: 'Claude 3 (Haiku)',
         description:
           'Previous version optimized for speed and compactness, providing near-instant responsiveness.',
-      },
-      'claude-v3-sonnet': {
-        label: 'Claude 3 (Sonnet)',
-        description: 'Balance of intelligence and speed.',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
@@ -66,6 +61,11 @@ const translation = {
         description:
           'Ideal for complex tasks that require substantial reasoning capabilities, or ones that are highly specialized, such as Synthetic Text Generation or Code Generation.',
       },
+      'mistral-large-2': {
+        label: 'Mistral Large2',
+        description:
+          'Advanced LLM supporting dozens of languages and 80+ coding languages, with best-in-class agentive capabilities including native function calling, JSON output, and reasoning.',
+      },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
         description:
@@ -81,12 +81,43 @@ const translation = {
         description:
           'A text-only model that delivers the lowest latency responses in the Amazon Nova family of models at a very low cost.',
       },
+      'deepseek-r1': {
+        label: 'DeepSeek R1',
+        description:
+          'State-of-the-art reasoning model optimized for general reasoning, math, science, and code generation. Supports English and Chinese languages.',
+      },
+      // Meta Llama 3 models
+      'llama3-3-70b-instruct': {
+        label: 'Meta Llama 3.3 70B Instruct',
+        description:
+          'Latest Llama 3 model offering performance on par with the 405B model at a lower cost with excellent reasoning and instruction-following capabilities.',
+      },
+      'llama3-2-1b-instruct': {
+        label: 'Meta Llama 3.2 1B Instruct',
+        description:
+          'Lightweight model optimized for edge devices with efficient on-device processing for personal information management and multilingual knowledge retrieval.',
+      },
+      'llama3-2-3b-instruct': {
+        label: 'Meta Llama 3.2 3B Instruct',
+        description:
+          'Compact model delivering text generation, summarization, and sentiment analysis with low latency, ideal for mobile AI applications.',
+      },
+      'llama3-2-11b-instruct': {
+        label: 'Meta Llama 3.2 11B Instruct',
+        description:
+          'Multimodal model excelling at image understanding and visual reasoning for image captioning, visual question answering, and document processing.',
+      },
+      'llama3-2-90b-instruct': {
+        label: 'Meta Llama 3.2 90B Instruct',
+        description:
+          'Large multimodal model with advanced image understanding and visual reasoning capabilities for sophisticated visual intelligence applications.',
+      },
     },
     agent: {
       label: 'Agent',
       help: {
         overview:
-          'By using the Agent functionality, your chatbot can automatically handle more complex tasks.',
+          'By using the Agent functionality, your chatbot can automatically handle more complex tasks. The model must be compatible with Tool use. Please check <Link>here</Link> for details.',
       },
       hint: `The agent automatically determines which tools to use to answer the user's questions. Due to the time required for decision, the response time tends to be longer. Activating one or more tools enables the agent's functionality. Conversely, if no tools are selected, the agent's functionality is not utilized. When the agent's functionality is enabled, the use of "Knowledge" is also treated as one of the tools. This means that "Knowledge" may not be used in responses.`,
       progress: {
@@ -144,9 +175,25 @@ const translation = {
           name: 'Retrieve Knowledge',
           description: 'Retrieve information from knowledge.',
         },
+        bedrock_agent: {
+          name: 'Bedrock Agent',
+          description: 'Ask a question to the configured Bedrock Agent',
+        },
         firecrawl: {
           apiKey: 'Firecrawl API Key',
           maxResults: 'Maximum Results',
+        },
+        bedrockAgent: {
+          name: 'Bedrock Agent',
+          description: 'Use Bedrock Agent as a tool.',
+          agentId: {
+            label: 'Agent ID',
+            placeholder: 'Enter Agent ID',
+          },
+          aliasId: {
+            label: 'Alias ID',
+            placeholder: 'Enter Alias ID',
+          },
         },
       },
     },
@@ -795,9 +842,9 @@ How would you categorize this email?`,
           label: 'Disabled',
           hint: 'No advanced parsing will be applied.',
         },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Use Claude 3 Sonnet v1 for advanced document parsing.',
+        claude_3_5_sonnet_v1: {
+          label: 'Claude 3.5 Sonnet v1',
+          hint: 'Use Claude 3.5 Sonnet v1 for advanced document parsing.',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',

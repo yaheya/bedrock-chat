@@ -10,7 +10,6 @@ const translation = {
     },
     app: {
       name: 'Bedrock Chat',
-      nameWithoutClaude: 'Bedrock Chat',
       inputMessage: 'お手伝いできることはありますか？',
       starredBots: 'スター付きのボット',
       recentlyUsedBots: '最近使用したボット',
@@ -24,10 +23,6 @@ const translation = {
         label: 'Claude 3 (Haiku)',
         description:
           '旧バージョンで、スピードとコンパクトさを最適化しており、ほぼ瞬時の応答を提供',
-      },
-      'claude-v3-sonnet': {
-        label: 'Claude 3 (Sonnet)',
-        description: '賢さとスピードのバランスが取れたモデル',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',
@@ -62,8 +57,14 @@ const translation = {
           'Mixtral-8x7BはMistral AIによって開発された基盤モデルで、英語、フランス語、ドイツ語、イタリア語、スペイン語のテキストをサポートし、コード生成機能を備えています。',
       },
       'mistral-large': {
-        label:
+        label: 'Mistral Large',
+        description:
           '実質的な推論機能を必要とする複雑なタスクや、合成テキスト生成およびコード生成などの高度に専門化されたタスクに最適です',
+      },
+      'mistral-large-2': {
+        label: 'Mistral Large2',
+        description:
+          '数十の言語と80以上のコーディング言語をサポートする先進的なLLMで、ネイティブ関数呼び出し、JSON出力、推論機能などのクラス最高レベルのエージェント機能を備えています',
       },
       'amazon-nova-pro': {
         label: 'Amazon Nova Pro',
@@ -80,14 +81,45 @@ const translation = {
         description:
           '最も低いレイテンシーと低コストで提供される軽量なテキストモデル',
       },
+      'deepseek-r1': {
+        label: 'DeepSeek R1',
+        description:
+          '一般的な推論、数学、科学、コード生成に最適化された最先端の推論モデル。英語と中国語をサポート',
+      },
+      // Meta Llama 3シリーズ
+      'llama3-3-70b-instruct': {
+        label: 'Meta Llama 3.3 70B Instruct',
+        description:
+          '405Bモデルと同等のパフォーマンスを低コストで提供する最新のLlama 3モデル。優れた推論能力と指示追従能力を備える',
+      },
+      'llama3-2-1b-instruct': {
+        label: 'Meta Llama 3.2 1B Instruct',
+        description:
+          'エッジデバイスに最適化された軽量モデル。個人情報管理や多言語知識検索に対応し、効率的なローカル処理を実現',
+      },
+      'llama3-2-3b-instruct': {
+        label: 'Meta Llama 3.2 3B Instruct',
+        description:
+          'テキスト生成、要約、感情分析などの機能を低遅延で提供するコンパクトモデル。モバイルAIアプリケーションに最適',
+      },
+      'llama3-2-11b-instruct': {
+        label: 'Meta Llama 3.2 11B Instruct',
+        description:
+          '画像理解と視覚的推論に優れたマルチモーダルモデル。画像キャプション生成や視覚的質問応答など高度なタスクに対応',
+      },
+      'llama3-2-90b-instruct': {
+        label: 'Meta Llama 3.2 90B Instruct',
+        description:
+          '高度な画像理解と視覚的推論機能を備えた大規模マルチモーダルモデル。複雑な推論と画像テキスト検索に優れた性能を発揮する',
+      },
     },
     agent: {
       label: 'エージェント',
       help: {
         overview:
-          'エージェント機能を使用すると、チャットボットはより複雑なタスクを自動的に処理できます。',
+          'エージェント機能を使用すると、チャットボットはより複雑なタスクを自動的に処理できます。モデルがTool useに対応している必要があります。詳細は <Link>こちら</Link> をご確認ください。',
       },
-      hint: 'エージェントは、ユーザーの質問に答えるため、どのツールを使用するかを自動的に判断します。考える時間が必要なため、応答時間が長くなる傾向にあります。1つ以上のツールをアクティブにすると、エージェントの機能が有効になります。逆に、ツールが選択されていない場合、エージェントの機能は利用されません。エージェントの機能が有効になると、ナレッジの利用も一つのツールとして扱われます。つまり、応答の際にナレッジが利用されない場合があります。',
+      hint: 'エージェントは、ユーザーの質問に答えるため、どのツールを使用するかを自動的に判断します。考える時間が必要なため、応答時間が長くなる傾向にあります。',
       progress: {
         label: '思考中...',
       },
@@ -143,9 +175,25 @@ const translation = {
           name: 'ナレッジの取得',
           description: 'ナレッジから情報を取得します。',
         },
+        bedrock_agent: {
+          name: 'Bedrock Agent',
+          description: '設定されたBedrock Agentに質問を送信します。',
+        },
         firecrawl: {
           apiKey: 'Firecrawl APIキー',
           maxResults: '最大結果数',
+        },
+        bedrockAgent: {
+          name: 'Bedrock Agent',
+          description: 'Bedrock Agentをツールとして使用します。',
+          agentId: {
+            label: 'Agent ID',
+            placeholder: 'Agent IDを入力',
+          },
+          aliasId: {
+            label: 'Alias ID',
+            placeholder: 'Alias IDを入力',
+          },
         },
       },
     },
@@ -772,9 +820,9 @@ const translation = {
           label: 'なし',
           hint: 'ドキュメントの高度な解析機能は適用されません。',
         },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Claude 3 Sonnet v1を使用してドキュメントの高度な解析を行います。',
+        claude_3_5_sonnet_v1: {
+          label: 'Claude 3.5 Sonnet v1',
+          hint: 'Claude 3.5 Sonnet v1を使用してドキュメントの高度な解析を行います。',
         },
         claude_3_haiku_v1: {
           label: 'Claude 3 Haiku v1',

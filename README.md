@@ -97,7 +97,7 @@ You can specify the following parameters during deployment to enhance security a
 - **--allowed-signup-email-domains**: Comma-separated list of allowed email domains for sign-up. (default: no domain restriction)
 - **--bedrock-region**: Define the region where bedrock is available. (default: us-east-1)
 - **--repo-url**: The custom repo of Bedrock Chat to deploy, if forked or custom source control. (default: https://github.com/aws-samples/bedrock-chat.git)
-- **--version**: The version of Bedrock Chat to deploy. (default: latest version in development)
+- # **--version**: The version of Bedrock Chat to deploy. (default: latest version in development)
 - **--cdk-json-override**: You can override any CDK context values during deployment using the override JSON block. This allows you to modify the configuration without editing the cdk.json file directly.
 
 Example usage:
@@ -237,7 +237,6 @@ The traditional way to configure parameters is by editing the `cdk.json` file. T
   "context": {
     "bedrockRegion": "us-east-1",
     "allowedIpV4AddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
-    "enableMistral": false,
     "selfSignUpEnabled": true
   }
 }
@@ -252,7 +251,6 @@ For better type safety and developer experience, you can use the `parameter.ts` 
 bedrockChatParams.set("default", {
   bedrockRegion: "us-east-1",
   allowedIpV4AddressRanges: ["192.168.0.0/16"],
-  enableMistral: false,
   selfSignUpEnabled: true,
 });
 
@@ -328,17 +326,106 @@ npx cdk deploy --all
 
 ## Others
 
-### Configure Mistral models support
+You can define parameters for your deployment in two ways: using `cdk.json` or using the type-safe `parameter.ts` file.
 
-Update `enableMistral` to `true` in [cdk.json](./cdk/cdk.json), and run `npx cdk deploy`.
+#### Using cdk.json (Traditional Method)
+
+The traditional way to configure parameters is by editing the `cdk.json` file. This approach is simple but lacks type checking:
 
 ```json
-...
-  "enableMistral": true,
+{
+  "app": "npx ts-node --prefer-ts-exts bin/bedrock-chat.ts",
+  "context": {
+    "bedrockRegion": "us-east-1",
+    "allowedIpV4AddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
+    "selfSignUpEnabled": true
+  }
+}
 ```
 
-> [!Important]
-> This project focus on Anthropic Claude models, the Mistral models are limited supported. For example, prompt examples are based on Claude models. This is a Mistral-only option, once you toggled to enable Mistral models, you can only use Mistral models for all the chat features, NOT both Claude and Mistral models.
+#### Using parameter.ts (Recommended Type-Safe Method)
+
+For better type safety and developer experience, you can use the `parameter.ts` file to define your parameters:
+
+```typescript
+// Define parameters for the default environment
+bedrockChatParams.set("default", {
+  bedrockRegion: "us-east-1",
+  allowedIpV4AddressRanges: ["192.168.0.0/16"],
+  selfSignUpEnabled: true,
+});
+
+// Define parameters for additional environments
+bedrockChatParams.set("dev", {
+  bedrockRegion: "us-west-2",
+  allowedIpV4AddressRanges: ["10.0.0.0/8"],
+  enableRagReplicas: false, // Cost-saving for dev environment
+});
+
+bedrockChatParams.set("prod", {
+  bedrockRegion: "us-east-1",
+  allowedIpV4AddressRanges: ["172.16.0.0/12"],
+  enableLambdaSnapStart: true,
+  enableRagReplicas: true, // Enhanced availability for production
+});
+```
+
+> [!Note]
+> Existing users can continue using `cdk.json` without any changes. The `parameter.ts` approach is recommended for new deployments or when you need to manage multiple environments.
+
+### Deploying Multiple Environments
+
+You can deploy multiple environments from the same codebase using the `parameter.ts` file and the `-c envName` option.
+
+#### Prerequisites
+
+1. Define your environments in `parameter.ts` as shown above
+2. Each environment will have its own set of resources with environment-specific prefixes
+
+#### Deployment Commands
+
+To deploy a specific environment:
+
+```bash
+# Deploy the dev environment
+npx cdk deploy --all -c envName=dev
+
+# Deploy the prod environment
+npx cdk deploy --all -c envName=prod
+```
+
+If no environment is specified, the "default" environment is used:
+
+```bash
+# Deploy the default environment
+npx cdk deploy --all
+```
+
+#### Important Notes
+
+1. **Stack Naming**:
+
+   - The main stacks for each environment will be prefixed with the environment name (e.g., `dev-BedrockChatStack`, `prod-BedrockChatStack`)
+   - However, custom bot stacks (`BrChatKbStack*`) and API publishing stacks (`ApiPublishmentStack*`) do not receive environment prefixes as they are created dynamically at runtime
+
+2. **Resource Naming**:
+
+   - Only some resources receive environment prefixes in their names (e.g., `dev_ddb_export` table, `dev-FrontendWebAcl`)
+   - Most resources maintain their original names but are isolated by being in different stacks
+
+3. **Environment Identification**:
+
+   - All resources are tagged with a `CDKEnvironment` tag containing the environment name
+   - You can use this tag to identify which environment a resource belongs to
+   - Example: `CDKEnvironment: dev` or `CDKEnvironment: prod`
+
+4. **Default Environment Override**: If you define a "default" environment in `parameter.ts`, it will override the settings in `cdk.json`. To continue using `cdk.json`, don't define a "default" environment in `parameter.ts`.
+
+5. **Environment Requirements**: To create environments other than "default", you must use `parameter.ts`. The `-c envName` option alone is not sufficient without corresponding environment definitions.
+
+6. **Resource Isolation**: Each environment creates its own set of resources, allowing you to have development, testing, and production environments in the same AWS account without conflicts.
+
+## Others
 
 ### Remove resources
 
@@ -457,8 +544,8 @@ Please also take a look at the following guidelines before contributing:
 
 ## 🏆 Significant Contributors
 
-- [k70suK3-k06a7ash1](https://github.com/k70suK3-k06a7ash1)
 - [fsatsuki](https://github.com/fsatsuki)
+- [k70suK3-k06a7ash1](https://github.com/k70suK3-k06a7ash1)
 
 ## Contributors
 

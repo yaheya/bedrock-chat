@@ -6,14 +6,18 @@ sys.path.insert(0, ".")
 import time
 
 from app.agents.tools.internet_search import internet_search_tool
+from app.config import DEFAULT_GENERATION_CONFIG
+from app.config import GenerationParams as GenerationParamsConfig
 from app.repositories.models.custom_bot import (
     ActiveModelsModel,
     AgentModel,
-    AgentToolModel,
     BotModel,
     ConversationQuickStarterModel,
     GenerationParamsModel,
     KnowledgeModel,
+    PlainToolModel,
+    ReasoningParamsModel,
+    ToolModel,
     UsageStatsModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
@@ -22,6 +26,12 @@ from app.repositories.models.custom_bot_kb import (
     OpenSearchParamsModel,
     SearchParamsModel,
     WebCrawlingFiltersModel,
+)
+from app.routes.schemas.bot import (
+    BotInput,
+    GenerationParams,
+    Knowledge,
+    ReasoningParams,
 )
 from tests.test_usecases.utils.user_factory import (
     create_test_user,
@@ -81,16 +91,18 @@ class TestBotModel(unittest.TestCase):
                 top_p=0.999,
                 temperature=0.6,
                 stop_sequences=["Human: ", "Assistant: "],
+                reasoning_params=ReasoningParamsModel(
+                    budget_tokens=2000,
+                ),
             ),
             agent=AgentModel(
-                tools=(
-                    [
-                        AgentToolModel(
-                            name=internet_search_tool.name,
-                            description=internet_search_tool.description,
-                        )
-                    ]
-                ),
+                tools=[
+                    PlainToolModel(
+                        tool_type="plain",
+                        name=internet_search_tool.name,
+                        description=internet_search_tool.description,
+                    )
+                ]
             ),
             knowledge=(
                 KnowledgeModel(
@@ -167,6 +179,125 @@ class TestBotModel(unittest.TestCase):
         self.assertTrue(self.bot.is_owned_by_user(self.owner))
         self.assertFalse(self.bot.is_owned_by_user(self.user))
         self.assertFalse(self.bot.is_owned_by_user(self.user_in_group))
+
+
+class TestBotModelFromInput(unittest.TestCase):
+    def setUp(self):
+
+        # Create a basic bot input
+        self.bot_input = BotInput(
+            id="test-bot",
+            title="Test Bot",
+            instruction="Test instruction",
+            description="Test description",
+            display_retrieved_chunks=True,
+            active_models={field: True for field in DEFAULT_GENERATION_CONFIG},
+            # No generation_params provided initially
+            generation_params=None,
+            knowledge=Knowledge(
+                source_urls=[], sitemap_urls=[], filenames=[], s3_urls=[]
+            ),
+            conversation_quick_starters=[],
+        )
+
+        self.owner_user_id = "test-owner"
+        self.knowledge = KnowledgeModel(
+            source_urls=[], sitemap_urls=[], filenames=[], s3_urls=[]
+        )
+
+    def test_from_input_with_default_generation_params(self):
+        """Test creating BotModel with default generation parameters"""
+        bot_model = BotModel.from_input(
+            bot_input=self.bot_input,
+            owner_user_id=self.owner_user_id,
+            knowledge=self.knowledge,
+        )
+
+        # Check that default generation params were used
+        self.assertEqual(
+            bot_model.generation_params.max_tokens,
+            DEFAULT_GENERATION_CONFIG["max_tokens"],
+        )
+        self.assertEqual(
+            bot_model.generation_params.top_k, DEFAULT_GENERATION_CONFIG["top_k"]
+        )
+        self.assertEqual(
+            bot_model.generation_params.top_p, DEFAULT_GENERATION_CONFIG["top_p"]
+        )
+        self.assertEqual(
+            bot_model.generation_params.temperature,
+            DEFAULT_GENERATION_CONFIG["temperature"],
+        )
+        self.assertEqual(
+            bot_model.generation_params.stop_sequences,
+            DEFAULT_GENERATION_CONFIG["stop_sequences"],
+        )
+        self.assertEqual(
+            bot_model.generation_params.reasoning_params.budget_tokens,
+            DEFAULT_GENERATION_CONFIG["reasoning_params"]["budget_tokens"],
+        )
+
+    def test_from_input_with_custom_generation_params(self):
+        """Test creating BotModel with custom generation parameters"""
+        # Create custom generation params
+        custom_params = GenerationParams(
+            max_tokens=2000,
+            top_k=150,
+            top_p=0.8,
+            temperature=0.7,
+            stop_sequences=["Stop1", "Stop2"],
+            reasoning_params=ReasoningParams(budget_tokens=1500),
+        )
+
+        # Update bot input with custom params
+        self.bot_input.generation_params = custom_params
+
+        # Create bot model
+        bot_model = BotModel.from_input(
+            bot_input=self.bot_input,
+            owner_user_id=self.owner_user_id,
+            knowledge=self.knowledge,
+        )
+
+        # Check that custom generation params were used
+        self.assertEqual(bot_model.generation_params.max_tokens, 2000)
+        self.assertEqual(bot_model.generation_params.top_k, 150)
+        self.assertEqual(bot_model.generation_params.top_p, 0.8)
+        self.assertEqual(bot_model.generation_params.temperature, 0.7)
+        self.assertEqual(bot_model.generation_params.stop_sequences, ["Stop1", "Stop2"])
+        self.assertEqual(
+            bot_model.generation_params.reasoning_params.budget_tokens, 1500
+        )
+
+    def test_from_input_validates_reasoning_params(self):
+        """Test that budget_tokens validation works correctly"""
+        # Create invalid generation params with budget_tokens < 1024
+        invalid_params = GenerationParams(
+            max_tokens=2000,
+            top_k=150,
+            top_p=0.8,
+            temperature=0.7,
+            stop_sequences=["Stop"],
+            reasoning_params=ReasoningParams(
+                budget_tokens=1
+            ),  # Invalid budget_tokens (too small)
+        )
+
+        # Update bot input with invalid params
+        self.bot_input.generation_params = invalid_params
+
+        # Creating bot model should raise ValueError
+        with self.assertRaises(ValueError) as context:
+            BotModel.from_input(
+                bot_input=self.bot_input,
+                owner_user_id=self.owner_user_id,
+                knowledge=self.knowledge,
+            )
+
+        self.assertIn(
+            "budget_tokens must be greater than or equal to 1024",
+            str(context.exception),
+        )
 
 
 if __name__ == "__main__":

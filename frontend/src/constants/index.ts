@@ -30,51 +30,12 @@ export const EDGE_GENERATION_PARAMS = {
   },
 };
 
-export const EDGE_MISTRAL_GENERATION_PARAMS = {
-  maxTokens: {
-    MAX: 8192,
-    MIN: 1,
-    STEP: 1,
-  },
-  temperature: {
-    MAX: 1,
-    MIN: 0,
-    STEP: 0.05,
-  },
-  topP: {
-    MAX: 1,
-    MIN: 0,
-    STEP: 0.001,
-  },
-  topK: {
-    MAX: 200,
-    MIN: 0,
-    STEP: 1,
-  },
-  budgetTokens: {
-    MIN: 1024,
-    MAX: 64000,
-    STEP: 10,
-  },
-};
-
 export const DEFAULT_GENERATION_CONFIG: GenerationParams = {
   maxTokens: 2000,
   topK: 128,
   topP: 0.999,
   temperature: 0.6,
-  stopSequences: ['Human: ', 'Assistant: '],
-  reasoningParams: {
-    budgetTokens: 1024,
-  },
-};
-
-export const DEFAULT_MISTRAL_GENERATION_CONFIG: GenerationParams = {
-  maxTokens: 4096,
-  topK: 50,
-  topP: 0.9,
-  temperature: 0.5,
-  stopSequences: ['[INST]', '[/INST]'],
+  stopSequences: [],
   reasoningParams: {
     budgetTokens: 1024,
   },
@@ -122,7 +83,6 @@ export const GUARDRAILS_CONTECTUAL_GROUNDING_THRESHOLD = {
 
 export const AVAILABLE_MODEL_KEYS = [
   'claude-v3-opus',
-  'claude-v3-sonnet',
   'claude-v3.5-sonnet',
   'claude-v3.5-sonnet-v2',
   'claude-v3.7-sonnet',
@@ -131,7 +91,14 @@ export const AVAILABLE_MODEL_KEYS = [
   'mistral-7b-instruct',
   'mixtral-8x7b-instruct',
   'mistral-large',
+  'mistral-large-2',
   'amazon-nova-pro',
   'amazon-nova-lite',
   'amazon-nova-micro',
+  'deepseek-r1',
+  'llama3-3-70b-instruct',
+  'llama3-2-1b-instruct',
+  'llama3-2-3b-instruct',
+  'llama3-2-11b-instruct',
+  'llama3-2-90b-instruct',
 ] as const;

@@ -6,8 +6,7 @@ const translation = {
       },
     },
     app: {
-      name: 'Chat Bedrock Claude',
-      nameWithoutClaude: 'Chat Bedrock',
+      name: 'Chat Bedrock',
       inputMessage: 'Enviar un mensaje',
       starredBots: 'Bots Favoritos',
       recentlyUsedBots: 'Bots Usados Recientemente',
@@ -20,10 +19,6 @@ const translation = {
         label: 'Claude 3 (Haiku)',
         description:
           'Versión anterior optimizada para velocidad y compacidad, brindando respuesta casi instantánea.',
-      },
-      'claude-v3-sonnet': {
-        label: 'Claude 3 (Sonnet)',
-        description: 'Equilibrio entre inteligencia y velocidad.',
       },
       'claude-v3.5-sonnet': {
         label: 'Claude 3.5 (Sonnet) v1',

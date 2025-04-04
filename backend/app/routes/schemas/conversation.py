@@ -6,22 +6,29 @@ from mypy_boto3_bedrock_runtime.literals import DocumentFormatType, ImageFormatT
 from pydantic import Discriminator, Field, JsonValue, root_validator
 
 type_model_name = Literal[
-    "claude-instant-v1",
-    "claude-v2",
-    "claude-v3-sonnet",
     "claude-v3.5-sonnet",
     "claude-v3.5-sonnet-v2",
     "claude-v3.7-sonnet",
     "claude-v3.5-haiku",
     "claude-v3-haiku",
     "claude-v3-opus",
+    # Mistral
     "mistral-7b-instruct",
     "mixtral-8x7b-instruct",
     "mistral-large",
+    "mistral-large-2",
     # New Amazon Nova models
     "amazon-nova-pro",
     "amazon-nova-lite",
     "amazon-nova-micro",
+    # DeepSeek models
+    "deepseek-r1",
+    # Meta Llama 3 models
+    "llama3-3-70b-instruct",
+    "llama3-2-1b-instruct",
+    "llama3-2-3b-instruct",
+    "llama3-2-11b-instruct",
+    "llama3-2-90b-instruct",
 ]
 
 
@@ -201,6 +208,7 @@ class RelatedDocument(BaseSchema):
     source_id: str
     source_name: str | None = None
     source_link: str | None = None
+    page_number: int | None = None
 
 
 class ConversationMetaOutput(BaseSchema):
