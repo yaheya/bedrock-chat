@@ -849,6 +849,7 @@ How would you categorize this email?`,
       notFoundConversation:
         'Since the specified chat does not exist, a new chat screen is displayed.',
       notFoundPage: 'The page you are looking for is not found.',
+      cannotAccessBot: 'Cannot access this bot. Redirected to New Chat.',
       unexpectedError: {
         title: 'An unexpected error has occurred.',
         restore: 'Go to TOP page',

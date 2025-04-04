@@ -106,7 +106,7 @@ const ChatPage: React.FC = () => {
       if (conversationError.response?.status === 404) {
         openSnackbar(t('error.notFoundConversation'));
         newChat();
-        navigate('');
+        navigate('/');
       } else {
         openSnackbar(conversationError.message ?? '');
       }
@@ -147,9 +147,14 @@ const ChatPage: React.FC = () => {
     if (botError) {
       if (botError.response?.status === 404) {
         setPageTitle(t('bot.label.notAvailableBot'));
+      } else {
+        openSnackbar(t('error.cannotAccessBot'));
+        newChat();
+        navigate('/');
       }
     }
-  }, [bot, botError, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bot, botError]);
 
   const description = useMemo<string>(() => {
     if (!bot) {
