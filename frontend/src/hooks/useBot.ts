@@ -99,44 +99,67 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
         mutateMyBots();
       });
     },
-    updateMyBotStarred: (botId: string, isStarred: boolean) => {
+    updateStarred: (botId: string, isStarred: boolean) => {
       const idxMybots = myBots?.findIndex((bot) => bot.id === botId) ?? -1;
-      mutateMyBots(
-        produce(myBots, (draft) => {
-          if (draft) {
-            draft[idxMybots].isStarred = isStarred;
+      if (idxMybots > -1) {
+        mutateMyBots(
+          produce(myBots, (draft) => {
+            if (draft) {
+              draft[idxMybots].isStarred = isStarred;
+            }
+          }),
+          {
+            revalidate: false,
           }
-        }),
-        {
-          revalidate: false,
-        }
-      );
+        );
+      }
 
-      mutateRecentlyUsedBots(
-        produce(recentlyUsedBots, (draft) => {
-          const idx = draft?.findIndex((bot) => bot.id === botId) ?? -1;
-          if (draft) {
-            draft[idx].isStarred = isStarred;
+      const idxRecentlyUsed =
+        recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
+      if (idxRecentlyUsed > -1) {
+        mutateRecentlyUsedBots(
+          produce(recentlyUsedBots, (draft) => {
+            if (draft) {
+              draft[idxRecentlyUsed].isStarred = isStarred;
+            }
+          }),
+          {
+            revalidate: false,
           }
-        }),
-        {
-          revalidate: false,
-        }
-      );
+        );
+      }
 
-      mutateStarredBots(
-        produce(starredBots, (draft) => {
-          if (myBots && isStarred) {
-            draft?.unshift({
-              ...myBots[idxMybots],
-            });
-          } else if (!isStarred) {
-            const idxStarred =
-              draft?.findIndex((bot) => bot.id === botId) ?? -1;
-            draft?.splice(idxStarred, 1);
-          }
-        })
-      );
+      if (isStarred) {
+        // add starred bot
+        if (idxMybots > -1 && myBots) {
+          mutateStarredBots(
+            produce(starredBots, (draft) => {
+              draft?.unshift({
+                ...myBots[idxMybots],
+              });
+            })
+          );
+        } else if (idxRecentlyUsed && recentlyUsedBots) {
+          mutateStarredBots(
+            produce(starredBots, (draft) => {
+              draft?.unshift({
+                ...recentlyUsedBots[idxRecentlyUsed],
+              });
+            })
+          );
+        }
+      } else {
+        // remove starred bot
+        const idxStarred =
+          starredBots?.findIndex((bot) => bot.id === botId) ?? -1;
+        if (idxStarred > -1) {
+          mutateStarredBots(
+            produce(starredBots, (draft) => {
+              draft?.splice(idxStarred, 1);
+            })
+          );
+        }
+      }
 
       return api
         .updateBotStarred(botId, {
@@ -148,41 +171,7 @@ const useBot = (shouldAutoRefreshMyBots?: boolean) => {
           mutateRecentlyUsedBots();
         });
     },
-    updateSharedBotStarred: (botId: string, isStarred: boolean) => {
-      const idx = recentlyUsedBots?.findIndex((bot) => bot.id === botId) ?? -1;
-      mutateRecentlyUsedBots(
-        produce(recentlyUsedBots, (draft) => {
-          if (draft && idx > -1) {
-            draft[idx].isStarred = isStarred;
-          }
-        }),
-        {
-          revalidate: false,
-        }
-      );
 
-      mutateStarredBots(
-        produce(starredBots, (draft) => {
-          if (recentlyUsedBots && isStarred && idx !== -1) {
-            draft?.unshift({
-              ...recentlyUsedBots[idx],
-            });
-          } else if (!isStarred) {
-            const idxStarred =
-              draft?.findIndex((bot) => bot.id === botId) ?? -1;
-            draft?.splice(idxStarred, 1);
-          }
-        })
-      );
-      return api
-        .updateBotStarred(botId, {
-          starred: isStarred,
-        })
-        .finally(() => {
-          mutateRecentlyUsedBots();
-          mutateStarredBots();
-        });
-    },
     deleteMyBot: (botId: string) => {
       const idx = myBots?.findIndex((bot) => bot.id === botId) ?? -1;
       mutateMyBots(

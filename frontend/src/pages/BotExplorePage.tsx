@@ -6,8 +6,6 @@ import {
   PiPlugs,
   PiPlus,
   PiShareNetwork,
-  PiStar,
-  PiStarFill,
   PiTrashBold,
 } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +27,7 @@ import { isPinnedBot, canBePinned } from '../utils/BotUtils';
 import { produce } from 'immer';
 import ListPageLayout from '../layouts/ListPageLayout';
 import IconShareBot from '../components/IconShareBot';
+import ButtonStar from '../components/ButtonStar';
 
 const BotExplorePage: React.FC = () => {
   const { t } = useTranslation();
@@ -43,13 +42,8 @@ const BotExplorePage: React.FC = () => {
   const { pinBot, unpinBot } = useBotPinning();
 
   const { newChat } = useChat();
-  const {
-    myBots,
-    deleteMyBot,
-    updateMyBotStarred,
-    mutateMyBots,
-    isLoadingMyBots,
-  } = useBot(true);
+  const { myBots, deleteMyBot, updateStarred, mutateMyBots, isLoadingMyBots } =
+    useBot(true);
 
   const {
     isPublication,
@@ -221,23 +215,13 @@ const BotExplorePage: React.FC = () => {
               </div>
 
               <div className="mr-5">
-                {bot.isStarred ? (
-                  <ButtonIcon
-                    disabled={!bot.available}
-                    onClick={() => {
-                      updateMyBotStarred(bot.id, false);
-                    }}>
-                    <PiStarFill className="text-aws-aqua" />
-                  </ButtonIcon>
-                ) : (
-                  <ButtonIcon
-                    disabled={!bot.available}
-                    onClick={() => {
-                      updateMyBotStarred(bot.id, true);
-                    }}>
-                    <PiStar />
-                  </ButtonIcon>
-                )}
+                <ButtonStar
+                  isStarred={bot.isStarred}
+                  disabled={!bot.available}
+                  onClick={() => {
+                    updateStarred(bot.id, !bot.isStarred);
+                  }}
+                />
               </div>
 
               <Button

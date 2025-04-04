@@ -17,8 +17,6 @@ import {
   PiLink,
   PiPenNib,
   PiPencilLine,
-  PiStar,
-  PiStarFill,
   PiWarningCircleFill,
 } from 'react-icons/pi';
 import Button from '../components/Button';
@@ -35,7 +33,6 @@ import IconPinnedBot from '../components/IconPinnedBot.tsx';
 import { copyBotUrl, isPinnedBot, canBePinned } from '../utils/BotUtils';
 import { toCamelCase } from '../utils/StringUtils';
 import { produce } from 'immer';
-import ButtonIcon from '../components/ButtonIcon';
 import StatusSyncBot from '../components/StatusSyncBot';
 import Alert from '../components/Alert';
 import useBotSummary from '../hooks/useBotSummary';
@@ -59,6 +56,7 @@ import useLoginUser from '../hooks/useLoginUser';
 import useBotPinning from '../hooks/useBotPinning';
 import Skeleton from '../components/Skeleton.tsx';
 import { twMerge } from 'tailwind-merge';
+import ButtonStar from '../components/ButtonStar.tsx';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -250,7 +248,7 @@ const ChatPage: React.FC = () => {
     }
   }, [messages, scrollToBottom, scrollToTop]);
 
-  const { updateMyBotStarred, updateSharedBotStarred } = useBot();
+  const { updateStarred } = useBot();
   const onClickBotEdit = useCallback(
     (botId: string) => {
       navigate(`/bot/edit/${botId}`);
@@ -272,16 +270,10 @@ const ChatPage: React.FC = () => {
       }
     );
 
-    try {
-      if (bot.owned) {
-        await updateMyBotStarred(bot.id, isStarred);
-      } else {
-        await updateSharedBotStarred(bot.id, isStarred);
-      }
-    } finally {
+    updateStarred(bot.id, isStarred).finally(() => {
       mutateBot();
-    }
-  }, [bot, mutateBot, updateMyBotStarred, updateSharedBotStarred]);
+    });
+  }, [bot, mutateBot, updateStarred]);
 
   const [copyLabel, setCopyLabel] = useState(t('bot.titleSubmenu.copyLink'));
   const onClickCopyUrl = useCallback(
@@ -529,13 +521,12 @@ const ChatPage: React.FC = () => {
                       onClickError={onClickSyncError}
                     />
                   )}
-                  <ButtonIcon onClick={onClickStar}>
-                    {bot?.isStarred ? (
-                      <PiStarFill className="text-aws-aqua" />
-                    ) : (
-                      <PiStar />
-                    )}
-                  </ButtonIcon>
+
+                  <ButtonStar
+                    isStarred={bot?.isStarred ?? false}
+                    onClick={onClickStar}
+                  />
+
                   <ButtonPopover className="mx-1" target="bottom-right">
                     {bot?.owned && (
                       <PopoverItem

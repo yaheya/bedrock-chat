@@ -6,8 +6,6 @@ import {
   PiPencil,
   PiPlugs,
   PiShareNetwork,
-  PiStar,
-  PiStarFill,
   PiTrashBold,
   PiWrench,
 } from 'react-icons/pi';
@@ -29,6 +27,7 @@ import PopoverItem from '../components/PopoverItem';
 import IconPinnedBot from '../components/IconPinnedBot';
 import ListPageLayout from '../layouts/ListPageLayout';
 import IconShareBot from '../components/IconShareBot';
+import ButtonStar from '../components/ButtonStar';
 
 const BotRecentlyUsedPage: React.FC = () => {
   const { t } = useTranslation();
@@ -47,8 +46,7 @@ const BotRecentlyUsedPage: React.FC = () => {
     recentlyUsedBots,
     isLoadingRecentlyUsedBots,
     deleteMyBot,
-    updateMyBotStarred,
-    updateSharedBotStarred,
+    updateStarred,
     mutateRecentlyUsedBots,
     removeFromRecentlyUsed,
   } = useBot(true);
@@ -201,67 +199,13 @@ const BotRecentlyUsedPage: React.FC = () => {
               )}
 
               <div className="mr-5">
-                {bot.isStarred ? (
-                  <ButtonIcon
-                    disabled={!bot.available}
-                    onClick={() => {
-                      // Optimistic update
-                      const newIsStarred = false;
-                      mutateRecentlyUsedBots(
-                        produce(recentlyUsedBots, (draft) => {
-                          if (draft) {
-                            const target = draft.find((b) => b.id === bot.id);
-                            if (target) {
-                              target.isStarred = newIsStarred;
-                            }
-                          }
-                        }),
-                        {
-                          revalidate: false,
-                        }
-                      );
-
-                      // Actual API call
-                      (bot.owned
-                        ? updateMyBotStarred(bot.id, newIsStarred)
-                        : updateSharedBotStarred(bot.id, newIsStarred)
-                      ).finally(() => {
-                        mutateRecentlyUsedBots();
-                      });
-                    }}>
-                    <PiStarFill className="text-aws-aqua" />
-                  </ButtonIcon>
-                ) : (
-                  <ButtonIcon
-                    disabled={!bot.available}
-                    onClick={() => {
-                      // Optimistic update
-                      const newIsStarred = true;
-                      mutateRecentlyUsedBots(
-                        produce(recentlyUsedBots, (draft) => {
-                          if (draft) {
-                            const target = draft.find((b) => b.id === bot.id);
-                            if (target) {
-                              target.isStarred = newIsStarred;
-                            }
-                          }
-                        }),
-                        {
-                          revalidate: false,
-                        }
-                      );
-
-                      // Actual API call
-                      (bot.owned
-                        ? updateMyBotStarred(bot.id, newIsStarred)
-                        : updateSharedBotStarred(bot.id, newIsStarred)
-                      ).finally(() => {
-                        mutateRecentlyUsedBots();
-                      });
-                    }}>
-                    <PiStar />
-                  </ButtonIcon>
-                )}
+                <ButtonStar
+                  isStarred={bot.isStarred}
+                  disabled={!bot.available}
+                  onClick={() => {
+                    updateStarred(bot.id, !bot.isStarred);
+                  }}
+                />
               </div>
               <div className="relative">
                 <PopoverMenu className="h-8" target="bottom-right">

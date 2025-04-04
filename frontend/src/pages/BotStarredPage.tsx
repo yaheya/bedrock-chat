@@ -6,7 +6,6 @@ import {
   PiPencil,
   PiPlugs,
   PiShareNetwork,
-  PiStarFill,
   PiTrashBold,
   PiWrench,
 } from 'react-icons/pi';
@@ -28,6 +27,7 @@ import PopoverItem from '../components/PopoverItem';
 import IconPinnedBot from '../components/IconPinnedBot';
 import ListPageLayout from '../layouts/ListPageLayout';
 import IconShareBot from '../components/IconShareBot';
+import ButtonStar from '../components/ButtonStar';
 
 const BotStarredPage: React.FC = () => {
   const { t } = useTranslation();
@@ -45,8 +45,7 @@ const BotStarredPage: React.FC = () => {
   const {
     starredBots,
     deleteMyBot,
-    updateMyBotStarred,
-    updateSharedBotStarred,
+    updateStarred,
     mutateStarredBots,
     removeFromRecentlyUsed,
   } = useBot(true);
@@ -199,35 +198,13 @@ const BotStarredPage: React.FC = () => {
               )}
 
               <div className="mr-5">
-                <ButtonIcon
+                <ButtonStar
                   disabled={!bot.available}
+                  isStarred={bot.isStarred}
                   onClick={() => {
-                    // Optimistic update
-                    const newIsStarred = false;
-                    mutateStarredBots(
-                      produce(starredBots, (draft) => {
-                        if (draft) {
-                          const target = draft.find((b) => b.id === bot.id);
-                          if (target) {
-                            target.isStarred = newIsStarred;
-                          }
-                        }
-                      }),
-                      {
-                        revalidate: false,
-                      }
-                    );
-
-                    // Actual API call
-                    (bot.owned
-                      ? updateMyBotStarred(bot.id, newIsStarred)
-                      : updateSharedBotStarred(bot.id, newIsStarred)
-                    ).finally(() => {
-                      mutateStarredBots();
-                    });
-                  }}>
-                  <PiStarFill className="text-aws-aqua" />
-                </ButtonIcon>
+                    updateStarred(bot.id, !bot.isStarred);
+                  }}
+                />
               </div>
               <div className="relative">
                 <PopoverMenu className="h-8" target="bottom-right">
