@@ -47,7 +47,9 @@ const MenuBot: React.FC<Props> = (props) => {
   }, [props, t]);
 
   return (
-    <PopoverMenu className={twMerge(props.className)} target="bottom-right">
+    <PopoverMenu
+      className={twMerge('h-8', props.className)}
+      target="bottom-right">
       {props.onClickEdit && (
         <PopoverItem onClick={props.onClickEdit}>
           <PiPencilLine />
