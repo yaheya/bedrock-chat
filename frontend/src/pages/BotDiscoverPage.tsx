@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   PiBinoculars,
   PiCertificate,
@@ -17,12 +17,16 @@ import BotSearchResults, {
   CardBot,
   SkeletonBot,
 } from '../components/BotSearchResults';
+import useLoginUser from '../hooks/useLoginUser';
+import Alert from '../components/Alert';
+import MenuBot from '../components/MenuBot';
 
 // for pagination
 const ITEMS_PER_PAGE = 6;
 
 const BotDiscoverPage: React.FC = () => {
   const { t } = useTranslation();
+  const { isAdmin } = useLoginUser();
   const [inputValue, setInputValue] = useState('');
 
   const [trendingCurrentPage, setTrendingCurrentPage] = useState(1);
@@ -34,6 +38,7 @@ const BotDiscoverPage: React.FC = () => {
     popularBots,
     isLoadingPopularBots,
     pinnedBots,
+    isLoadingPinnedBots,
   } = useBotStore();
 
   const {
@@ -180,7 +185,9 @@ const BotDiscoverPage: React.FC = () => {
             <>
               <div
                 className={twMerge(
-                  pinnedBots.length === 0 ? 'invisible h-0 scale-y-0' : 'mt-6',
+                  isLoadingPinnedBots || (pinnedBots.length === 0 && !isAdmin)
+                    ? 'invisible h-0 scale-y-0'
+                    : 'mt-6',
                   'transition-all duration-300'
                 )}>
                 <div className="flex items-center text-2xl font-bold">
@@ -190,6 +197,32 @@ const BotDiscoverPage: React.FC = () => {
                 <div className="mt-1 text-sm text-gray">
                   {t('discover.essential.description')}
                 </div>
+
+                {pinnedBots.length === 0 && isAdmin && (
+                  <div className="mt-2">
+                    <Alert
+                      className="flex"
+                      severity="info"
+                      title={t(
+                        'discover.essential.noEssentialBotsMessage.title'
+                      )}>
+                      <Trans
+                        className="inline-flex"
+                        i18nKey="discover.essential.noEssentialBotsMessage.content"
+                        components={{
+                          MenuButton: (
+                            <div className="inline-flex">
+                              <MenuBot
+                                className="h-6 bg-transparent"
+                                disabled
+                              />
+                            </div>
+                          ),
+                        }}
+                      />
+                    </Alert>
+                  </div>
+                )}
 
                 <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-2">
                   {pinnedBots.map((bot) => (

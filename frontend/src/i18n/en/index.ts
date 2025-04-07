@@ -565,6 +565,13 @@ How would you categorize this email?`,
         label: 'Essential',
         description:
           'These bots are officially selected by administrators. Use them actively to improve your work efficiency as part of standard operations.',
+        noEssentialBotsMessage: {
+          title: 'No Essential Bots',
+          content: `Essential section is hidden for non-admin users since there are no Essential bots.
+          Bots shared with All Users can be marked as Essential.
+          Use the bot menu in Chat, My Bots, Starred Bots, or Recently Used Bots views to mark a bot as Essential.
+          Click the <MenuButton/> button on these views to access the menu.`,
+        },
       },
       trending: {
         label: 'Trending',

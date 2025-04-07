@@ -39,6 +39,8 @@ import { usePageLabel } from '../routes';
 import { twMerge } from 'tailwind-merge';
 import Button from './Button';
 import Skeleton from './Skeleton';
+import { isPinnedBot } from '../utils/BotUtils';
+import IconPinnedBot from './IconPinnedBot';
 
 type Props = BaseProps & {
   isAdmin: boolean;
@@ -322,16 +324,22 @@ const Drawer: React.FC<Props> = (props) => {
                 {starredBots
                   ?.slice(0, 15)
                   .map((bot) => (
-                  <DrawerItem
-                    key={bot.id}
-                    isActive={botId === bot.id && !conversationId}
-                    to={`/bot/${bot.id}`}
-                    icon={<PiRobot />}
-                    labelComponent={bot.title}
-                    onClick={onClickNewBotChat}
-                  />
-                ))}
-                
+                    <DrawerItem
+                      key={bot.id}
+                      isActive={botId === bot.id && !conversationId}
+                      to={`/bot/${bot.id}`}
+                      icon={
+                        isPinnedBot(bot.sharedStatus) ? (
+                          <IconPinnedBot showAlways />
+                        ) : (
+                          <PiRobot />
+                        )
+                      }
+                      labelComponent={bot.title}
+                      onClick={onClickNewBotChat}
+                    />
+                  ))}
+
                 {starredBots && starredBots.length > 15 && (
                   <Button
                     text
@@ -365,7 +373,13 @@ const Drawer: React.FC<Props> = (props) => {
                       key={bot.id}
                       isActive={false}
                       to={`/bot/${bot.id}`}
-                      icon={<PiRobot />}
+                      icon={
+                        isPinnedBot(bot.sharedStatus) ? (
+                          <IconPinnedBot showAlways />
+                        ) : (
+                          <PiRobot />
+                        )
+                      }
                       labelComponent={bot.title}
                       onClick={onClickNewBotChat}
                     />
