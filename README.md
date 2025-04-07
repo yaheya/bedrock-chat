@@ -30,32 +30,39 @@ Supports chat, custom bots with knowledge (RAG), bot sharing via a bot store, an
 
 Add your own instruction and knowledge (a.k.a [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/). The bot can be shared among application users via bot store market place. The customized bot also can be published as stand-alone API (See the [detail](./docs/PUBLISH_API.md)).
 
-![TODO: add latest screenshots for customized bot creation]()
-![TODO: add bot store screenshots]()
+<details>
+<summary>Screenshots</summary>
+
+![](./docs/imgs/customized_bot_creation.png)
+![](./docs/imgs/fine_grained_permission.png)
+![](./docs/imgs/bot_store.png)
 ![](./docs/imgs/bot_api_publish_screenshot3.png)
+
+</details>
 
 > [!Important]
 > For governance reasons, only allowed users are able to create customized bots. To allow the creation of customized bots, the user must be a member of group called `CreatingBotAllowed`, which can be set up via the management console > Amazon Cognito User pools or aws cli. Note that the user pool id can be referred by accessing CloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`.
 
 ### Administrative features
 
+API Management, Mark bots as essential, Analyze usage for bots. [detail](./docs/ADMINISTRATOR.md)
+
 <details>
-<summary>Administrative features</summary>
+<summary>Screenshots</summary>
 
-API Management, Pin bots as essential bots, Analyze usage for bots. [detail](./docs/ADMINISTRATOR.md)
-
-![TODO: essential bots]()
-![TODO: API management]()
-![](./docs/imgs/admin_bot_analytics.png)
+![](./docs/imgs/admin_bot_menue.png)
+![](./docs/imgs/bot_store.png)
+![](./docs/imgs/admn_api_management.png)
+![](./docs/imgs/admin_bot_analytics.png))
 
 </details>
 
-### LLM-powered Agent
-
-<details>
-<summary>LLM-powered Agent</summary>
+### Agent
 
 By using the [Agent functionality](./docs/AGENT.md), your chatbot can automatically handle more complex tasks. For example, to answer a user's question, the Agent can retrieve necessary information from external tools or break down the task into multiple steps for processing.
+
+<details>
+<summary>Screenshots</summary>
 
 ![](./docs/imgs/agent1.png)
 ![](./docs/imgs/agent2.png)

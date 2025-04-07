@@ -1,5 +1,8 @@
 # Database Migration Guide
 
+> [!Warning]
+> This guide is for v0 to v1.
+
 This guide outlines the steps to migrate data when performing an update of Bedrock Chat which contains an Aurora cluster replacement. The following procedure ensures a smooth transition while minimizing downtime and data loss.
 
 ## Overview

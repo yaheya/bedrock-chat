@@ -1,10 +1,25 @@
-TODO: Update to the latest
+# Administrative features
 
-- Add essential explanation
+## Prerequisites
 
-# Administrator features
+The admin user must be a member of group called `Admin`, which can be set up via the management console > Amazon Cognito User pools or aws cli. Note that the user pool id can be referred by accessing CloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`.
 
-The administrator features are a vital tool as it provides essential insights into custom bot usage and user behavior. Without the functionality, it would be challenging for administrators to understand which custom bots are popular, why they are popular, and who is using them. This information is crucial for optimizing instruction prompts, customizing RAG data sources, and identifying heavy users who might will be an influencer.
+![](./imgs/group_membership_admin.png)
+
+## Mark public bots as Essential
+
+Public bots can now be marked as "Essential" by administrators. Bots marked as Essential will be featured in the "Essential" section of the bot store, making them easily accessible to users. This allows administrators to pin important bots that they want all users to use.
+
+### Examples
+
+- HR Assistant Bot: Helps employees with HR-related questions and tasks.
+- IT Support Bot: Provides assistance for internal technical issues and account management.
+- Internal Policy Guide Bot: Answers frequently asked questions about attendance rules, security policies, and other internal regulations.
+- New Employee Onboarding Bot: Guides new hires through procedures and system usage on their first day.
+- Benefits Information Bot: Explains company benefit programs and welfare services.
+
+![](./imgs/admin_bot_menue.png)
+![](./imgs/bot_store.png)
 
 ## Feedback loop
 
@@ -16,20 +31,11 @@ The output from LLM may not always meet the user's expectations. Sometimes it fa
 
 Data analysts can access to conversation logs using [Amazon Athena](https://aws.amazon.com/jp/athena/). If they want to analyze the data by [Jupyter Notebook](https://jupyter.org/), [this notebook example](../examples/notebooks/feedback_analysis_example.ipynb) can be a reference.
 
-## Administrator dashboard
+## Dashboard
 
 Currently provides a basic overview of chatbot and user usage, focusing on aggregating data for each bot and user over specified time periods and sorting the results by usage fees.
 
 ![](./imgs/admin_bot_analytics.png)
-
-> [!Note]
-> User usage analytics is coming soon.
-
-### Prerequisites
-
-The admin user must be a member of group called `Admin`, which can be set up via the management console > Amazon Cognito User pools or aws cli. Note that the user pool id can be referred by accessing CloudFormation > BedrockChatStack > Outputs > `AuthUserPoolIdxxxx`.
-
-![](./imgs/group_membership_admin.png)
 
 ## Notes
 
