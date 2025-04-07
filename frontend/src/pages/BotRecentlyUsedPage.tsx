@@ -1,14 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  PiEraser,
-  PiLink,
-  PiPencil,
-  PiPlugs,
-  PiShareNetwork,
-  PiTrashBold,
-  PiWrench,
-} from 'react-icons/pi';
+import { PiLink } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useBot from '../hooks/useBot';
 import { BotListItem, BotMeta } from '../@types/bot';
@@ -20,14 +12,12 @@ import useLoginUser from '../hooks/useLoginUser';
 import ListItemBot from '../components/ListItemBot';
 import useShareBot from '../hooks/useShareBot';
 import useBotPinning from '../hooks/useBotPinning';
-import { isPinnedBot, canBePinned } from '../utils/BotUtils';
+import { isPinnedBot, canBePinned, copyBotUrl } from '../utils/BotUtils';
 import { produce } from 'immer';
-import PopoverMenu from '../components/PopoverMenu';
-import PopoverItem from '../components/PopoverItem';
-import IconPinnedBot from '../components/IconPinnedBot';
 import ListPageLayout from '../layouts/ListPageLayout';
 import IconShareBot from '../components/IconShareBot';
 import ButtonStar from '../components/ButtonStar';
+import MenuBot from '../components/MenuBot';
 
 const BotRecentlyUsedPage: React.FC = () => {
   const { t } = useTranslation();
@@ -208,112 +198,50 @@ const BotRecentlyUsedPage: React.FC = () => {
                 />
               </div>
               <div className="relative">
-                <PopoverMenu className="h-8" target="bottom-right">
-                  {bot.owned && (
-                    <>
-                      <PopoverItem
-                        onClick={() => {
-                          onClickEditBot(bot.id);
-                        }}>
-                        <PiPencil />
-                        {t('bot.button.edit')}
-                      </PopoverItem>
-                      <PopoverItem
-                        onClick={() => {
-                          onClickShare(bot.id);
-                        }}>
-                        <PiShareNetwork />
-                        {t('bot.button.share')}
-                      </PopoverItem>
-                      {isAllowApiSettings && (
-                        <PopoverItem
-                          onClick={() => {
-                            onClickApiSettings(bot.id);
-                          }}>
-                          <PiPlugs />
-                          {t('bot.button.apiSettings')}
-                        </PopoverItem>
-                      )}
-                      {isAdmin && canBePinned(bot.sharedScope) && (
-                        <PopoverItem
-                          onClick={() => {
-                            togglePinBot(bot);
-                          }}>
-                          {isPinnedBot(bot.sharedStatus) ? (
-                            <>
-                              <IconPinnedBot
-                                showAlways
-                                className="text-aws-aqua"
-                              />
-                              {t('bot.button.unpinBot')}
-                            </>
-                          ) : (
-                            <>
-                              <IconPinnedBot showAlways outlined />
-                              {t('bot.button.pinBot')}
-                            </>
-                          )}
-                        </PopoverItem>
-                      )}
-                      <PopoverItem
-                        onClick={() => {
-                          removeFromRecentlyUsed(bot.id);
-                        }}>
-                        <PiEraser />
-                        {t('bot.button.removeFromRecent')}
-                      </PopoverItem>
-                      <PopoverItem
-                        className="font-bold text-red"
-                        onClick={() => {
-                          onClickDelete(bot);
-                        }}>
-                        <PiTrashBold />
-                        {t('bot.button.delete')}
-                      </PopoverItem>
-                    </>
-                  )}
-                  {!bot.owned && (
-                    <>
-                      {isAdmin && (
-                        <PopoverItem
-                          onClick={() => {
-                            navigate(`/admin/bot/${bot.id}`);
-                          }}>
-                          <PiWrench />
-                          {t('button.botManagement')}
-                        </PopoverItem>
-                      )}
-                      {isAdmin && canBePinned(bot.sharedScope) && (
-                        <PopoverItem
-                          onClick={() => {
-                            togglePinBot(bot);
-                          }}>
-                          {isPinnedBot(bot.sharedStatus) ? (
-                            <>
-                              <IconPinnedBot
-                                showAlways
-                                className="text-aws-aqua"
-                              />
-                              {t('bot.button.unpinBot')}
-                            </>
-                          ) : (
-                            <>
-                              <IconPinnedBot showAlways outlined />
-                              {t('bot.button.pinBot')}
-                            </>
-                          )}
-                        </PopoverItem>
-                      )}
-                      <PopoverItem
-                        onClick={() => {
-                          removeFromRecentlyUsed(bot.id);
-                        }}>
-                        <PiEraser />
-                        {t('bot.button.removeFromRecent')}
-                      </PopoverItem>
-                    </>
-                  )}
-                </PopoverMenu>
+                <MenuBot
+                  onClickRemoveFromRecentlyUsed={() => {
+                    removeFromRecentlyUsed(bot.id);
+                  }}
+                  {...(isAdmin && canBePinned(bot.sharedScope)
+                    ? {
+                        onClickSwitchPinned: () => {
+                          togglePinBot(bot);
+                        },
+                        isPinned: isPinnedBot(bot.sharedStatus),
+                      }
+                    : {
+                        onClickSwitchPinned: undefined,
+                        isPinned: undefined,
+                      })}
+                  {...(bot.owned && {
+                    onClickEdit: () => {
+                      onClickEditBot(bot.id);
+                    },
+                    onClickShare: () => {
+                      onClickShare(bot.id);
+                    },
+                    onClickDelete: () => {
+                      onClickDelete(bot);
+                    },
+                  })}
+                  {...(bot.owned &&
+                    isAllowApiSettings && {
+                      onClickApiSettings: () => {
+                        onClickApiSettings(bot.id);
+                      },
+                    })}
+                  {...(!bot.owned && {
+                    onClickCopyUrl: () => {
+                      copyBotUrl(bot.id);
+                    },
+                  })}
+                  {...(!bot.owned &&
+                    isAdmin && {
+                      onClickBotManagement: () => {
+                        navigate(`/admin/bot/${bot.id}`);
+                      },
+                    })}
+                />
               </div>
             </div>
           </ListItemBot>

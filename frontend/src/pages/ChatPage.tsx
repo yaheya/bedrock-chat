@@ -14,9 +14,7 @@ import useScroll from '../hooks/useScroll';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   PiArrowsCounterClockwise,
-  PiLink,
   PiPenNib,
-  PiPencilLine,
   PiWarningCircleFill,
 } from 'react-icons/pi';
 import Button from '../components/Button';
@@ -25,8 +23,6 @@ import SwitchBedrockModel from '../components/SwitchBedrockModel';
 import useSnackbar from '../hooks/useSnackbar';
 import useBot from '../hooks/useBot';
 import useConversation from '../hooks/useConversation';
-import ButtonPopover from '../components/PopoverMenu';
-import PopoverItem from '../components/PopoverItem';
 import { ActiveModels, BotSummary } from '../@types/bot';
 import IconPinnedBot from '../components/IconPinnedBot.tsx';
 
@@ -57,6 +53,7 @@ import useBotPinning from '../hooks/useBotPinning';
 import Skeleton from '../components/Skeleton.tsx';
 import { twMerge } from 'tailwind-merge';
 import ButtonStar from '../components/ButtonStar.tsx';
+import MenuBot from '../components/MenuBot.tsx';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -275,17 +272,9 @@ const ChatPage: React.FC = () => {
     });
   }, [bot, mutateBot, updateStarred]);
 
-  const [copyLabel, setCopyLabel] = useState(t('bot.titleSubmenu.copyLink'));
-  const onClickCopyUrl = useCallback(
-    (botId: string) => {
-      copyBotUrl(botId);
-      setCopyLabel(t('bot.titleSubmenu.copiedLink'));
-      setTimeout(() => {
-        setCopyLabel(t('bot.titleSubmenu.copyLink'));
-      }, 3000);
-    },
-    [t]
-  );
+  const onClickCopyUrl = useCallback((botId: string) => {
+    copyBotUrl(botId);
+  }, []);
 
   const onClickSyncError = useCallback(() => {
     navigate(`/bot/edit/${bot?.id}`);
@@ -478,6 +467,10 @@ const ChatPage: React.FC = () => {
     [mutateBot, pinBot, unpinBot]
   );
 
+  const canSwitchPinned = useMemo(() => {
+    return isAdmin && canBePinned(bot?.sharedScope ?? 'private');
+  }, [bot?.sharedScope, isAdmin]);
+
   return (
     <div
       className="relative flex h-full flex-1 flex-col"
@@ -527,51 +520,30 @@ const ChatPage: React.FC = () => {
                     onClick={onClickStar}
                   />
 
-                  <ButtonPopover className="mx-1" target="bottom-right">
-                    {bot?.owned && (
-                      <PopoverItem
-                        onClick={() => {
-                          onClickBotEdit(bot.id);
-                        }}>
-                        <PiPencilLine />
-                        {t('bot.titleSubmenu.edit')}
-                      </PopoverItem>
-                    )}
-                    {bot?.sharedScope !== 'private' && (
-                      <PopoverItem
-                        onClick={() => {
-                          if (bot) {
-                            onClickCopyUrl(bot.id);
-                          }
-                        }}>
-                        <PiLink />
-                        {copyLabel}
-                      </PopoverItem>
-                    )}
-                    {isAdmin && bot && canBePinned(bot.sharedScope) && (
-                      <PopoverItem
-                        onClick={() => {
-                          if (bot) {
-                            togglePinBot(bot);
-                          }
-                        }}>
-                        {isPinnedBot(bot.sharedStatus) ? (
-                          <>
-                            <IconPinnedBot
-                              showAlways
-                              className="text-aws-aqua"
-                            />
-                            {t('bot.titleSubmenu.removeEssential')}
-                          </>
-                        ) : (
-                          <>
-                            <IconPinnedBot showAlways outlined />
-                            {t('bot.titleSubmenu.markAsEssential')}
-                          </>
-                        )}
-                      </PopoverItem>
-                    )}
-                  </ButtonPopover>
+                  <MenuBot
+                    className="mx-1"
+                    {...(bot?.owned && {
+                      onClickEdit: () => {
+                        onClickBotEdit(bot.id);
+                      },
+                    })}
+                    {...(bot?.sharedScope !== 'private' && {
+                      onClickCopyUrl: () => {
+                        onClickCopyUrl(bot?.id ?? '');
+                      },
+                    })}
+                    {...(canSwitchPinned
+                      ? {
+                          onClickSwitchPinned: () => {
+                            bot && togglePinBot(bot);
+                          },
+                          isPinned: isPinnedBot(bot?.sharedStatus ?? ''),
+                        }
+                      : {
+                          isPinned: undefined,
+                          onClickSwitchPinned: undefined,
+                        })}
+                  />
                 </div>
               </div>
             )}

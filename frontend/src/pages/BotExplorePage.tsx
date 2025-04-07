@@ -1,26 +1,17 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../components/Button';
-import {
-  PiLink,
-  PiPlugs,
-  PiPlus,
-  PiShareNetwork,
-  PiTrashBold,
-} from 'react-icons/pi';
+import { PiLink, PiPlus } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import useBot from '../hooks/useBot';
 import { BotListItem, BotMeta } from '../@types/bot';
 import DialogConfirmDeleteBot from '../components/DialogConfirmDeleteBot';
 import DialogShareBot from '../components/DialogShareBot';
 import ButtonIcon from '../components/ButtonIcon';
-import PopoverMenu from '../components/PopoverMenu';
-import PopoverItem from '../components/PopoverItem';
 import useChat from '../hooks/useChat';
 import StatusSyncBot from '../components/StatusSyncBot';
 import useLoginUser from '../hooks/useLoginUser';
 import ListItemBot from '../components/ListItemBot';
-import IconPinnedBot from '../components/IconPinnedBot';
 import useShareBot from '../hooks/useShareBot';
 import useBotPinning from '../hooks/useBotPinning';
 import { isPinnedBot, canBePinned } from '../utils/BotUtils';
@@ -28,6 +19,7 @@ import { produce } from 'immer';
 import ListPageLayout from '../layouts/ListPageLayout';
 import IconShareBot from '../components/IconShareBot';
 import ButtonStar from '../components/ButtonStar';
+import MenuBot from '../components/MenuBot';
 
 const BotExplorePage: React.FC = () => {
   const { t } = useTranslation();
@@ -233,50 +225,30 @@ const BotExplorePage: React.FC = () => {
                 {t('bot.button.edit')}
               </Button>
               <div className="relative">
-                <PopoverMenu className="h-8" target="bottom-right">
-                  <PopoverItem
-                    onClick={() => {
-                      onClickShare(bot.id);
-                    }}>
-                    <PiShareNetwork />
-                    {t('bot.button.share')}
-                  </PopoverItem>
-                  {isAllowApiSettings && (
-                    <PopoverItem
-                      onClick={() => {
-                        onClickApiSettings(bot.id);
-                      }}>
-                      <PiPlugs />
-                      {t('bot.button.apiSettings')}
-                    </PopoverItem>
-                  )}
-                  {isAdmin && canBePinned(bot.sharedScope) && (
-                    <PopoverItem
-                      onClick={() => {
-                        togglePinBot(bot);
-                      }}>
-                      {isPinnedBot(bot.sharedScope) ? (
-                        <>
-                          <IconPinnedBot showAlways className="text-aws-aqua" />
-                          {t('bot.button.unpinBot')}
-                        </>
-                      ) : (
-                        <>
-                          <IconPinnedBot showAlways outlined />
-                          {t('bot.button.pinBot')}
-                        </>
-                      )}
-                    </PopoverItem>
-                  )}
-                  <PopoverItem
-                    className="font-bold text-red"
-                    onClick={() => {
-                      onClickDelete(bot);
-                    }}>
-                    <PiTrashBold />
-                    {t('bot.button.delete')}
-                  </PopoverItem>
-                </PopoverMenu>
+                <MenuBot
+                  onClickShare={() => {
+                    onClickShare(bot.id);
+                  }}
+                  onClickDelete={() => {
+                    onClickDelete(bot);
+                  }}
+                  {...(isAllowApiSettings && {
+                    onClickApiSettings: () => {
+                      onClickApiSettings(bot.id);
+                    },
+                  })}
+                  {...(isAdmin && canBePinned(bot.sharedScope)
+                    ? {
+                        onClickSwitchPinned: () => {
+                          togglePinBot(bot);
+                        },
+                        isPinned: isPinnedBot(bot.sharedStatus),
+                      }
+                    : {
+                        onClickSwitchPinned: undefined,
+                        isPinned: undefined,
+                      })}
+                />
               </div>
             </div>
           </ListItemBot>
