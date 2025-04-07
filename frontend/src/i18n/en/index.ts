@@ -381,8 +381,8 @@ How would you categorize this email?`,
         },
         alert: {
           botUnshared: {
-            title: 'Please Share The Bot',
-            body: 'You cannot publish an API for the bot that is not shared.',
+            title: 'Please Share The Bot with All Users',
+            body: 'You cannot publish an API for the bot that is not shared with all users.',
           },
           deploying: {
             title: 'The API deployment is in PROGRESS',
