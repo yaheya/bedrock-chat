@@ -11,6 +11,7 @@ from app.repositories.custom_bot import (
     alias_exists,
     delete_alias_by_id,
     delete_bot_by_id,
+    find_alias_by_bot_id,
     find_bot_by_id,
     find_owned_bots_by_user_id,
     find_pinned_public_bots,
@@ -155,9 +156,7 @@ def modify_owned_bot(
     bot = find_bot_by_id(bot_id)
 
     if not bot.is_editable_by_user(user):
-        raise PermissionError(
-            f"User {user.id} is not authorized to modify bot {bot_id}"
-        )
+        raise PermissionError(f"User {user.id} is not authorized to modify bot {bot_id}")
 
     source_urls = []
     sitemap_urls = []
@@ -237,9 +236,7 @@ def modify_owned_bot(
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
         generation_params=generation_params,
-        agent=AgentModel.from_agent_input(
-            modify_input.agent, bot.owner_user_id, bot_id
-        ),
+        agent=AgentModel.from_agent_input(modify_input.agent, bot.owner_user_id, bot_id),
         knowledge=KnowledgeModel(
             source_urls=source_urls,
             sitemap_urls=sitemap_urls,
@@ -276,9 +273,7 @@ def modify_owned_bot(
         title=modify_input.title,
         instruction=modify_input.instruction,
         description=modify_input.description if modify_input.description else "",
-        generation_params=GenerationParams.model_validate(
-            generation_params.model_dump()
-        ),
+        generation_params=GenerationParams.model_validate(generation_params.model_dump()),
         agent=(
             Agent.model_validate(modify_input.agent.model_dump())
             if modify_input.agent
@@ -339,17 +334,9 @@ def fetch_bot(user: User, bot_id: str) -> tuple[bool, BotModel]:
             f"User {user.id} is not authorized to access bot {bot_id}. Update alias."
         )
         update_alias_is_origin_accessible(user.id, bot_id, False)
-        raise PermissionError(
-            f"User {user.id} is not authorized to access bot {bot_id}"
-        )
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     owned = bot.is_owned_by_user(user)
-
-    # Note that `fetch_bot_summary` creates alias.
-    # TODO: 検証後、削除
-    # if not owned:
-    #     # Update alias to the latest information
-    #     store_alias(user_id=user.id, alias=BotAliasModel.from_bot(bot))
 
     return owned, bot
 
@@ -369,20 +356,9 @@ def fetch_all_bots(
     - If `limit` is specified, only the first n bots will be returned.
         - Cannot specify both `starred` and `limit`.
     """
-    # TODO: 複数のメソッドに分けてリプレースする。
-    # private: 自分が作成したボットの一覧
-    # mixed: 自分が作成したボットと共有されたボットの一覧
-    #   - pinned: ピン留めされたボットのみ。スターをつけたボット（とエイリアス）
-    #   - limit: 最新のn個のボットのみ。最近使った自分のボットと、共有ボットの取得に使う
-    #     NOTE: FE側で、自分のボットを含むかどうかを判断している
-    #     i.e. 「最近使用したボット」と「最近使用した公開ボット」は同時に取得
-    #     ref: useBot.tsの
-    #       recentlyUsedSharedBots: recentlyUsedBots?.filter((bot) => !bot.owned),
 
     if kind == "mixed" and not starred and not limit:
-        raise ValueError(
-            "Must specify either `limit` or `starred when mixed specified`"
-        )
+        raise ValueError("Must specify either `limit` or `starred when mixed specified`")
     if limit and starred:
         raise ValueError("Cannot specify both `limit` and `starred`")
     if limit and (limit < 0 or limit > 100):
@@ -402,11 +378,6 @@ def fetch_all_bots(
 
     bot_metas = []
     for bot in bots:
-        # if not bot.has_bedrock_knowledge_base:
-        #     # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
-        #     # If the bot does not have bedrock knowledge base,
-        #     # it is not shown in the list.
-        #     continue
         bot_metas.append(bot.to_output())
     return bot_metas
 
@@ -416,11 +387,6 @@ def fetch_all_pinned_bots(user: User) -> list[BotMetaOutput]:
     bots = find_pinned_public_bots()
     bot_metas = []
     for bot in bots:
-        # if not bot.has_bedrock_knowledge_base:
-        #     # Created bots under major version 1.4~, 2~ should have bedrock knowledge base.
-        #     # If the bot does not have bedrock knowledge base,
-        #     # it is not shown in the list.
-        #     continue
         bot_metas.append(bot.to_output())
     return bot_metas
 
@@ -432,20 +398,21 @@ def fetch_bot_summary(user: User, bot_id: str) -> BotSummaryOutput:
     if not bot.is_accessible_by_user(user):
         if alias_exists(user.id, bot_id):
             delete_alias_by_id(user.id, bot_id)
-        raise PermissionError(
-            f"User {user.id} is not authorized to access bot {bot_id}"
-        )
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     logger.debug(f"Bot: {bot}")
     logger.debug(f"User: {user}")
     logger.debug(f"bot.is_accessible_by_user(user): {bot.is_accessible_by_user(user)}")
 
-    if not bot.is_owned_by_user(user) and not alias_exists(user.id, bot_id):
-        # NOTE: At the first time using shared bot, alias is not created yet.
-        logger.info(f"Create alias for user {user.id} and bot {bot_id}")
-        store_alias(
-            user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot)
-        )
+    if not bot.is_owned_by_user(user):
+        if not alias_exists(user.id, bot_id):
+            # NOTE: At the first time using shared bot, alias is not created yet.
+            logger.info(f"Create alias for user {user.id} and bot {bot_id}")
+            store_alias(
+                user_id=user.id, alias=BotAliasModel.from_bot_for_initial_alias(bot)
+            )
+        alias = find_alias_by_bot_id(user.id, bot_id)
+        return alias.to_summary_output(bot)
 
     return bot.to_summary_output(user)
 
@@ -454,9 +421,7 @@ def modify_star_status(user: User, bot_id: str, starred: bool):
     """Modify bot pin status."""
     bot = find_bot_by_id(bot_id)
     if not bot.is_accessible_by_user(user):
-        raise PermissionError(
-            f"User {user.id} is not authorized to access bot {bot_id}"
-        )
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     if bot.is_owned_by_user(user):
         return update_bot_star_status(user.id, bot_id, starred)
@@ -472,9 +437,7 @@ def remove_bot_by_id(user: User, bot_id: str):
             f"Bot {bot_id} is pinned by an administrator and cannot be deleted."
         )
     if not bot.is_editable_by_user(user):
-        raise PermissionError(
-            f"User {user.id} is not authorized to access bot {bot_id}"
-        )
+        raise PermissionError(f"User {user.id} is not authorized to access bot {bot_id}")
 
     if bot.is_editable_by_user(user):
         owner_user_id = bot.owner_user_id
@@ -614,9 +577,7 @@ def modify_bot_stats(user: User, bot: BotModel, increment: int):
     return update_bot_stats(owner_id, bot.id, increment)
 
 
-def issue_presigned_url(
-    user: User, bot_id: str, filename: str, content_type: str
-) -> str:
+def issue_presigned_url(user: User, bot_id: str, filename: str, content_type: str) -> str:
     response = generate_presigned_url(
         DOCUMENT_BUCKET,
         compose_upload_temp_s3_path(user.id, bot_id, filename),
@@ -683,9 +644,7 @@ def fetch_available_agent_tools() -> list[Tool]:
             )
         else:
             result.append(
-                PlainTool(
-                    tool_type="plain", name=tool.name, description=tool.description
-                )
+                PlainTool(tool_type="plain", name=tool.name, description=tool.description)
             )
 
     return result

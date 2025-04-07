@@ -3,12 +3,13 @@ import unittest
 
 sys.path.insert(0, ".")
 
-
+from app.repositories.common import RecordNotFoundError
 from app.repositories.custom_bot import (
     alias_exists,
     delete_alias_by_id,
     delete_bot_by_id,
     delete_bot_publication,
+    find_alias_by_bot_id,
     find_all_published_bots,
     find_bot_by_id,
     find_owned_bots_by_user_id,
@@ -47,9 +48,7 @@ from app.repositories.models.custom_bot_kb import (
     FixedSizeParamsModel,
     OpenSearchParamsModel,
 )
-from app.repositories.models.custom_bot_kb import (
-    SearchParamsModel as SearchParamsModelKB,
-)
+from app.repositories.models.custom_bot_kb import SearchParamsModel as SearchParamsModelKB
 from app.usecases.bot import fetch_all_bots
 from app.utils import get_current_time
 from tests.test_repositories.utils.bot_factory import (
@@ -450,6 +449,19 @@ class TestBotAliasRepository(unittest.TestCase):
     def test_alias_exists(self):
         self.assertTrue(alias_exists("user2", "1"))
         self.assertFalse(alias_exists("user2", "2"))
+
+    def test_find_alias_by_bot_id(self):
+        # Test finding an existing alias
+        alias = find_alias_by_bot_id("user2", "1")
+        self.assertEqual(alias.original_bot_id, "1")
+        self.assertEqual(alias.owner_user_id, "user1")
+        self.assertEqual(alias.title, "Test Bot")
+        self.assertEqual(alias.description, "Test Bot Description")
+        self.assertTrue(alias.is_origin_accessible)
+
+        # Test finding a non-existent alias
+        with self.assertRaises(RecordNotFoundError):
+            find_alias_by_bot_id("user2", "non_existent_id")
 
 
 class TestFindAllBots(unittest.TestCase):

@@ -672,12 +672,6 @@ class BotModel(BaseModel):
 
 
 class BotAliasModel(BaseModel):
-    # TODO: N+1だと不要なものを洗い出す
-    # 必須なもの: original_bot_id (N+1取得時), is_origin_accessible
-    # Original削除された際にタイトルなどが必要なため、以下は必要
-    # title, description
-    # その他必要なもの
-    # create_time, last_used_time, is_starred, sync_status, has_knowledge, has_agent, conversation_quick_starters
     original_bot_id: str = Field(..., description="Original Bot ID")
     owner_user_id: str = Field(..., description="Owner User ID")
     title: str
@@ -712,6 +706,70 @@ class BotAliasModel(BaseModel):
             has_agent=bot.is_agent_enabled(),
             conversation_quick_starters=bot.conversation_quick_starters,
             active_models=bot.active_models,
+        )
+
+    @classmethod
+    def from_dynamo_item(cls, item: dict) -> Self:
+        """Create a BotAliasModel instance from a DynamoDB item."""
+        # Convert conversation quick starters from dict to model objects
+        conversation_quick_starters = []
+        for starter in item.get("ConversationQuickStarters", []):
+            conversation_quick_starters.append(
+                ConversationQuickStarterModel(
+                    title=starter.get("title", ""),
+                    example=starter.get("example", ""),
+                )
+            )
+
+        # Handle active models
+        active_models_data = item.get("ActiveModels", {})
+        active_models = (
+            ActiveModelsModel.model_validate(active_models_data)
+            if active_models_data
+            else default_active_models
+        )
+
+        return cls(
+            original_bot_id=item["OriginalBotId"],
+            owner_user_id=item["OwnerUserId"],
+            title=item["Title"],
+            description=item["Description"],
+            is_origin_accessible=item.get("IsOriginAccessible", False),
+            create_time=float(item["CreateTime"]),
+            last_used_time=float(item.get("LastUsedTime", item["CreateTime"])),
+            is_starred=item.get("IsStarred", "") == "TRUE",
+            sync_status=item["SyncStatus"],
+            has_knowledge=item.get("HasKnowledge", False),
+            has_agent=item.get("HasAgent", False),
+            conversation_quick_starters=conversation_quick_starters,
+            active_models=active_models,
+        )
+
+    def to_summary_output(self, bot: BotModel) -> BotSummaryOutput:
+        """Convert to BotSummaryOutput."""
+        return BotSummaryOutput(
+            id=self.original_bot_id,
+            title=self.title,
+            description=self.description,
+            create_time=self.create_time,
+            last_used_time=(self.last_used_time or self.create_time),
+            is_starred=self.is_starred,
+            has_agent=self.has_agent,
+            owned=False,  # Aliases are not owned by the user
+            sync_status=self.sync_status,
+            has_knowledge=self.has_knowledge,
+            conversation_quick_starters=[
+                ConversationQuickStarter(
+                    title=starter.title,
+                    example=starter.example,
+                )
+                for starter in self.conversation_quick_starters
+            ],
+            shared_scope=bot.shared_scope,  # Alias inherits shared scope from the original bot
+            shared_status=bot.shared_status,  # Alias inherits shared status from the original bot
+            active_models=ActiveModelsOutput.model_validate(
+                self.active_models.model_dump()
+            ),
         )
 
 
@@ -752,9 +810,7 @@ class BotMeta(BaseModel):
         _is_starred: bool = (
             is_starred if is_starred is not None else item.get("IsStarred", False)
         )
-        assert (
-            item["ItemType"].find("BOT") != -1
-        ), f"Invalid ItemType: {item['ItemType']}"
+        assert item["ItemType"].find("BOT") != -1, f"Invalid ItemType: {item['ItemType']}"
         return cls(
             id=item["BotId"],
             title=item["Title"],

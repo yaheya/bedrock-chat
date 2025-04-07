@@ -907,6 +907,34 @@ def remove_alias_last_used_time(user_id: str, original_bot_id: str):
     return response
 
 
+def find_alias_by_bot_id(user_id: str, original_bot_id: str) -> BotAliasModel:
+    """Find an alias by its original bot ID for a specific user.
+    
+    Args:
+        user_id: The ID of the user who owns the alias
+        original_bot_id: The ID of the original bot
+        
+    Returns:
+        BotAliasModel: The alias model
+        
+    Raises:
+        RecordNotFoundError: If the alias is not found
+    """
+    table = get_bot_table_client()
+    logger.info(f"Finding alias with original bot id: {original_bot_id} for user: {user_id}")
+    
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq(user_id) & 
+                              Key("SK").eq(compose_sk(original_bot_id, "alias"))
+    )
+    
+    if len(response["Items"]) == 0:
+        raise RecordNotFoundError(f"Alias for bot with id {original_bot_id} not found for user {user_id}")
+    
+    item = response["Items"][0]
+    return BotAliasModel.from_dynamo_item(item)
+
+
 def find_all_published_bots(
     limit: int = 1000, next_token: str | None = None
 ) -> tuple[list[BotMetaWithStackInfo], str | None]:

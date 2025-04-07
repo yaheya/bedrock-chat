@@ -9,7 +9,6 @@ from app.repositories.models.custom_bot import (
     AgentModel,
     BedrockGuardrailsModel,
     BedrockKnowledgeBaseModel,
-    BotAliasModel,
     BotModel,
     ConversationQuickStarterModel,
     GenerationParamsModel,

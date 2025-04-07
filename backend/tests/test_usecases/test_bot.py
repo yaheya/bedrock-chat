@@ -51,9 +51,7 @@ from tests.test_usecases.utils.user_factory import (
 class TestIssuePresignedUrl(unittest.TestCase):
     def test_issue_presigned_url(self):
         user = create_test_user("test_user")
-        url = issue_presigned_url(
-            user, "test_bot", "test_file", content_type="image/png"
-        )
+        url = issue_presigned_url(user, "test_bot", "test_file", content_type="image/png")
         self.assertEqual(type(url), str)
         self.assertTrue(url.startswith("https://"))
 
@@ -241,9 +239,7 @@ class TestScenario(unittest.TestCase):
 
         # Create user2 partial shared bots
         # bot3 is not shared to user1
-        self.user2_bot1 = create_test_partial_shared_bot(
-            "3", False, "user2", ["user10"]
-        )
+        self.user2_bot1 = create_test_partial_shared_bot("3", False, "user2", ["user10"])
         # bot4 is shared to user1
         self.user2_bot2 = create_test_partial_shared_bot("4", False, "user2", ["user1"])
 
@@ -298,7 +294,9 @@ class TestScenario(unittest.TestCase):
 
         # Step 5: fetch_all_bots as mixed (should include alias for user2's bot3)
         user1_mixed_bots = fetch_all_bots(self.user1, kind="mixed", limit=10)
-        self.assertEqual(len(user1_mixed_bots), 3)  # 2 private + 1 alias
+        self.assertEqual(
+            len(user1_mixed_bots), 3
+        )  # 2 private + 1 alias. Note that bot4's alias is not created yet
 
         # Step 6: fetch_all_pinned_bots (should be empty)
         pinned_bots = fetch_all_pinned_bots(self.user1)
@@ -306,7 +304,12 @@ class TestScenario(unittest.TestCase):
 
         # Step 7: user1 star user2's bot3 and bot4
         modify_star_status(self.user1, "1", True)
+        bot1_summary = fetch_bot_summary(self.user1, "1")
+        self.assertTrue(bot1_summary.is_starred)
         modify_star_status(self.user1, "3", True)
+
+        bot3_summary = fetch_bot_summary(self.user1, "3")
+        self.assertTrue(bot3_summary.is_starred)
         starred_bots = fetch_all_bots(self.user1, starred=True, kind="mixed")
         self.assertEqual(len(starred_bots), 2)
 
