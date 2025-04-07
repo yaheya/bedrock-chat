@@ -13,13 +13,11 @@ import InputText from '../components/InputText';
 import useBotStore from '../hooks/useBotStore';
 import { twMerge } from 'tailwind-merge';
 import useBotSearch from '../hooks/useBotSearch';
-import BotSearchResults, {
-  CardBot,
-  SkeletonBot,
-} from '../components/BotSearchResults';
+import BotSearchResults, { SkeletonBot } from '../components/BotSearchResults';
 import useLoginUser from '../hooks/useLoginUser';
 import Alert from '../components/Alert';
 import MenuBot from '../components/MenuBot';
+import CardBotForDiscover from '../components/CardBotForDiscover';
 
 // for pagination
 const ITEMS_PER_PAGE = 6;
@@ -226,14 +224,7 @@ const BotDiscoverPage: React.FC = () => {
 
                 <div className="mt-3 grid grid-cols-1 gap-6 md:grid-cols-2">
                   {pinnedBots.map((bot) => (
-                    <CardBot
-                      key={bot.id}
-                      title={bot.title}
-                      description={bot.description}
-                      id={bot.id}
-                      // not display pinned icon in Essential section
-                      sharedStatus={''}
-                    />
+                    <CardBotForDiscover key={bot.id} bot={bot} hidePinnedIcon />
                   ))}
                 </div>
               </div>
@@ -260,12 +251,7 @@ const BotDiscoverPage: React.FC = () => {
                         {(trendingCurrentPage - 1) * ITEMS_PER_PAGE + idx + 1}.
                       </div>
                       <div className="w-full min-w-0 flex-1">
-                        <CardBot
-                          title={bot.title}
-                          description={bot.description}
-                          id={bot.id}
-                          sharedStatus={bot.sharedStatus}
-                        />
+                        <CardBotForDiscover bot={bot} />
                       </div>
                     </div>
                   ))}
@@ -299,13 +285,7 @@ const BotDiscoverPage: React.FC = () => {
                     </>
                   )}
                   {currentDiscoverBots.map((bot) => (
-                    <CardBot
-                      key={bot.id}
-                      title={bot.title}
-                      description={bot.description}
-                      id={bot.id}
-                      sharedStatus={bot.sharedStatus}
-                    />
+                    <CardBotForDiscover key={bot.id} bot={bot} />
                   ))}
                 </div>
 
