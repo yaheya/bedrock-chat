@@ -604,6 +604,12 @@ How would you categorize this email?`,
     languageDialog: {
       title: 'Switch language',
     },
+    drawerOptionsDialog: {
+      title: 'Side Menu Options',
+      label: {
+        displayCount: 'Display Count',
+      },
+    },
     feedbackDialog: {
       title: 'Feedback',
       content: 'Please provide more details.',
@@ -649,6 +655,7 @@ How would you categorize this email?`,
       continue: 'Continue to Generate',
       botManagement: 'Bot Management',
       mode: 'Mode',
+      drawerOption: 'Side Menu Options',
     },
     input: {
       hint: {
