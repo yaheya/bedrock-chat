@@ -25,11 +25,9 @@ logger = logging.getLogger("migration")
 # Region where dynamodb is located
 REGION = "ap-northeast-1"
 
-V2_CONVERSATION_TABLE = "BedrockChatStack-DatabaseConversationTable03F3FD7A-YSQUKW0EXGVH"
-V3_CONVERSATION_TABLE = (
-    "v3test-BedrockChatStack-DatabaseConversationTableV3C1D85773-UMVGVBQ1DH2T"
-)
-V3_BOT_TABLE = "v3test-BedrockChatStack-DatabaseBotTableV3201CEEA9-17L5AM3MLHNSG"
+V2_CONVERSATION_TABLE = "BedrockChatStack-DatabaseConversationTableXXXX"
+V3_CONVERSATION_TABLE = "BedrockChatStack-DatabaseConversationTableV3XXXX"
+V3_BOT_TABLE = "BedrockChatStack-DatabaseBotTableV3XXXXX"
 
 ################################
 # End Configuration
@@ -78,13 +76,11 @@ def fetch_original_bot_owner(user_id: str, bot_id: str) -> Optional[str]:
         # 公開ボットとして検索
         table = get_v2_table()
         logger.info(f"Finding owner for bot: {bot_id}")
-        
+
         items = query_items(
-            table,
-            Key("PublicBotId").eq(bot_id),
-            index_name="PublicBotIdIndex"
+            table, Key("PublicBotId").eq(bot_id), index_name="PublicBotIdIndex"
         )
-        
+
         if items:
             # 公開ボットのオーナーIDを返す
             return items[0]["PK"]
@@ -97,15 +93,17 @@ def fetch_original_bot_owner(user_id: str, bot_id: str) -> Optional[str]:
         return None
 
 
-def scan_items(table, projection_expression=None, filter_expression=None, consistent_read=False):
+def scan_items(
+    table, projection_expression=None, filter_expression=None, consistent_read=False
+):
     """Generic function to scan items from a DynamoDB table
-    
+
     Args:
         table: DynamoDB table resource
         projection_expression: Optional attributes to retrieve
         filter_expression: Optional filter expression
         consistent_read: Whether to use consistent read
-        
+
     Returns:
         List of items from the table
     """
@@ -135,7 +133,7 @@ def scan_all_users() -> List[str]:
     """Scan all users from V2 table"""
     table = get_v2_table()
     items = scan_items(table, projection_expression="PK")
-    
+
     # Extract unique user IDs
     users = set(item["PK"] for item in items)
     return list(users)
@@ -143,13 +141,13 @@ def scan_all_users() -> List[str]:
 
 def query_items(table, key_condition_expression, filter_expression=None, index_name=None):
     """Generic function to query items from a DynamoDB table
-    
+
     Args:
         table: DynamoDB table resource
         key_condition_expression: Key condition expression for the query
         filter_expression: Optional filter expression
         index_name: Optional index name to query against
-        
+
     Returns:
         List of items matching the query
     """
@@ -157,9 +155,7 @@ def query_items(table, key_condition_expression, filter_expression=None, index_n
     last_evaluated_key = None
 
     while True:
-        query_kwargs = {
-            "KeyConditionExpression": key_condition_expression
-        }
+        query_kwargs = {"KeyConditionExpression": key_condition_expression}
         if filter_expression:
             query_kwargs["FilterExpression"] = filter_expression
         if index_name:
@@ -183,7 +179,7 @@ def get_all_bots_for_user(user_id: str) -> List[Dict]:
     return query_items(
         table,
         Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#BOT#"),
-        Attr("OriginalBotId").not_exists() | Attr("OriginalBotId").eq("")
+        Attr("OriginalBotId").not_exists() | Attr("OriginalBotId").eq(""),
     )
 
 
@@ -191,8 +187,7 @@ def get_all_aliases_for_user(user_id: str) -> List[Dict]:
     """Get all aliases for a user"""
     table = get_v2_table()
     return query_items(
-        table,
-        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#BOT_ALIAS#")
+        table, Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#BOT_ALIAS#")
     )
 
 
@@ -200,8 +195,7 @@ def get_all_conversations_for_user(user_id: str) -> List[Dict]:
     """ユーザーの全会話取得"""
     table = get_v2_table()
     return query_items(
-        table,
-        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#CONV#")
+        table, Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#CONV#")
     )
 
 
@@ -210,7 +204,7 @@ def get_all_related_documents_for_user(user_id: str) -> List[Dict]:
     table = get_v2_table()
     return query_items(
         table,
-        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#RELATED_DOCUMENT#")
+        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#RELATED_DOCUMENT#"),
     )
 
 
@@ -775,7 +769,9 @@ def main():
     if verification["success"]:
         logger.info("✅ Migration completed successfully")
     else:
-        logger.error("❌ Migration completed with errors, check the report for details")
+        logger.warning(
+            "❗ Migration completed with some errors, check the report for details"
+        )
 
 
 if __name__ == "__main__":
