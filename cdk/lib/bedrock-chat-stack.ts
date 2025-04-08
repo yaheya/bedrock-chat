@@ -171,6 +171,7 @@ export class BedrockChatStack extends cdk.Stack {
     let botStore = undefined;
     if (props.enableBotStore) {
       botStore = new BotStore(this, "BotStore", {
+        envPrefix: props.envPrefix,
         botTable: database.botTable,
         useStandbyReplicas: props.useStandbyReplicas,
         language: props.botStoreLanguage,
@@ -201,6 +202,7 @@ export class BedrockChatStack extends cdk.Stack {
     });
     props.documentBucket.grantReadWrite(backendApi.handler);
     botStore?.addDataAccessPolicy(
+      props.envPrefix,
       "DAPolicyApiHandler",
       backendApi.handler.role!,
       ["aoss:DescribeCollectionItems"],
@@ -272,13 +274,13 @@ export class BedrockChatStack extends cdk.Stack {
       value: webAclForPublishedApi.webAclArn,
       exportName: `${props.envPrefix}${sepHyphen}PublishedApiWebAclArn`,
     });
-    new CfnOutput(this, "ConversationTableName", {
+    new CfnOutput(this, "ConversationTableNameV3", {
       value: database.conversationTable.tableName,
       exportName: `${props.envPrefix}${sepHyphen}BedrockClaudeChatConversationTableName`,
     });
-    new CfnOutput(this, "BotTableName", {
+    new CfnOutput(this, "BotTableNameV3", {
       value: database.botTable.tableName,
-      exportName: "BedrockClaudeChatBotTableName",
+      exportName: `${props.envPrefix}${sepHyphen}BedrockClaudeChatBotTableNameV3`,
     });
     new CfnOutput(this, "TableAccessRoleArn", {
       value: database.tableAccessRole.roleArn,
