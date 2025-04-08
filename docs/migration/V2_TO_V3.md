@@ -26,9 +26,11 @@ These new features required changes to the DynamoDB schema, necessitating a migr
 
 The new permission model and Bot Store functionality required restructuring how bot data is stored and accessed. The migration process converts your existing bots and conversations to the new schema while preserving all your data.
 
-> [!WARNING] > **Service Disruption Notice**: During the migration process, the application will be unavailable to all users. Plan to perform this migration during a maintenance window when users do not need access to the system. The application will only become available again after the migration script has successfully completed and all data has been properly converted to the new schema.
+> [!WARNING]
+> Service Disruption Notice: **During the migration process, the application will be unavailable to all users.** Plan to perform this migration during a maintenance window when users do not need access to the system. The application will only become available again after the migration script has successfully completed and all data has been properly converted to the new schema.
 
-> [!IMPORTANT] > **Before proceeding with migration**: **The migration process cannot guarantee 100% success for all bots**, especially those created with older versions or with custom configurations. Please document your important bot configurations (instructions, knowledge sources, settings) before starting the migration process in case you need to recreate them manually.
+> [!IMPORTANT]
+> Before proceeding with migration: **The migration process cannot guarantee 100% success for all bots**, especially those created with older versions or with custom configurations. Please document your important bot configurations (instructions, knowledge sources, settings) before starting the migration process in case you need to recreate them manually.
 
 ## Migration Process
 
@@ -195,6 +197,18 @@ After migration, open your application and verify:
 - All your bots are available
 - Conversations are preserved
 - New permission controls are working
+
+### Step 8: Clean Up (Optional)
+
+After confirming that the migration was successful and all your data is properly accessible in V3, you may optionally delete the V2 conversation table to save costs:
+
+```bash
+# Delete the V2 conversation table (ONLY after confirming successful migration)
+aws dynamodb delete-table --table-name YOUR_V2_CONVERSATION_TABLE_NAME
+```
+
+> [!IMPORTANT]
+> Only delete the V2 table after thoroughly verifying that all your important data has been successfully migrated to V3. We recommend keeping the backup created in Step 2 for at least a few weeks after migration, even if you delete the original table.
 
 ## V3 FAQ
 
