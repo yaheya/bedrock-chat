@@ -75,31 +75,19 @@ def compose_item_type(user_id: str, item_type: str) -> str:
 def fetch_original_bot_owner(user_id: str, bot_id: str) -> Optional[str]:
     """元ボットの所有者IDを取得"""
     try:
-        # 公開ボットとして検索（find_public_bot_by_idと同じ方法）
-        table = get_v2_table()  # Use public client
+        # 公開ボットとして検索
+        table = get_v2_table()
         logger.info(f"Finding owner for bot: {bot_id}")
-        response = table.query(
-            IndexName="PublicBotIdIndex",
-            KeyConditionExpression=Key("PublicBotId").eq(bot_id),
+        
+        items = query_items(
+            table,
+            Key("PublicBotId").eq(bot_id),
+            index_name="PublicBotIdIndex"
         )
-
-        if len(response["Items"]) > 0:
+        
+        if items:
             # 公開ボットのオーナーIDを返す
-            return response["Items"][0]["PK"]
-
-        # # 公開ボットではない場合、直接ボットIDで検索
-        # # 各ユーザーのコンテキストでの検索は不要になります
-        # logger.debug(f"Bot {bot_id} not found as public bot, checking direct access")
-
-        # # オリジナルボットを検索する前に、エイリアス自体にオーナー情報が含まれているか確認
-        # table_user = get_v2_table(user_id)
-        # try:
-        #     alias_sk = compose_bot_alias_id(user_id, bot_id)
-        #     alias_response = table_user.get_item(Key={"PK": user_id, "SK": alias_sk})
-        #     if "Item" in alias_response and "OwnerUserId" in alias_response["Item"]:
-        #         return alias_response["Item"]["OwnerUserId"]
-        # except:
-        #     pass
+            return items[0]["PK"]
 
         # どこにも情報がない場合はNoneを返す
         logger.warning(f"Could not find owner for bot {bot_id}, will use fallback")
@@ -109,125 +97,121 @@ def fetch_original_bot_owner(user_id: str, bot_id: str) -> Optional[str]:
         return None
 
 
-def scan_all_users() -> List[str]:
-    """Scan all users from V2 table"""
-    table = get_v2_table()
-    users: Set[str] = set()
-
+def scan_items(table, projection_expression=None, filter_expression=None, consistent_read=False):
+    """Generic function to scan items from a DynamoDB table
+    
+    Args:
+        table: DynamoDB table resource
+        projection_expression: Optional attributes to retrieve
+        filter_expression: Optional filter expression
+        consistent_read: Whether to use consistent read
+        
+    Returns:
+        List of items from the table
+    """
+    items = []
     last_evaluated_key = None
+
     while True:
-        scan_kwargs = {"ProjectionExpression": "PK"}
+        scan_kwargs = {"ConsistentRead": consistent_read}
+        if projection_expression:
+            scan_kwargs["ProjectionExpression"] = projection_expression
+        if filter_expression:
+            scan_kwargs["FilterExpression"] = filter_expression
         if last_evaluated_key:
             scan_kwargs["ExclusiveStartKey"] = last_evaluated_key
 
         response = table.scan(**scan_kwargs)
-        for item in response.get("Items", []):
-            users.add(item["PK"])
+        items.extend(response.get("Items", []))
 
         last_evaluated_key = response.get("LastEvaluatedKey")
         if not last_evaluated_key:
             break
 
+    return items
+
+
+def scan_all_users() -> List[str]:
+    """Scan all users from V2 table"""
+    table = get_v2_table()
+    items = scan_items(table, projection_expression="PK")
+    
+    # Extract unique user IDs
+    users = set(item["PK"] for item in items)
     return list(users)
 
 
-def get_all_bots_for_user(user_id: str) -> List[Dict]:
-    """ユーザーの全ボット取得"""
-
-    table = get_v2_table()
-    bots = []
-
+def query_items(table, key_condition_expression, filter_expression=None, index_name=None):
+    """Generic function to query items from a DynamoDB table
+    
+    Args:
+        table: DynamoDB table resource
+        key_condition_expression: Key condition expression for the query
+        filter_expression: Optional filter expression
+        index_name: Optional index name to query against
+        
+    Returns:
+        List of items matching the query
+    """
+    items = []
     last_evaluated_key = None
+
     while True:
         query_kwargs = {
-            "KeyConditionExpression": Key("PK").eq(user_id)
-            & Key("SK").begins_with(f"{user_id}#BOT#"),
-            "FilterExpression": Attr("OriginalBotId").not_exists()
-            | Attr("OriginalBotId").eq(""),
+            "KeyConditionExpression": key_condition_expression
         }
+        if filter_expression:
+            query_kwargs["FilterExpression"] = filter_expression
+        if index_name:
+            query_kwargs["IndexName"] = index_name
         if last_evaluated_key:
             query_kwargs["ExclusiveStartKey"] = last_evaluated_key
 
         response = table.query(**query_kwargs)
-        bots.extend(response.get("Items", []))
+        items.extend(response.get("Items", []))
 
         last_evaluated_key = response.get("LastEvaluatedKey")
         if not last_evaluated_key:
             break
 
-    return bots
+    return items
+
+
+def get_all_bots_for_user(user_id: str) -> List[Dict]:
+    """ユーザーの全ボット取得"""
+    table = get_v2_table()
+    return query_items(
+        table,
+        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#BOT#"),
+        Attr("OriginalBotId").not_exists() | Attr("OriginalBotId").eq("")
+    )
 
 
 def get_all_aliases_for_user(user_id: str) -> List[Dict]:
     """Get all aliases for a user"""
     table = get_v2_table()
-    aliases = []
-
-    last_evaluated_key = None
-    while True:
-        query_kwargs = {
-            "KeyConditionExpression": Key("PK").eq(user_id)
-            & Key("SK").begins_with(f"{user_id}#BOT_ALIAS#"),
-        }
-        if last_evaluated_key:
-            query_kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        response = table.query(**query_kwargs)
-        aliases.extend(response.get("Items", []))
-
-        last_evaluated_key = response.get("LastEvaluatedKey")
-        if not last_evaluated_key:
-            break
-
-    return aliases
+    return query_items(
+        table,
+        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#BOT_ALIAS#")
+    )
 
 
 def get_all_conversations_for_user(user_id: str) -> List[Dict]:
     """ユーザーの全会話取得"""
     table = get_v2_table()
-    conversations = []
-
-    last_evaluated_key = None
-    while True:
-        query_kwargs = {
-            "KeyConditionExpression": Key("PK").eq(user_id)
-            & Key("SK").begins_with(f"{user_id}#CONV#"),
-        }
-        if last_evaluated_key:
-            query_kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        response = table.query(**query_kwargs)
-        conversations.extend(response.get("Items", []))
-
-        last_evaluated_key = response.get("LastEvaluatedKey")
-        if not last_evaluated_key:
-            break
-
-    return conversations
+    return query_items(
+        table,
+        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#CONV#")
+    )
 
 
 def get_all_related_documents_for_user(user_id: str) -> List[Dict]:
     """ユーザーの全関連ドキュメント取得"""
     table = get_v2_table()
-    documents = []
-
-    last_evaluated_key = None
-    while True:
-        query_kwargs = {
-            "KeyConditionExpression": Key("PK").eq(user_id)
-            & Key("SK").begins_with(f"{user_id}#RELATED_DOCUMENT#"),
-        }
-        if last_evaluated_key:
-            query_kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        response = table.query(**query_kwargs)
-        documents.extend(response.get("Items", []))
-
-        last_evaluated_key = response.get("LastEvaluatedKey")
-        if not last_evaluated_key:
-            break
-
-    return documents
+    return query_items(
+        table,
+        Key("PK").eq(user_id) & Key("SK").begins_with(f"{user_id}#RELATED_DOCUMENT#")
+    )
 
 
 def convert_bot_item(item: Dict) -> Dict:
@@ -609,9 +593,9 @@ def verify_migration(users: List[str]) -> Dict[str, Any]:
     logger.info("Waiting for DynamoDB consistency...")
     time.sleep(5)
 
-    # テーブルごとにスキャン（より確実な方法）
-    bot_items = scan_table_items(bot_table)
-    conversation_items = scan_table_items(conversation_table)
+    # テーブルごとにスキャン
+    bot_items = scan_items(bot_table, consistent_read=True)
+    conversation_items = scan_items(conversation_table, consistent_read=True)
 
     # ユーザーIDベースでフィルタリング
     user_set = set(users)
@@ -744,7 +728,7 @@ def main():
 
     if args.verify_only:
         logger.info("Verification only mode")
-        verification = verify_migration(users)  # 既に取得したユーザーリストを渡す
+        verification = verify_migration(users)
         print(json.dumps(verification, indent=2, default=str))
         if verification["success"]:
             logger.info("✅ Verification PASSED")
@@ -778,11 +762,11 @@ def main():
 
     # 実際のマイグレーション実行
     logger.info("Starting migration")
-    stats = migrate_all_users(users)  # 既に取得したユーザーリストを渡す
+    stats = migrate_all_users(users)
 
     # 検証
     logger.info("Verifying migration")
-    verification = verify_migration(users)  # 既に取得したユーザーリストを渡す
+    verification = verify_migration(users)
 
     # レポート保存
     report_file = save_migration_report(stats, verification)
