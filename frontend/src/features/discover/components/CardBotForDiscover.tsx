@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import useChat from '../hooks/useChat';
-import IconPinnedBot from './IconPinnedBot';
-import ModalDialog from './ModalDialog';
-import { BotMeta } from '../@types/bot';
-import Button from './Button';
+import useChat from '../../../hooks/useChat';
+import IconPinnedBot from '../../../components/IconPinnedBot';
+import ModalDialog from '../../../components/ModalDialog';
+import { BotMeta } from '../../../@types/bot';
+import Button from '../../../components/Button';
 import { PiChat } from 'react-icons/pi';
-import MenuBot from './MenuBot';
-import { copyBotUrl } from '../utils/BotUtils';
+import MenuBot from '../../../components/MenuBot';
+import { copyBotUrl } from '../../../utils/BotUtils';
 
 type Props = {
   bot: BotMeta;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BotMeta } from '../@types/bot';
+import { BotMeta } from '../../../@types/bot';
 import { PiArrowLeft } from 'react-icons/pi';
-import Skeleton from './Skeleton';
-import Button from './Button';
+import Skeleton from '../../../components/Skeleton';
+import Button from '../../../components/Button';
 import CardBotForDiscover from './CardBotForDiscover';
 
 export const SkeletonBot: React.FC = () => {

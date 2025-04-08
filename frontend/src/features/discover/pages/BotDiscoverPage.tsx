@@ -9,14 +9,14 @@ import {
   PiCaretLeft,
   PiCaretRight,
 } from 'react-icons/pi';
-import InputText from '../components/InputText';
+import InputText from '../../../components/InputText';
 import useBotStore from '../hooks/useBotStore';
 import { twMerge } from 'tailwind-merge';
 import useBotSearch from '../hooks/useBotSearch';
 import BotSearchResults, { SkeletonBot } from '../components/BotSearchResults';
-import useLoginUser from '../hooks/useLoginUser';
-import Alert from '../components/Alert';
-import MenuBot from '../components/MenuBot';
+import useLoginUser from '../../../hooks/useLoginUser';
+import Alert from '../../../components/Alert';
+import MenuBot from '../../../components/MenuBot';
 import CardBotForDiscover from '../components/CardBotForDiscover';
 
 // for pagination
