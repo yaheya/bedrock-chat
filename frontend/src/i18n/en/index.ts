@@ -962,6 +962,10 @@ How would you categorize this email?`,
       quickStarter: {
         message: 'Please input both Title and Conversation Example.',
       },
+      required: '{{key}} is required',
+      number: {
+        greaterThen: '{{key}} must be greater then {{value}} ',
+      },
     },
     helper: {
       shortcuts: {
