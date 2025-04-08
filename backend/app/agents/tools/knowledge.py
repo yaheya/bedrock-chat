@@ -40,7 +40,9 @@ def search_knowledge(
 
     except Exception as e:
         error_traceback = traceback.format_exc()
-        logger.error(f"Failed to run AnswerWithKnowledgeTool: {e}\nTraceback: {error_traceback}")
+        logger.error(
+            f"Failed to run AnswerWithKnowledgeTool: {e}\nTraceback: {error_traceback}"
+        )
         raise e
 
 

@@ -152,7 +152,6 @@ def modify_owned_bot(
     user: User, bot_id: str, modify_input: BotModifyInput
 ) -> BotModifyOutput:
     """Modify owned bot."""
-    # TODO: refactor
     bot = find_bot_by_id(bot_id)
 
     if not bot.is_editable_by_user(user):
