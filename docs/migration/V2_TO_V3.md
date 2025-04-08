@@ -7,6 +7,8 @@
 - Update your repository URL from `bedrock-claude-chat` to `bedrock-chat`
 - Run the migration script to convert your data to the new schema
 - All your bots and conversations will be preserved with the new permission model
+- **IMPORTANT: During the migration process, the application will be unavailable to all users until the migration is complete**
+- **WARNING: The migration process cannot guarantee 100% success for all bots. Please document your important bot configurations before migration in case you need to recreate them manually**
 
 ## Introduction
 
@@ -24,18 +26,29 @@ These new features required changes to the DynamoDB schema, necessitating a migr
 
 The new permission model and Bot Store functionality required restructuring how bot data is stored and accessed. The migration process converts your existing bots and conversations to the new schema while preserving all your data.
 
+> [!WARNING] > **Service Disruption Notice**: During the migration process, the application will be unavailable to all users. Plan to perform this migration during a maintenance window when users do not need access to the system. The application will only become available again after the migration script has successfully completed and all data has been properly converted to the new schema.
+
+> [!IMPORTANT] > **Before proceeding with migration**: **The migration process cannot guarantee 100% success for all bots**, especially those created with older versions or with custom configurations. Please document your important bot configurations (instructions, knowledge sources, settings) before starting the migration process in case you need to recreate them manually.
+
 ## Migration Process
+
+### Important Notice About Bot Visibility in V3
+
+In V3, **all v2 bots with public sharing enabled will be searchable in the Bot Store.** If you have bots containing sensitive information that you don't want to be discoverable, consider making them private before migrating to V3.
 
 ### Step 0: Ensure You're on the Latest V2 Version
 
-Before starting the migration, make sure you're running the latest version of V2. This ensures you have all the necessary bug fixes and improvements before upgrading to V3:
+> [!WARNING]
+> You MUST update to v2.10.0 before migrating to V3. **Skipping this step may result in data loss during migration.**
+
+Before starting the migration, make sure you're running the latest version of V2 (**v2.10.0**). This ensures you have all the necessary bug fixes and improvements before upgrading to V3:
 
 ```bash
 # Fetch the latest tags
 git fetch --tags
 
 # Checkout the latest V2 version
-git checkout v2.9.0
+git checkout v2.10.0
 
 # Deploy the latest V2 version
 cd cdk
@@ -43,20 +56,29 @@ npm ci
 npx cdk deploy
 ```
 
-Running the latest V2 version before migrating to V3 provides a more stable starting point for the migration process.
+### Step 1: Record Your V2 DynamoDB Table Name
 
-### Step 1: Backup Your DynamoDB Table
-
-Before proceeding, create a backup of your DynamoDB ConversationTable:
+Get the V2 ConversationTable name from CloudFormation outputs:
 
 ```bash
-# Get your table name from CloudFormation outputs
+# Get the V2 ConversationTable name
+aws cloudformation describe-stacks --stack-name {YOUR_ENV_PREFIX}BedrockChatStack --query "Stacks[0].Outputs[?OutputKey=='ConversationTableName'].OutputValue" --output text
+```
+
+Make sure to save this table name in a secure location, as you'll need it for the migration script later.
+
+### Step 2: Backup Your DynamoDB Table
+
+Before proceeding, create a backup of your DynamoDB ConversationTable using the name you just recorded:
+
+```bash
+# Create a backup of your V2 table
 aws dynamodb create-backup \
-  --table-name BedrockChatStack-DatabaseConversationTableXXXXXX \
+  --table-name YOUR_V2_CONVERSATION_TABLE_NAME \
   --backup-name "BedrockChatV2Backup-$(date +%Y%m%d)"
 ```
 
-### Step 2: Update Repository URL (Recommended)
+### Step 3: Update Repository URL (Recommended)
 
 The repository has been renamed from `bedrock-claude-chat` to `bedrock-chat`. Update your local repository:
 
@@ -71,7 +93,19 @@ git remote set-url origin https://github.com/aws-samples/bedrock-chat.git
 git remote -v
 ```
 
-### Step 3: Pull V3 and Deploy
+### Step 4: Delete All Published APIs
+
+> [!IMPORTANT]
+> Before deploying V3, you must delete all published APIs to avoid Cloudformation output value conflicts during the upgrade process.
+
+1. Log in to your application as an administrator
+2. Navigate to the Admin section and select "API Management"
+3. Review the list of all published APIs
+4. Delete each published API by clicking the delete button next to it
+
+You can find more information about API publishing and management in the [PUBLISH_API.md](../PUBLISH_API.md), [ADMINISTRATOR.md](../ADMINISTRATOR.md) documentation respectively.
+
+### Step 5: Pull V3 and Deploy
 
 Pull the latest V3 code and deploy:
 
@@ -80,10 +114,28 @@ git fetch
 git checkout v3
 cd cdk
 npm ci
-npx cdk deploy
+npx cdk deploy --all
 ```
 
-### Step 4: Run the Migration Script
+> [!IMPORTANT]
+> Once you deploy V3, the application will be unavailable to all users until the migration process is complete. The new schema is incompatible with the old data format, so users will not be able to access their bots or conversations until you complete the migration script in the next steps.
+
+### Step 5: Record Your V3 DynamoDB Table Names
+
+After deploying V3, you need to get both the new ConversationTable and BotTable names:
+
+```bash
+# Get the V3 ConversationTable name
+aws cloudformation describe-stacks --stack-name {YOUR_ENV_PREFIX}BedrockChatStack --query "Stacks[0].Outputs[?OutputKey=='ConversationTableNameV3'].OutputValue" --output text
+
+# Get the V3 BotTable name
+aws cloudformation describe-stacks --stack-name {YOUR_ENV_PREFIX}BedrockChatStack --query "Stacks[0].Outputs[?OutputKey=='BotTableNameV3'].OutputValue" --output text
+```
+
+> [!Important]
+> Make sure to save these V3 table names along with your previously saved V2 table name, as you'll need all of them for the migration script.
+
+### Step 6: Run the Migration Script
 
 The migration script will convert your V2 data to the V3 schema. First, edit the script to set your table names:
 
@@ -92,9 +144,9 @@ The migration script will convert your V2 data to the V3 schema. First, edit the
 cd docs/migration
 
 # Edit migrate_v2_v3.py to update:
-# - V2_CONVERSATION_TABLE
-# - V3_CONVERSATION_TABLE
-# - V3_BOT_TABLE
+# - V2_CONVERSATION_TABLE (use the V2 ConversationTable name you recorded in Step 1)
+# - V3_CONVERSATION_TABLE (use the V3 ConversationTable name you recorded in Step 5)
+# - V3_BOT_TABLE (use the V3 BotTable name you recorded in Step 5)
 ```
 
 Then run the script using Poetry from the backend directory:
@@ -136,7 +188,7 @@ For environments with heavy users or large amounts of data, consider these appro
 
 3. **Monitor the migration**: Check the generated report files to ensure all data is migrated correctly, especially for large datasets.
 
-### Step 5: Verify the Application
+### Step 7: Verify the Application
 
 After migration, open your application and verify:
 
@@ -149,35 +201,29 @@ After migration, open your application and verify:
 ### Bot Access and Permissions
 
 **Q: What happens if a bot I'm using is deleted or my access permission is removed?**  
-A: Authorization is checked at chat time, so you'll lose access immediately. The ALIAS will be updated with `IsOriginAccessible` set to False.
+A: Authorization is checked at chat time, so you'll lose access immediately.
 
 **Q: What happens if a user is deleted (e.g., employee leaves)?**  
-A: Their data can be completely removed by deleting all items with their user ID as the partition key (PK).
+A: Their data can be completely removed by deleting all items from DynamoDB with their user ID as the partition key (PK).
 
-**Q: What happens if a pinned public bot is unpinned?**  
-A: It will be excluded from the Push-type retrieval API (using GSI-2).
+**Q: Can I turn off sharing for a essential public bot?**  
+A: No, admin must mark the bot as not essential first before turning off sharing.
 
-**Q: Can I turn off sharing for a pinned public bot?**  
-A: No, you must unpin the bot first before turning off sharing.
-
-**Q: Can I delete a pinned public bot?**  
-A: No, you must unpin the bot first before deleting it.
+**Q: Can I delete a essential public bot?**  
+A: No, admin must mark the bot as not essential first before deleting it.
 
 ### Security and Implementation
 
-**Q: Is row-level security (RLS) implemented?**  
+**Q: Is row-level security (RLS) implemented for bot table?**  
 A: No, considering the diversity of access patterns. Authorization is performed when accessing bots, and the risk of metadata leakage is considered minimal compared to conversation history.
 
-**Q: Is the Bot Store available by default?**  
-A: Yes, it's enabled by default in V3.
-
 **Q: What are the requirements for publishing an API?**  
-A: The bot must have `SharedScope` set to "PUBLIC".
+A: The bot must be public.
 
 **Q: Will there be a management screen for all private bots?**  
 A: Not in the initial V3 release. However, items can still be deleted by querying with the user ID as needed.
 
-**Q: Will there be tagging functionality?**  
+**Q: Will there be bot tagging functionality for better search UX?**  
 A: Not in the initial V3 release, but LLM-based automatic tagging may be added in future updates.
 
 ### Administration
@@ -187,14 +233,13 @@ A: Administrators can:
 
 - Manage public bots (including checking high-cost bots)
 - Manage APIs
-- Pin public bots (both fully public and partially public)
-- Access all public bots regardless of authorization settings
+- Mark public bots as essential
 
-**Q: Can I pin partially public bots?**  
-A: Yes, though the initial version only supports pinning fully public bots.
+**Q: Can I make partially shared bots as essential?**  
+A: No, only support public bots.
 
 **Q: Can I set priority for pinned bots?**  
-A: Yes, you can set the display order of pinned bots.
+A: At the initial release, no.
 
 ### Authorization Configuration
 
@@ -205,15 +250,12 @@ A:
 2. Add users to these groups as needed
 3. In BrChat, select the user groups you want to allow access to when configuring bot sharing settings
 
-Note: Group membership changes require re-login to take effect. Changes are reflected at token refresh, but not during the ID token validity period (default 30 minutes in V3, configurable in cdk.json).
+Note: Group membership changes require re-login to take effect. Changes are reflected at token refresh, but not during the ID token validity period (default 30 minutes in V3, configurable by `tokenValidMinutes` in `cdk.json` or `parameter.ts`).
 
 **Q: Does the system check with Cognito every time a bot is accessed?**  
 A: No, authorization is checked using the JWT token to avoid unnecessary I/O operations.
 
-**Q: Can I set permissions for individual users?**  
-A: Not in the initial V3 release, though the design allows for this to be added in the future.
-
 ### Search Functionality
 
 **Q: Does bot search support semantic search?**  
-A: No, only partial text matching is supported. Semantic search (e.g., "automobile" → "car", "EV", "vehicle") is not available due to OpenSearch Serverless constraints.
+A: No, only partial text matching is supported. Semantic search (e.g., "automobile" → "car", "EV", "vehicle") is not available due to current OpenSearch Serverless constraints (Mar 2025).
