@@ -38,6 +38,10 @@ Add your own instruction and knowledge (a.k.a [RAG](https://aws.amazon.com/what-
 ![](./docs/imgs/bot_store.png)
 ![](./docs/imgs/bot_api_publish_screenshot3.png)
 
+You can also import existing KnowledgeBase.
+
+![](./docs/imgs/import_existing_kb.png)
+
 </details>
 
 > [!Important]
