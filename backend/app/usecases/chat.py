@@ -9,7 +9,6 @@ from app.bedrock import (
     compose_args_for_converse_api,
     is_not_tooluse_supported,
 )
-from app.bedrock import call_converse_api, compose_args_for_converse_api
 from app.prompt import build_rag_prompt, get_prompt_to_cite_tool_results
 from app.repositories.conversation import (
     RecordNotFoundError,
@@ -259,15 +258,16 @@ def chat(
             if isinstance(content, TextContentModel):
                 pseudo_tool_use_id = "new-message-assistant"
 
-                on_thinking(
-                    {
-                        "tool_use_id": pseudo_tool_use_id,
-                        "name": "knowledge_base_tool",
-                        "input": {
-                            "query": content.body,
-                        },
-                    }
-                )
+                if on_thinking:
+                    on_thinking(
+                        {
+                            "tool_use_id": pseudo_tool_use_id,
+                            "name": "knowledge_base_tool",
+                            "input": {
+                                "query": content.body,
+                            },
+                        }
+                    )
 
                 search_results = search_related_docs(bot=bot, query=content.body)
                 logger.info(f"Search results from vector store: {search_results}")
