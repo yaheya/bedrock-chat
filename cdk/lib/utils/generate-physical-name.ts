@@ -19,6 +19,30 @@ export interface GeneratePhysicalNameOptions
    * @default: undefined
    */
   destroyCreate?: any;
+
+  /**
+   * Whether to suppress truncation warnings.
+   *
+   * @default false
+   */
+  suppressWarnings?: boolean;
+
+  /**
+   * Minimum length to reserve for the unique part of the name.
+   * Higher values ensure more uniqueness but may require more truncation of the prefix.
+   *
+   * @default 5
+   */
+  minUniqueNameLength?: number;
+}
+
+/**
+ * Logs a warning message to the console
+ */
+function logWarning(message: string, suppressWarnings = false): void {
+  if (!suppressWarnings) {
+    console.warn(`\x1b[33mWARNING: ${message}\x1b[0m`);
+  }
 }
 
 export function generatePhysicalName(
@@ -51,27 +75,83 @@ export function generatePhysicalName(
     // Shorten it (modeled after seven characters like git commit hash shortening)
     return hash.update(jsonString).digest("hex").slice(0, 7);
   }
+
   const {
     maxLength = 256,
     lower = false,
     separator = "",
     allowedSpecialCharacters = undefined,
     destroyCreate = undefined,
+    suppressWarnings = false,
+    minUniqueNameLength = 5,
   } = options ?? {};
+
   const hash = objectToHash(destroyCreate);
-  if (maxLength < (prefix + hash + separator).length) {
-    throw new Error("The prefix is longer than the maximum length.");
-  }
-  const uniqueName = cdk.Names.uniqueResourceName(scope, {
-    maxLength: maxLength - (prefix + hash + separator).length,
-    separator,
-    allowedSpecialCharacters,
-  });
-  const name = `${prefix}${hash}${separator}${uniqueName}`;
-  if (name.length > maxLength) {
-    throw new Error(
-      `The generated name is longer than the maximum length of ${maxLength}`
+
+  // Handle case where prefix is too long
+  let truncatedPrefix = prefix;
+  const minHashLength = hash.length;
+  const minSeparatorLength = separator.length;
+  // Use the configurable minUniqueNameLength instead of hardcoded value
+  const totalMinLength =
+    minHashLength + minSeparatorLength + minUniqueNameLength;
+
+  if (truncatedPrefix.length + totalMinLength > maxLength) {
+    const originalLength = truncatedPrefix.length;
+    // Ensure we have at least enough space for the minimum requirements
+    truncatedPrefix = truncatedPrefix.substring(
+      0,
+      Math.max(1, maxLength - totalMinLength)
+    );
+    logWarning(
+      `Prefix '${prefix}' (${originalLength} chars) exceeds maximum allowed length. ` +
+        `Truncated to '${truncatedPrefix}' (${truncatedPrefix.length} chars).`,
+      suppressWarnings
     );
   }
+
+  // Calculate remaining length for the unique name
+  const remainingLength = Math.max(
+    minUniqueNameLength,
+    maxLength - (truncatedPrefix.length + hash.length + separator.length)
+  );
+
+  // Generate unique name with the remaining length
+  let uniqueName;
+  try {
+    uniqueName = cdk.Names.uniqueResourceName(scope, {
+      maxLength: remainingLength,
+      separator,
+      allowedSpecialCharacters,
+    });
+  } catch (err) {
+    // If uniqueResourceName fails, generate a simple hash-based fallback
+    const fallbackHash = createHash("md5")
+      .update(scope.node.path)
+      .digest("hex")
+      .substring(0, remainingLength);
+
+    logWarning(
+      `Failed to generate unique resource name. Using fallback hash instead.`,
+      suppressWarnings
+    );
+
+    uniqueName = fallbackHash;
+  }
+
+  // Combine all parts
+  let name = `${truncatedPrefix}${hash}${separator}${uniqueName}`;
+
+  // Final check to ensure we're within maxLength
+  if (name.length > maxLength) {
+    const originalName = name;
+    name = name.substring(0, maxLength);
+    logWarning(
+      `Generated name '${originalName}' (${originalName.length} chars) exceeds maximum length of ${maxLength}. ` +
+        `Truncated to '${name}' (${name.length} chars).`,
+      suppressWarnings
+    );
+  }
+
   return lower ? name.toLowerCase() : name;
 }
