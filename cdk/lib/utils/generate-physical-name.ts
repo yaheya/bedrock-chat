@@ -73,7 +73,7 @@ export function generatePhysicalName(
 
     // Update the hash with the JSON string and get the digest in hexadecimal format
     // Shorten it (modeled after seven characters like git commit hash shortening)
-    return hash.update(jsonString).digest("hex").slice(0, 7);
+    return hash.update(jsonString).digest("hex").slice(0, 7).toUpperCase();
   }
 
   const {
@@ -96,6 +96,9 @@ export function generatePhysicalName(
   const totalMinLength =
     minHashLength + minSeparatorLength + minUniqueNameLength;
 
+  // Flag to track if any truncation occurred
+  let truncationOccurred = false;
+
   if (truncatedPrefix.length + totalMinLength > maxLength) {
     const originalLength = truncatedPrefix.length;
     // Ensure we have at least enough space for the minimum requirements
@@ -104,51 +107,57 @@ export function generatePhysicalName(
       Math.max(1, maxLength - totalMinLength)
     );
     logWarning(
-      `Prefix '${prefix}' (${originalLength} chars) exceeds maximum allowed length. ` +
-        `Truncated to '${truncatedPrefix}' (${truncatedPrefix.length} chars).`,
+      `Prefix '${prefix}' (${originalLength} chars) truncated to '${truncatedPrefix}' (${truncatedPrefix.length} chars) ` +
+      `to fit within max length ${maxLength} while reserving ${minHashLength} chars for hash and ${minUniqueNameLength} chars for unique ID.`,
       suppressWarnings
     );
+    truncationOccurred = true;
   }
 
-  // Calculate remaining length for the unique name
-  const remainingLength = Math.max(
-    minUniqueNameLength,
-    maxLength - (truncatedPrefix.length + hash.length + separator.length)
-  );
+  // First, get a unique name from CDK that includes stack information
+  const cdkUniqueName = cdk.Names.uniqueId(scope);
+  
+  // Create a unique hash using CDK's unique name and the full prefix
+  // This ensures different resources get different hashes even with similar prefixes
+  const uniqueInput = `${cdkUniqueName}:${prefix}`;
+  const uniqueHash = createHash("md5")
+    .update(uniqueInput)
+    .digest("hex")
+    .slice(0, minUniqueNameLength)
+    .toUpperCase();
 
-  // Generate unique name with the remaining length
-  let uniqueName;
-  try {
-    uniqueName = cdk.Names.uniqueResourceName(scope, {
-      maxLength: remainingLength,
-      separator,
-      allowedSpecialCharacters,
-    });
-  } catch (err) {
-    // If uniqueResourceName fails, generate a simple hash-based fallback
-    const fallbackHash = createHash("md5")
-      .update(scope.node.path)
-      .digest("hex")
-      .substring(0, remainingLength);
-
-    logWarning(
-      `Failed to generate unique resource name. Using fallback hash instead.`,
-      suppressWarnings
-    );
-
-    uniqueName = fallbackHash;
-  }
-
-  // Combine all parts
-  let name = `${truncatedPrefix}${hash}${separator}${uniqueName}`;
-
-  // Final check to ensure we're within maxLength
+  // Combine parts
+  const name = `${truncatedPrefix}${hash}${separator}${uniqueHash}`;
+  
+  // Final safety check
   if (name.length > maxLength) {
     const originalName = name;
-    name = name.substring(0, maxLength);
+    // Further reduce prefix if needed
+    const excessLength = name.length - maxLength;
+    const finalPrefix = truncatedPrefix.substring(0, Math.max(1, truncatedPrefix.length - excessLength));
+    const finalName = `${finalPrefix}${hash}${separator}${uniqueHash}`;
+    
     logWarning(
       `Generated name '${originalName}' (${originalName.length} chars) exceeds maximum length of ${maxLength}. ` +
-        `Truncated to '${name}' (${name.length} chars).`,
+      `Further adjusted to '${finalName}' (${finalName.length} chars).`,
+      suppressWarnings
+    );
+    
+    // If we had to do additional truncation, log the final name
+    if (truncationOccurred) {
+      logWarning(
+        `Final resource name: '${finalName}'`,
+        suppressWarnings
+      );
+    }
+    
+    return lower ? finalName.toLowerCase() : finalName;
+  }
+
+  // Only log the final name if truncation occurred
+  if (truncationOccurred) {
+    logWarning(
+      `Final resource name: '${name}'`,
       suppressWarnings
     );
   }
