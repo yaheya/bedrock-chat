@@ -73,6 +73,25 @@ const edgeGenerationParams = EDGE_GENERATION_PARAMS;
 
 const defaultGenerationConfig = DEFAULT_GENERATION_CONFIG;
 
+const EXCLUDED_MODELS = [
+  'claude-v3-haiku', 
+  'claude-v3-opus',
+  'claude-v3.5-sonnet',
+  'claude-v3.5-sonnet-v2',
+  'claude-v3.7-sonnet',
+  'claude-v3.5-haiku',
+  'mistral-7b-instruct',
+  'mixtral-8x7b-instruct',
+  'mistral-large',
+  'mistral-large-2',
+  'amazon-nova-pro',
+  'amazon-nova-lite',
+  'amazon-nova-micro',
+  'deepseek-r1',
+  'llama3-2-3b-instruct',
+  'llama3-2-90b-instruct'
+];
+
 const BotKbEditPage: React.FC = () => {
   const { i18n, t } = useTranslation();
   const navigate = useNavigate();
@@ -180,6 +199,10 @@ const BotKbEditPage: React.FC = () => {
 
     return getGeneralModels();
   })();
+
+  const filteredActiveModelsOptions = activeModelsOptions.filter(
+    ({ key }) => !EXCLUDED_MODELS.includes(key)
+  );
 
   const embeddingsModelOptions: {
     label: string;
@@ -2633,24 +2656,28 @@ const BotKbEditPage: React.FC = () => {
 
                 <div className="mt-4">
                   <div className="mt-2 space-y-2">
-                    {activeModelsOptions.map(({ key, label, description }) => (
-                      <div key={key} className="flex items-start">
-                        <Toggle
-                          value={
-                            activeModels[
-                              toCamelCase(key) as keyof ActiveModels
-                            ] ?? true
-                          }
-                          onChange={(value) => onChangeActiveModels(key, value)}
-                        />
-                        <div>
-                          <div>{label}</div>
-                          <div className="text-sm text-dark-gray dark:text-light-gray">
-                            {description}
+                    {filteredActiveModelsOptions.map(
+                      ({ key, label, description }) => (
+                        <div key={key} className="flex items-start">
+                          <Toggle
+                            value={
+                              activeModels[
+                                toCamelCase(key) as keyof ActiveModels
+                              ] ?? true
+                            }
+                            onChange={(value) =>
+                              onChangeActiveModels(key, value)
+                            }
+                          />
+                          <div>
+                            <div>{label}</div>
+                            <div className="text-sm text-dark-gray dark:text-light-gray">
+                              {description}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               </ExpandableDrawerGroup>
