@@ -19,8 +19,16 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
     setModelId,
   } = useModel(props.botId, props.activeModels);
 
+  // Models to exclude
+  const EXCLUDED_MODELS = ['mistral-large', 'amazon-nova-lite'];
+
+  // Filter available models
   const availableModels = useMemo(() => {
     return allModels.filter((model) => {
+      const isExcluded = EXCLUDED_MODELS.includes(model.modelId);
+      if (isExcluded) {
+        return false; // Exclude this model
+      }
       if (props.activeModels) {
         return (
           props.activeModels[
