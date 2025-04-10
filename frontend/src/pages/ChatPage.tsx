@@ -54,7 +54,7 @@ import Skeleton from '../components/Skeleton.tsx';
 import { twMerge } from 'tailwind-merge';
 import ButtonStar from '../components/ButtonStar.tsx';
 import MenuBot from '../components/MenuBot.tsx';
-import ucsb_logo from '../assets/ucsb_logo.svg';
+import ucsb_logo from '../assets/ucsb_coral.png';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
