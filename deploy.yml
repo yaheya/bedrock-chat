@@ -28,7 +28,7 @@ Parameters:
     Default: "{}"
   RepoUrl:
     Type: String
-    Default: "https://github.com/aws-samples/bedrock-chat.git"
+    Default: "https://github.com/anjelinavelazquezz/bedrock-chat.git"
   Version:
     Type: String
     Default: "v3"

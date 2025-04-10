@@ -54,6 +54,7 @@ import Skeleton from '../components/Skeleton.tsx';
 import { twMerge } from 'tailwind-merge';
 import ButtonStar from '../components/ButtonStar.tsx';
 import MenuBot from '../components/MenuBot.tsx';
+import ucsb_logo from '../assets/ucsb_logo.svg';
 
 // Default model activation settings when no bot is selected
 const defaultActiveModels: ActiveModels = (() => {
@@ -481,6 +482,7 @@ const ChatPage: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div className="sticky top-0 z-10 mb-1.5 flex h-14 w-full items-center justify-between border-b border-gray bg-aws-paper-light p-2 dark:bg-aws-paper-dark">
           <div className="flex w-full justify-between">
+            <img src={ucsb_logo} alt="UCSB Logo" className="h-10" />
             <div className="p-2">
               <div className="mr-10 flex items-center whitespace-nowrap font-bold">
                 {isLoadingBot ? (
