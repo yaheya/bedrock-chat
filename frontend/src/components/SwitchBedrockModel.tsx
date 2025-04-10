@@ -20,7 +20,24 @@ const SwitchBedrockModel: React.FC<Props> = (props) => {
   } = useModel(props.botId, props.activeModels);
 
   // Models to exclude
-  const EXCLUDED_MODELS = ['mistral-large', 'amazon-nova-lite'];
+  const EXCLUDED_MODELS = [
+    'claude-v3-haiku', 
+    'claude-v3-opus',
+    'claude-v3.5-sonnet',
+    'claude-v3.5-sonnet-v2',
+    'claude-v3.7-sonnet',
+    'claude-v3.5-haiku',
+    'mistral-7b-instruct',
+    'mixtral-8x7b-instruct',
+    'mistral-large',
+    'mistral-large-2',
+    'amazon-nova-pro',
+    'amazon-nova-lite',
+    'amazon-nova-micro',
+    'deepseek-r1',
+    'llama3-2-3b-instruct',
+    'llama3-2-90b-instruct'
+  ];
 
   // Filter available models
   const availableModels = useMemo(() => {
